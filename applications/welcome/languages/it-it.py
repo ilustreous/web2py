@@ -1,3 +1,4 @@
 {
-'Welcome to web2py!':'Benvenuto in web2py!'
+'Hello World':'Salve Mondo',
+'Welcome to web2py':'Ciao da wek2py',
 }
