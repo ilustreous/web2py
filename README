@@ -1,0 +1,176 @@
+**** start the program with python runme.py ***
+
+\project
+	README
+	LICENSE
+        TODO                               
+        Makefile                   # make all and make app
+	web2py.py                   # the startup script (*)
+        parameters.py              # created at startup 
+        admin.tar                  # the admin app (*)
+        examples.tar               # examples and documentation app (*)
+        welcome.tar                # the welcome app (entry point) (*)
+	\gluon                     # the core libraries (*)
+        \deposit                   # used for zip and install apps
+        setup_app.py               # used by py2app to make OSX executable
+        setup_exe.py               # used by py2app to make Winows executble
+        wsgihandler.py             # to use Gluon with mod_wsgi
+        \dist                      # used by py2app, py2exe
+        \build                     # used by py2app, py2exe
+        \tests                     # under development stuff
+        \docs                      # in progress documentation
+	\applications              # are the apps
+		\welcome           # application welcome, for example
+			\models
+			\views
+			\controllers
+			\sessions
+			\errors
+			\cache
+			\static
+                        \uploads
+                        \modules
+
+
+(*) Required for a fresh installation, everything else is generated
+
+
+BUG FIXES
+EWF v1.5 -> v1.6 
+load and save .py in ascii, avoids problem with LF+CR on windows
+added path.join in compileapp, fixed problem with Windows compileapp
+
+EWF v1.6 -> v1.7
+in paths replace '\' with '/' to fix problem with windows paths
+using limitby in database administration
+replaced mime/miltupart with multipart/form-data to fix a windows problem
+
+EWF v1.7 -> Gluon v1.0
+Name change 
+Improved layout.html
+
+Gluon v1.0 -> v1.1
+bug in sqlhtml with JOINS queries
+
+Gluon v1.1 -> v1.2
+fixed some typos in examples
+IS_IN_SET now supports labels
+cleanup in sql.py does not cleanup, just checks valid field and table names
+
+Gluon v1.3
+added IS_IN_DB, IS_NOT_IN_DB and updated examples accordingly
+
+Gluon v1.4
+fixed problem with IS_INT_IN_RANGE and IS_FLOAT_IN_RANGE. Now an error in a validator is reported as a ticket. Good validators should not raise Exceptions.
+IS_IN_DB displays "label (id)"
+it can upload files without extension
+migration is now optional (define_table has migrate=False option)
+
+Gluon v1.5
+<form> -> <form method="post"> in errors.html
+replace('//','////') in sub in template.py
+
+Gluon v1.8
+no more chdir (thread unsafe)
+no more sys.stdout (thread unsafe)
+response.body is StringIO()
+admin/default/site informs about upgrade
+response.locker (optional)
+
+Gluon v1.9
+allow "count(*)" in select
+db.execute()
+fixed problem with continue and return in template
+removed try: ... except in sql.py
+fixed '\t'
+
+Gluon v1.10
+fixed concurrency problems with SQLDB._instances and SQLDB._folders, now use lock
+now, by default, edit SQLFORMs retain uploaded files
+
+Gluon v1.11
+appadmin allows to keep or delete uploaded files
+
+Gluon v1.12
+in sql.py 
+* handles NULL values properly
+* unicode support (data always stored in utf-8)
+* 'date' -> datetime.date ,'time' -> datetime.time, 'datetime' -> datetime.datetime, 'boolean' -> True/False
+* most types have default validators
+* SQLField(...,required=True) option.
+* SQLRows has __str__ that serializes in CSV and xml() that serializes in HTML
+* SQLTable has import_from_csv_file(...)
+* gluon.simplejson for AJAX
+in validators.py
+* IS_IN_DB(db,..) -  db can be an SQLSet or an SQLDB
+* better error messages
+in admin
+* new import/export in csv, update and delete interface.
+in appadmin
+* edit form allows to keep stored encrypted password
+in main.py
+* http://host not defaults to http://host/init/default/index
+New third party modules
+* gluon.simplejson(.dumps, .loads)
+* gluon.pyrtf(.dumps)
+* gluon.rss2(.dumps)
+
+Gluon v1.13
+(this is one of the biggest revisions ever)
+Improved sql.py has support MySQL, cxOracle (experimental), extract, like and better testing
+SQLDB.tables and SQLTable.fields are now SQLCalableList objects
+Fixed bug with editing integer fields storing zero
+Admin interface now says "insert new [tablename]" and display insert, select or update properly in the title.
+Added a cache mechamism. Works for data, controllers, views and SQLRows.
+main.py now uses a request.folder absolute path when not os.name in ['nt','posix']. Seems to work on windowsce devices, except no file locking has consequences.
+Now you can put modules in applications/[anyapp]/modules and import them with
+import applications.[anyapp].modules.[module] as [module]
+Fixed problem with init
+New applications/examples/controller/global.py controller for docs.
+
+Gluon v1.14
+Fixed a bug fix in URLs
+
+Gluon v1.15
+New try:... except. in gluon/main.py for when sessions cannot be saved
+Now validator/formatter method allows IS_DATE('%d/%m/%Y')
+
+web2py v1.16
+yes we changed the name! Turns out Gluon was trademarked by somebody else.
+Although we are not infringing the trademark since this is a non-commercial
+product we could have run into some issues. So we have been professional
+and changed the name to web2py.
+Now SQLFORMs and FORM can have a formname and multiple forms are allowed 
+per page.
+A new examples/default/index page.
+web2py.py instead of runme.py
+mysql sets utf8 encoding.
+input integer field values are automatically converted int().
+
+web2py v1.17
+I posted v1.16 too soon. v1.17 was released after 1h to fix some bugs.
+
+web2py v1.18
+removed vulnerability in accept_languages and session_id
+Minor bug fixes. Typos and cleanup cache. Textarea now clears.
+Support for PyAMF.
+T returns a class, not a string
+new template parser (faster?)
+got rid of sintaxhighlighter in favor of server side CODE
+fix problem with cacheondisk locking
+fix 'None' instead of NULL in IS_NOT_IN_DB (I think)
+gluon.contrib.markdown
+notnull and unique in SQLField now supported (tested on sqlite mysql and postgresql)
+Storage now has __getstate__ and __setstate__ needed for pickling.
+session files are now locked to make it work better with asynchronous requests
+cxoracle should work, apart for limitby
+.../examples is now mapped to .../examples/default/index etc.
+.../init is now mapped to .../welcome if init is not present
+
+TODO:
+unicode in default datetime fields? fix
+upload folder.
+unicode in languages.py 
+index for any SQLField
+test cxoracle
+
