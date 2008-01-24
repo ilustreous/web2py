@@ -1,0 +1,9 @@
+{{extend 'layout.html'}}
+<h1>About application "{{=app}}"</h1>
+<h2>About {{=app}}</h2>
+[ {{=A('edit',_href=URL(r=request,f='edit/%s/ABOUT' % (app)))}} ]
+<p>{{=about}}</p>
+<h2>License for {{=app}}</h2>
+[ {{=A('edit',_href=URL(r=request,f='edit/%s/LICENSE' % (app)))}} ]
+<p>{{=license}}</p>
+</ul>

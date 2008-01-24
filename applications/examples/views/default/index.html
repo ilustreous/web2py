@@ -1,0 +1,128 @@
+{{extend 'layout.html'}}
+{{import os}}
+
+<!-- Start Slashdot It link -->
+<div style="text-align:right;">
+
+<a href="http://slashdot.org/bookmark.pl?url=http://mdp.cti.depaul.edu/examples&title=web2py">
+<img src="http://images.slashdot.org/favicon.gif" alt="Slashdot" border="0" height="16" width="16" />
+</a>
+
+<a href="http://digg.com/submit?url=http://mdp.cti.depaul.edu/" target="_blank"><img title="Digg" alt="Digg" src="/{{=request.application}}/static/bookmarks/digg.png" width="16" height="16" border="0" />
+</a>
+
+<a href="http://www.facebook.com/sharer.php?u=http://mdp.cti.depaul.edu/examples&t=web2py" target="_blank">
+<img title="Facebook" alt="Facebook" src="/{{=request.application}}/static/bookmarks/facebook.gif" width="16" height="16" border="0" />
+</a>
+
+<a href="http://del.icio.us/post?url=http://mdp.cti.depaul.edu/examples" target="_blank">
+<img title="del.icio.us" alt="del.icio.us" src="/{{=request.application}}/static/bookmarks/delicious.png" width="16" height="16" border="0" />
+</a>
+
+<a href="http://www.newsvine.com/_wine/save?u=http://mdp.cti.depaul.edu/examples&h=web2py" target="_blank">
+<img title="Newsvine" alt="Newsvine" src="/{{=request.application}}/static/bookmarks/newsvine.png" width="16" height="16" border="0" />
+</a>
+
+<a href="http://www.stumbleupon.com/submit?url=http://mdp.cti.depaul.edu/examples&title=web2py" target="_blank">
+<img title="StumbleUpon" alt="StumbleUpon" src="/{{=request.application}}/static/bookmarks/stumble_upon.gif" width="16" height="16" border="0" />
+</a>
+
+<a href="http://reddit.com/submit?url=http://mdp.cti.depaul.edu/examples" target="_blank">
+<img title="Reddit" alt="Reddit" src="/{{=request.application}}/static/bookmarks/reddit.png" width="18" height="18" border="0" />
+</a>
+
+<a href="http://bookmarks.yahoo.com/toolbar/savebm?opener=tb&u=http://mdp.cti.depaul.edu/examples&t=web2py" target="_blank">
+<img title="Yahoo" alt="Yahoo" src="/{{=request.application}}/static/bookmarks/yahoo.gif" width="16" height="16" border="0" />
+</a>
+
+<a href="http://cgi.fark.com/cgi/fark/submit.pl?new_url=http://mdp.cti.depaul.edu/examples&new_comment=web2py" target="_blank">
+<img title="Fark" alt="Fark" src="/{{=request.application}}/static/bookmarks/fark.png" width="15" height="18" border="0" />
+</a>
+
+<a href="http://technorati.com/faves?add=http://mdp.cti.depaul.edu/examples" target="_blank">
+<img title="Technorati" alt="Technorati" src="/{{=request.application}}/static/bookmarks/technorati.gif" width="16" height="16" border="0" />
+</a>
+
+<a href="http://www.furl.net/storeIt.jsp?u=http://mdp.cti.depaul.edu/examples&t=web2py" target="_blank">
+<img title="Furl" alt="Furl" src="/{{=request.application}}/static/bookmarks/furl.png" width="16" height="16" border="0" />
+</a>
+
+<a href="http://ma.gnolia.com/bookmarklet/add?url=http://mdp.cti.depaul.edu/examples&title=web2py" target="_blank">
+<img title="Ma.gnolia" alt="Ma.gnolia" src="/{{=request.application}}/static/bookmarks/magnolia.png" width="16" height="16" border="0" />
+</a>
+
+
+<br/>
+<a href=" http://groups.google.com/group/web2py">join our Google group</a><br/>
+<a href="http://www.bithawk.net/cgi-bin/moin.cgi/web2pyNotes">Wiki Pages</a> (under development)<br/>
+<a href="mailto:mdipierro@cs.depaul.edu">ask us a question</a><br/>
+Visitor count since Oct 1st, 2007: {{=len(os.listdir(request.folder+'sessions/'))+77143}} {{#visitors since latest cleanup}}
+</div>
+<!-- End Slashdot It link -->
+
+<h1>web2py<sup style="font-size:0.5em;">TM</sup> Enterprise Web Framework</h1>
+<span style="color: red">formerly known as "Gluon" and always backward compatible!<br/>
+New Version 1.18 - posted on {{=open('VERSION','r').read()}} - please upgrade<br/><br/></span>
+
+<h3>
+web2py is an open source full-stack Enterprise Web Framework
+for agile development of secure database-driven web-based applications,
+written and programmable in Python.<br/>
+Created by <a href="http://www.cti.depaul.edu/people/facultyInfo.asp?id=343">Massimo Di Pierro</a>. &copy; 2007.
+</h3><br/>
+
+<center>
+<object type="application/x-shockwave-flash" width="400" height="200" data="http://www.vimeo.com/hubnut/?user_id=user315328&amp;color=ff9933&amp;background=ffffff&amp;fullscreen=1&amp;stream=videos&amp;id=&amp;server=www.vimeo.com"><param name="quality" value="best" /><param name="allowfullscreen" value="true" /><param name="scale" value="showAll" /><param name="movie" value="http://www.vimeo.com/hubnut/?user_id=user315328&amp;color=ff9933&amp;background=ffffff&amp;fullscreen=1&amp;stream=videos&amp;id=&amp;server=www.vimeo.com" /></object>
+</center>
+
+Docs:
+
+<a href="http://mdp.cti.depaul.edu/examples/static/compiled_docs_beta.pdf">Collection of Docs in PDF format (beta)</a><br/>
+
+<a href="http://mdp.cti.depaul.edu/examples/static/web2py_talk.pdf">Some PDF Slides</a>,
+<a href="http://mdp.cti.depaul.edu/examples/static/cookbook.pdf">Cookbook tutorial</a> 
+(<a href="http://mdp.cti.depaul.edu/appliances/default/download/app.source.130193843596.tar">cookbook app</a>), 
+and the <a href="http://mdp.cti.depaul.edu/examples/global/vars">new docs tab</a>.
+<br/>
+<a href="http://www.cti.depaul.edu">DePaul University</a> offers an <a href="http://www.cti.depaul.edu/programs/courses.asp?courseid=438&subject=CSC&section=courses">online course</a> covering web frameworks and web2py in particular.
+<br/><br/>
+
+<h2>Why web2py?</h2><br/>
+
+<ul>
+<li>web2py comes packaged with anything you need for development including web server and SQL database. It requires no installation, no scripting, no configuration. It can run off a USB drive and <a href="http://mdp.cti.depaul.edu/examples/static/gluonce.jpg">cellphones</a>. web2py apps are platform independent.</li>
+<li>web2py allows development, deployment, maintenance, and database administration of apps via a web interface.</li>
+<li>web2py allows to byte-code compile apps for distribution in closed source.</li>
+<li>web2py manages sessions, cookies, cache, and errors. Errors are managed via a built-in ticketing system.</li>
+<li>web2py prevents the most common types of vulnerabilities: Cross Site Scripting, Injection Flaws, and Malicious File Execution.</li>
+<li>web2py includes libraries to handle JSON, AJAX, RSS, CSV, RTF, XML, and WIKI markup and can talk to SQLite, MySQL and PostgreSQL databases.</li>
+<li>web2py is really easy to use. To develop with web2py you only need to know <a href="http://www.python.org">Python</a> (<a href="http://www.poromenos.org/tutorials/python">the easiest of programing languages</a>) and HTML ({{=A('compare web2py with PHP',_href=URL(r=request,f='web2py_vs_php'))}}).</li>
+<li>web2py guides the developer to follow well estabilished software engineering patterns such as the Model-View-Controller.</li>
+<li>web2py has an <a href="http://mdp.cti.depaul.edu/appliances/">appliances repository</a> where new free and ready to use apps are added daily.</li>
+</ul>
+
+<h2>Example</h2><br/>
+
+Consider the following complete application which consists a model (which describes the data representation): <tt>db.py</tt><br/><br/>
+{{=CODE("""
+db=SQLDB('sqlite://images.db')
+db.define_table('image',SQLField('file','upload'))
+""".strip(),language='web2py',link='/examples/global/vars/')}}
+<br/>a controller (which describes the application logic and workflow): <tt>images_examples.py</tt><br/><br/>
+{{=CODE("""
+def index():
+    form=SQLFORM(db.image)
+    if form.accepts(request.vars,session): response.flash='image uploaded'
+    return dict(form=form)
+""".strip(),language='web2py',link='/examples/global/vars/')}}
+<br/>and a view (which describes the data presenation): <tt>images_examples/index.html</tt>:<br/><br/>
+{{=CODE(open('applications/examples/views/images_examples/index.html','r').read(),language='html')}}
+<br/>What does it do?
+<ul>
+<li>Creates the database db in file 'images.db'</li>
+<li>Creates the table 'image' which contains a field called 'file'. If the table exists but does not match the definition it is altered accordingly.</li>
+<li>Creates a web-based database administrative interface for db.image</li>
+<li>Creates a web page called index with upload form for db.image. Try it <a href="/{{=request.application}}/images_examples/index">here</a></li>
+<li>On upload the file is renamed in a secure way, saved, and the name of the file is stored in a new field db.image record.</li>
+</ul>
+More examples are available <a href="/{{=request.application}}/default/examples">here</a>.

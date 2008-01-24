@@ -1,0 +1,31 @@
+{{extend 'layout.html'}}
+{{import os}}
+
+<h1>web2py<sup style="font-size:0.5em;">TM</sup> Download</h1>
+<ul>
+<li><a href="http://mdp.cti.depaul.edu/examples/static/web2py_win.zip">for Windows</a></li>
+<li><a href="http://mdp.cti.depaul.edu/examples/static/web2py_osx.zip">for Mac</a></li>
+<li><a href="http://mdp.cti.depaul.edu/examples/static/web2py_src.zip">for Unix (source)</a> (requires Python 2.5, runs on Windows and most Unix systems, including <b>Linux</b> and <b>BSD</b>. BEWARE: web2py requires Python 2.5.)</li>
+<li>Production Distribution/VMWare applicance (coming soon)</li>
+</ul>
+
+<br/><br/>
+<h2>Instructions</h2><br/>
+After download, unzip it and click on web2py.exe (windows) or web2py.app (osx). To run from source type:
+<br/><br/>
+{{=CODE("python2.5 web2py.py",language=None,counter='>')}}
+<br/><br/>
+or
+<br/><br/>
+{{=CODE("python2.5 web2py.py -h",language=None,counter='>')}}
+<br/><br/>
+for command line help.
+</p>
+
+<br/><br/>
+<h2>Caveats</h2>
+<p>After installation, every time you run it, web2py asks you to choose a password. This password is your administrative pass\
+word. If the password is left blank, the administrative interface is disabled. The administrative interface /admin/default/in\
+dex is only accessible via localhost and always requires a password.<br/>Any url /a/b/c maps into a call to application a, co\
+ntroller b.py and function c in that controller.<br/>You are strongly advised to also use Apache with mod_proxy or mod_wsgi t\
+o access applications in the framework. This allows better security and concurrency.</p>

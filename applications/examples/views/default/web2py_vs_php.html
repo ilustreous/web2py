@@ -1,0 +1,31 @@
+{{extend "layout.html"}}
+
+<h1>web2py vs PHP</h1>
+
+<p><b>In PHP</b><br/>
+{{=CODE("""<html><body><h1>Records</h1><?
+  mysql_connect(localhost,username,password);
+  @mysql_select_db(database) or die( "Unable to select database");
+  $query="SELECT * FROM contacts";
+  $result=mysql_query($query);
+  mysql_close();
+  $i=0;
+  while ($i < mysql_numrows($result)) {
+    $name=mysql_result($result,$i,"name");
+    $phone=mysql_result($result,$i,"phone");
+    echo "<b>$name</b><br>Phone:$phone<br><br><hr><br>";
+    $i++;
+  }
+?></body></html>""",language='html')}}
+</p>
+
+<p><b>In web2py</b><br/>
+{{=CODE("""def contacts():
+    return HTML(BODY(H1('Records'),db().select(db.contacts.ALL))).xml()""",language='python',link='/examples/global/vars/')}}<br/>
+HTML, BODY, H1, etc. are helpers that build HTML tags. SQLTABLE is a special helper that can render as HTML TABLE any set of records.
+</p>
+
+
+
+
+

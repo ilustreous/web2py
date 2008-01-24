@@ -1,0 +1,14 @@
+{{extend 'layout.html'}}
+
+<h1>Peeking at file "{{=filename}}"</h1><br/><br/>
+
+{{
+if filename[-3:]=='.py': language='python'
+else: language='html'
+}}
+{{=CODE(data,language=language,link='/examples/global/vars/')}}
+
+
+
+
+

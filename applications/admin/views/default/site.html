@@ -1,0 +1,42 @@
+{{extend 'layout.html'}}
+{{
+import os
+def app_upload_form(sender=request.function):
+    form=FORM("upload application: ",INPUT(_type="file",_name="file"),
+              "and rename it: ", INPUT(_type="text",_name="filename",requires=IS_NOT_EMPTY),
+              INPUT(_type="submit",_value="submit"))
+    return form
+def app_create_form(sender=request.function):
+    form=FORM("create new application: ",
+              INPUT(_type="text",_name="filename",requires=IS_NOT_EMPTY),
+              INPUT(_type="submit",_value="submit"))
+    return form
+}}
+
+<h1>Installed applications</h1>
+<div style="text-align:right;">web2py version: {{=open('VERSION','r').read()}}</div>
+
+{{for a in apps:}} {{if a==request.application:}}
+<h2><a href="">{{=a}}</a></h2> [ 
+{{else:}}
+<h2><a href="/{{=a}}/default/index">{{=a}}</a></h2> [
+<a href="/{{=request.application}}/default/uninstall/{{=a}}">uninstall</a> |
+<a href="/{{=request.application}}/default/about/{{=a}}">about</a> |
+<a href="/{{=request.application}}/default/design/{{=a}}">design</a> |
+{{pass}}
+<a href="/{{=request.application}}/default/errors/{{=a}}">errors</a> |
+<a href="/{{=request.application}}/default/cleanup/{{=a}}">cleanup</a> |
+<a href="/{{=request.application}}/default/pack/{{=a}}">pack all</a>
+{{if not os.access('applications/%s/compiled' % a,os.R_OK):}}
+| <a href="/{{=request.application}}/default/compile_app/{{=a}}">compile</a>
+{{else:}}
+| <a href="/{{=request.application}}/default/pack_compiled/{{=a}}">pack compiled</a> 
+| <a href="/{{=request.application}}/default/remove_compiled_app/{{=a}}">remove compiled</a> 
+{{pass}}
+] <br/>
+{{pass}}
+<br/>
+<lu>
+<li>{{=app_create_form()}}</li>
+<li>{{=app_upload_form()}}</li>
+</lu>

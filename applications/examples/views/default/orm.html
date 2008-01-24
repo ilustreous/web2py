@@ -1,0 +1,205 @@
+{{extend 'layout.html'}}
+{{import os}}
+
+<h1>web2py<sup style="font-size:0.5em;">TM</sup> Object Relational Mapper API</h1>
+
+<p>The ORM API are exposed in web2py models, controllers and views but you can access them anywhere with
+{{=CODE("""from gluon.sql import *""")}}
+</p>
+
+<h2>Examples</h2>
+<p>
+{{=CODE("""    >>> db=SQLDB("sqlite://test.db")
+    >>> #OR db=SQLDB("mysql://username:password@host:port/dbname")
+    >>> #OR db=SQLDB("postgres://username:password@host:port/dbname")
+
+    # syntax: SQLField('fieldname','fieldtype',length=32,
+    #                   required=False, default=None,
+    #                   requires=[IS_EMAIL(error_message='invalid email')])
+
+    >>> tmp=db.define_table('users',\
+              SQLField('stringfield','string',length=32,required=True),\
+              SQLField('booleanfield','boolean',default=False),\
+              SQLField('passwordfield','password'),\
+              SQLField('textfield','text'),\
+              SQLField('blobfield','blob'),\
+              SQLField('uploadfield','upload'),\
+              SQLField('integerfield','integer'),\
+              SQLField('doublefield','double'),\
+              SQLField('datefield','date',default=datetime.date.today()),\
+              SQLField('timefield','time'),\
+              SQLField('datetimefield','datetime'),\
+              migrate='test_user.table')
+
+   # Insert a field
+
+    >>> db.users.insert(stringfield='a',booleanfield=True,\
+                       passwordfield='p',textfield='x',blobfield='x',\
+                       uploadfield=None, integerfield=5,doublefield=3.14,\
+                       datefield=datetime.date(2001,1,1),\
+                       timefield=datetime.time(12,30,15),\
+                       datetimefield=datetime.datetime(2002,2,2,12,30,15))
+    1
+
+    # Drop the table   
+
+    >>> db.users.drop()
+
+    # Examples of insert, select, update, delete
+
+    >>> tmp=db.define_table('person',\
+              SQLField('name'), \
+              SQLField('birth','date'),\
+              migrate='test_person.table')
+    >>> person_id=db.person.insert(name="Marco",birth='2005-06-22')
+    >>> person_id=db.person.insert(name="Massimo",birth='1971-12-21')
+    >>> len(db().select(db.person.ALL))
+    2
+    >>> me=db(db.person.id==person_id).select()[0] # test select
+    >>> me.name
+    'Massimo'
+    >>> db(db.person.name=='Massimo').update(name='massimo') # test update
+    >>> db(db.person.name=='Marco').delete() # test delete
+
+    Update a single record
+
+    >>> me.update_record(name="Max")
+    >>> me.name
+    'Max'
+
+    Examples of complex search conditions
+
+    >>> len(db((db.person.name=='Max')&(db.person.birth<'2003-01-01')).select())
+    1
+    >>> len(db((db.person.name=='Max')|(db.person.birth<'2003-01-01')).select())
+    1
+    >>> me=db(db.person.id==person_id).select(db.person.name)[0] 
+    >>> me.name
+    'Max'
+  
+    # Examples of search conditions using extract from date/datetime/time      
+
+    >>> len(db(db.person.birth.month()==12).select())
+    1
+    >>> len(db(db.person.birth.year()>1900).select())
+    1
+
+    Example of usage of NULL
+
+    >>> len(db(db.person.birth==None).select()) ### test NULL
+    0
+    >>> len(db(db.person.birth!=None).select()) ### test NULL
+    1
+
+    # Examples of search consitions using lower, upper, and like
+
+    >>> len(db(db.person.name.upper()=='MAX').select())
+    1
+    >>> len(db(db.person.name.like('%ax')).select())
+    1
+    >>> len(db(db.person.name.upper().like('%AX')).select())
+    1
+    >>> len(db(~db.person.name.upper().like('%AX')).select())
+    0
+
+    # orderby, groupby and limitby 
+
+    >>> people=db().select(db.person.name,orderby=db.person.name)
+    >>> order=db.person.name|~db.person.birth
+    >>> people=db().select(db.person.name,orderby=order)
+    >>> people=db().select(db.person.name,orderby=order,groupby=db.person.name)
+    >>> people=db().select(db.person.name,orderby=order,limitby=(0,100))
+
+    # Example of one 2 many relation
+
+    >>> tmp=db.define_table('dog', \
+              SQLField('name'), \
+              SQLField('birth','date'), \
+              SQLField('owner',db.person),\
+              migrate='test_dog.table')
+    >>> db.dog.insert(name='Snoopy',birth=None,owner=person_id)
+    1
+
+    # A simple JOIN
+
+    >>> len(db(db.dog.owner==db.person.id).select())
+    1
+
+    # Drop tables
+
+    >>> db.dog.drop()
+    >>> db.person.drop()
+
+    # Example of many 2 many relation and SQLSet
+ 
+    >>> tmp=db.define_table('author',SQLField('name'),\
+                            migrate='test_author.table')
+    >>> tmp=db.define_table('paper',SQLField('title'),\
+                            migrate='test_paper.table')
+    >>> tmp=db.define_table('authorship',\
+            SQLField('author_id',db.author),\
+            SQLField('paper_id',db.paper),\
+            migrate='test_authorship.table')
+    >>> aid=db.author.insert(name='Massimo')
+    >>> pid=db.paper.insert(title='QCD')
+    >>> tmp=db.authorship.insert(author_id=aid,paper_id=pid)
+
+    # Define a SQLSet
+
+    >>> authored_papers=db((db.author.id==db.authorship.author_id)&\
+                           (db.paper.id==db.authorship.paper_id))
+    >>> rows=authored_papers.select(db.author.name,db.paper.title)
+    >>> for row in rows: print row.author.name, row.paper.title
+    Massimo QCD
+
+    # Example of search condition using  belongs
+
+    >>> set=(1,2,3)
+    >>> rows=db(db.paper.id.belongs(set)).select(db.paper.ALL)
+    >>> print rows[0].title
+    QCD
+
+    # Example of search condition using nested select
+
+    >>> nested_select=db()._select(db.authorship.paper_id)
+    >>> rows=db(db.paper.id.belongs(nested_select)).select(db.paper.ALL)
+    >>> print rows[0].title
+    QCD
+
+    # Output in csv
+
+    >>> str(authored_papers.select(db.author.name,db.paper.title))
+    author.name,paper.title
+    Massimo,QCD
+
+    # Delete all leftover tables
+
+    >>> db.authorship.drop()
+    >>> db.author.drop()
+    >>> db.paper.drop()
+
+    # Commit or rollback your work
+    
+    >>> db.commit() # or db.rollback()
+  """,language='web2py',link='/examples/global/vars/')}}</p>
+
+<p><tt>migrate</tt> can be False (do not create/alter tables), True (create/alter tables) or a filename (create/alter tables and store migration information in the file).</p>
+<p>
+Mind there are little idiosincrasies like the fact that "user" is not a valid field name in PostgreSQL, or the fact that sqlite3 will ignore the type of a field and allow you to put anything in it despite the declared type. Every database backend has its own keywords that may conflict with your tablenames.
+</p><br/><br/>
+
+<h2>SQL + HTML Examples</h2>
+<br/><br/>
+Given {{=CODE("rows=db().select(db.users.ALL)")}}
+<ul>
+<li><tt>SQLTABLE(rows)</tt> turns the rows into a CSS friendly table</li>
+<li><tt>SQLFORM(db.users)</tt> makes an input form for users</li>
+<li><tt>SQLFORM(db.users,rows[i])</tt> makes an edit form for the user in rows[i]</li>
+<li><tt>SQLFORM(db.users,rows[i],deletable=True)</tt> makes an edit/delete form for the user in row[i]</li>
+<li><tt>SQLFORM(....,fields=['name','email'])</tt> allows to specify which fields should be displayed in the form. Only those fields will be validated.</li>
+<li><tt>SQLFORM(....,labels=['name':'Your Name'])</tt> allows to change the labels of the listed fields.</li>
+</ul>
+<p>
+A form=SQLFORM(...) object has one method of practical interest:
+<tt>form.accepts(request.vars,session)</tt> that processed the input variables (in request.vars) within the session and returns true if the form is valid, false otherwise. Processed variables are in form.vars and errors are in form.errors. The form is modified accordingly. If the form is accepted, accepts also perform the appropriate insert/update/delete in the database.
+</p>

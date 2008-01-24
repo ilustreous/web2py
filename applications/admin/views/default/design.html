@@ -1,0 +1,107 @@
+{{extend 'layout.html'}}
+{{
+import os
+def peekfile(path,file):
+    return A(file.replace('\\\\','/'),_href=URL(r=request,f='peek/%s/%s/%s' % (app, path, file)))
+def editfile(path,file):
+    return A('edit',_href=URL(r=request,f='edit/%s/%s/%s' % (app, path, file)))
+def htmleditfile(path,file):
+    return A('htmledit',_href=URL(r=request,f='htmledit/%s/%s/%s' % (app, path, file)))
+def editlanguagefile(path,file):
+    return A('edit',_href=URL(r=request,f='edit_language/%s/%s/%s' % (app, path, file)))
+def file_upload_form(location):
+    form=FORM("upload file: ",INPUT(_type="file",_name="file"),
+              "and rename it: ", INPUT(_type="text",_name="filename",requires=IS_NOT_EMPTY),
+              INPUT(_type="hidden",_name="location",_value=location),
+              INPUT(_type="hidden",_name="sender",_value=URL(r=request,f='design/'+app)),
+              INPUT(_type="submit",_value="submit"),_action=URL(r=request,f='upload_file'))
+    return form
+def file_create_form(location):
+    form=FORM("create file with filename: ", INPUT(_type="text",_name="filename",requires=IS_NOT_EMPTY),
+              INPUT(_type="hidden",_name="location",_value=location),
+              INPUT(_type="hidden",_name="sender",_value=URL(r=request,f='design/'+app)),
+              INPUT(_type="submit",_value="submit"),_action=URL(r=request,f='create_file'))
+    return form
+}}
+<h1>Design for "{{=app}}"</h1>
+<div style="text-align: right">
+[ <a href="#models">models</a>
+| <a href="#controllers">controllers</a>
+| <a href="#views">views</a>
+| <a href="#languages">languages</a>
+| <a href="#static">static</a> ]</div>
+<br/>
+
+<h2 id="models" onclick="collapse('models_inner');">Models</h2>
+<div id="models_inner">
+<i>the data representation, define database tables and sets</i>
+<br/><br/>
+{{if not models:}}There are no models{{else:}}[ 
+<a href="{{=URL(a=app,c='appadmin',f='index')}}">database administration</a>
+{{if os.access('applications/%s/databases/sql.log'%app,os.R_OK):}}| {{=A('sql.log',_href=URL(r=request,f='peek/%s/databases/sql.log'%app))}}{{pass}} ] {{pass}}
+<ul>
+{{for m in models:}}<li>{{=peekfile('models',m)}}
+[ {{=editfile('models',m)}} | <a href="/{{=request.application}}/default/delete/{{=app}}/models/{{=m}}?sender={{=request.function}}/{{=app}}">delete</a> ]
+{{if len(defines[m]):}}defines tables {{pass}}{{=XML(', '.join([B(table).xml() for table in defines[m]]))}}
+</li>{{pass}}
+<li>{{=file_create_form('%s/models/' % app)}}</li>
+</ul>
+</div>
+
+{{
+controller_functions=[]
+for c in controllers: controller_functions+=[c[:-3]+'/%s.html'%x for x in functions[c]]
+}}
+<h2 id="controllers" onclick="collapse('controllers_inner');">Controllers</h2>
+<div id="controllers_inner"><i>the application logic, each URL path is mapped in one exposed function in the controller</i>
+<br/><br/>
+{{if not controllers:}}There are no controllers{{pass}}
+<ul>
+{{for c in controllers:}}<li>{{=peekfile('controllers',c)}}
+[ {{=editfile('controllers',c)}} |
+<a href="/{{=request.application}}/default/delete/{{=app}}/controllers/{{=c}}?sender={{=request.function}}/{{=app}}">delete</a> ]
+{{if functions[c]:}}exposes {{pass}}{{=XML(', '.join([A(f,_href=URL(a=app,c=c[:-3],f=f)).xml() for f in functions[c]]))}}
+</li>{{pass}}
+<li>{{=file_create_form('%s/controllers/' % app)}}</li>
+</ul>
+</div>
+
+<h2 id="views" onclick="collapse('views_inner');">Views</h2>
+<div id="views_inner"><i>the presentations layer, views are also known as templates</i>
+<br/><br/>
+{{if not views:}}There are no views{{pass}}
+<ul>
+{{for c in views:}}<li>{{=peekfile('views',c)}}
+[ {{=editfile('views',c)}} | {{=htmleditfile('views',c)}} |
+<a href="/{{=request.application}}/default/delete/{{=app}}/views/{{=c}}?sender={{=request.function}}/{{=app}}">delete</a> ]
+{{if extend.has_key(c):}}extends <b>{{=extend[c]}}</b> {{pass}}
+{{if include[c]:}}includes {{pass}}{{=XML(', '.join([B(f).xml() for f in include[c]]))}}
+</li>{{pass}}
+<li>{{=file_create_form('%s/views/' % app)}}</li>
+</ul>
+</div>
+
+<h2 id="languages" onclick="collapse('languages_inner');">Languages</h2>
+<div id="languages_inner"><i>translation strings for the application</i>
+<br/><br/>
+[ {{=A('update all languages',_href=URL(r=request,f='update_languages/'+app))}} ]<br/>
+{{if not languages:}}There are no translators, only default language is supported{{pass}}
+<ul>
+{{for file in languages:}}<li>{{=peekfile('languages',file)}} [ 
+{{=editlanguagefile('languages',file)}} | <a href="/{{=request.application}}/default/delete/{{=app}}/languages/{{=file}}?sender={{=request.function}}/{{=app}}">delete</a> ]</li>
+{{pass}}
+<li>{{=file_create_form('%s/languages/' % app)}}(something like "it-it")</li>
+</ul>
+</div>
+
+<h2 id="static" onclick="collapse('static_inner');">Static files</h2>
+<div id="static_inner"><i>these files are served without processing, your images go here</i>
+<br/><br/>
+{{if not statics:}}There are no static files{{pass}}
+<ul>
+{{for file in statics:}}
+<li><a href="/{{=app}}/static/{{=file}}">{{=file}}</a> [ <a href="/{{=request.application}}/default/delete/{{=app}}/static/{{=file}}?sender={{=request.function}}/{{=app}}">delete</a> ]</li>
+{{pass}}
+<li>{{=file_upload_form('%s/static/' % app)}}</li>
+</ul>
+</div>

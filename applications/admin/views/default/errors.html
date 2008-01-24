@@ -1,0 +1,48 @@
+{{extend 'layout.html'}}
+{{import os, stat, time}}
+<script src="/{{=request.application}}/static/sorttable.js"></script>
+<style>
+table.sortable thead {
+    background-color:#eee;
+    color:#666666;
+    font-weight: bold;
+    cursor: default;
+}
+</style>
+<SCRIPT LANGUAGE="JavaScript">
+function check(){
+  for (var i = 0; i < document.myform.elements.length; i++) {
+    var e = document.myform.elements[i];
+    if (e.type == 'checkbox') e.checked = true;
+  }
+}
+function uncheck(){
+  for (var i = 0; i < document.myform.elements.length; i++) {
+    var e = document.myform.elements[i];
+    if (e.type == 'checkbox') e.checked = false;
+  }
+}
+</SCRIPT>
+
+<h1>Error logs for "{{=app}}"</h1>
+<form name="myform" method="post">
+<input type="button" name="CheckAll" value="check all"
+onClick="check()"/>
+<input type="button" name="CheckAll" value="uncheck all"
+onClick="uncheck()"/>
+<input type="submit" value="delete all checked"/><br/><br/>
+<table class="sortable">
+<thead>
+<tr><th>Delete</th><th>Ticket</th><th>Date and Time</th></tr>
+</thead>
+<tbody>
+{{for ticket in tickets:}}
+<tr>
+<td><input type="checkbox" name="delete_{{=ticket}}"/></td>
+<td><a href="/{{=request.application}}/default/ticket/{{=app}}/{{=ticket}}">{{=ticket}}</a></td>
+<td>{{=time.strftime('%Y-%m-%d %H:%M:%S',time.localtime(os.stat('applications/%s/errors/%s' % (app,ticket))[stat.ST_CTIME]))}}</td>
+</tr>
+{{pass}}
+</tbody>
+</table>
+</form>

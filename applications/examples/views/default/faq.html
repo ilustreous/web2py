@@ -1,0 +1,84 @@
+{{extend 'layout.html'}}
+
+<h1>web2py<sup style="font-size:0.5em;">TM</sup> Frequently Asked Questions</h1>
+
+<h2>What is a Model-View-Controller framwork?</h2>
+
+<p>It is a software engineering design that separates your code for the data representation (model), data presentation (view) and application logic (controller)</p>
+
+<h2>Why is web2py better than PHP, Django, Turbogears, Pylons, or Rails?</h2>
+
+<p>Try it. You would not trust me any other way.<br/>
+I will just say that while all these systems are designed for developing web applciations, web2py is a web applications itself, the competitors are not (except Zope). Moreover web2py is the only one that allows you to distribute byte-code compiled versions of your applications and the only one to provide a ticketing system to report errors.</p>
+</p>
+
+<h2>What is the simplest application i can write?</h2>
+<p>
+Edit a controller default.py and type in it:</p>
+<pre>
+def hello: return dict(message="Hello")
+</pre>
+<p>message here is a user defined variables that is being passed to the view.
+</p>
+
+<h2>What about AJAX?</h2>
+
+<p>web2py is not an AJAX framework but it works with AJAX frameworks. For examples scriptaculous works great with web2py. You may also use Gluon controllers to handle JSON request/response messages. Gluon also come with some a view called "web2py_ajax.html" included by "layout.html" that provides popup, collapse, fade effects and an "ajax" function that performs can asynchronous gluon connections (see the examples).</p>
+
+<h2>Can I change the page layout?</h2>
+
+<p>Yes. Views can extend and import other views in a tree like structure. The root of the tree is what we call a layout view. It is just an HTML file that you can edit as any other view using the administrative interface.</p>
+
+<h2>How do I upgrade from one version to the next?</h2>
+
+<p>You just overwrite filed. None of your apps, including the administrative interface and the examples will be updated. If you want to update those. Unzip the new version and move your applicaitons from oldgluon/applications/ to newgluon/applicaitons.</p>
+
+<h2>How do I access form variables?</h2>
+<p>Use <tt>request.vars.your_variable</tt> both for GET and POST. If you try a variable that is not there, you get None, you do not get an Exception.</p>
+
+<h2>How do I access form GET variables only?</h2>
+<p>Use <tt>request.get_vars.your_variable</tt></p>
+
+<h2>How do I access form POST variables only?</h2>
+<p>Use <tt>request.post_vars.your_variable</tt></p>
+
+<h2>What does a controller function return?</h2>
+<p>It should return a dictionary containing a definition of those variables you want to pass to the view. By default a function() in controller.py will be renederd by a view called controller/function.html. If this view is not found the generic.html view renders the variables in the dictionary.<br/>
+A controller function can also return a string. In this case the view is not exected and the string is returned instead.</p>
+
+<h2>Can I use web2py with SQLAlchemy?</h2>
+<p>
+If you really must, yes, but the database administration part of the administrative interface will not work with it and the automatic generation of forms and tables will not work. You will miss about 50% of what web2py does for you. The web2py ORM was written from scratch in order to provide that functionality and its is faster than SQLAlchmey.</p>
+
+<h2>Can I use gluon with Apache?</h2>
+<p>Yes and you should in a production environment! There are two ways. The easy way: install mod_proxy and send all your requests to the web2py web server. You would put something like this in your <tt>/etc/apache2/sites-available/default</tt> (some users have reported they also had to install mod_proxy_http to get the code below to work):</p>
+<pre>
+NameVirtualHost *:80
+&lt;VirtualHost *:80&gt;
+   &lt;Location "/"&gt;
+     Order deny,allow
+     Allow from all
+     ProxyPass http://127.0.0.1:8000/
+     ProxyPassReverse http://127.0.0.1:8000/
+   &lt;/Location&gt;
+   LogFormat "%h %l %u %t \"%r\" %>s %b" common
+   CustomLog /var/log/apache2/access.log common
+&lt;/VirtualHost&gt;
+</pre>
+<p>or you can use mod_swgi. web2py is wsgi compliant. This requires that you use the source version of web2py and you read the mod_wsgi documentation.</p>
+
+<h2>Can I use gluon with WSGI?</h2>
+
+<p>Yes. The handler is in <tt>wsgihandler.py</tt> in the main web2py folder.</p>
+
+<h2>Can I scale web2py to handle very high traffic?</h2>
+
+<p>You can deploy multiple installations of web2py behind a NAT server that provides load balancing. The applications/ folder has to be NFS mounted and you need to backup that as well as your database. Do not use sqllite but connect to a postgresql database. Your bottleneck will be the database, as with any other web application. To avoid complications turn the administrative interface OFF when in production (do not give it a password) and set migrate=False.</p>
+
+<h2>How can I create and access additional python modules?</h2>
+
+<p>Every application folder has a modules subfolder. You can place python modules in there. You can access them from models/views/controllers with
+<pre>
+import applications.[youapp].modules.[yourmodule] as [yourmodule]
+</pre>
+</p>
