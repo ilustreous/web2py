@@ -6,7 +6,7 @@ License: GPL v2
 
 __all__=['SQLDB','SQLField'] 
 
-import re, sys, os, types,cPickle, datetime, md5, thread, cStringIO, csv, copy
+import re, sys, os, types,cPickle, datetime, hashlib, thread, cStringIO, csv, copy
 try: import sqlite3
 except: 
     try:
@@ -38,7 +38,7 @@ parallel processes.
 date, time and datetime must be in ISO8601 format: yyyy-mm-dd hh:mm:ss
 """
 
-def hash5(txt): return md5.new(txt).hexdigest()
+def hash5(txt): return hashlib.md5(txt).hexdigest()
 
 SQL_DIALECTS={'sqlite':{'boolean':'CHAR(1)',
                       'string':'CHAR(%(length)s)',

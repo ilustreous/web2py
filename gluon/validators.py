@@ -4,7 +4,7 @@ Developed by Massimo Di Pierro <mdipierro@cs.depaul.edu>
 License: GPL v2
 """
 
-import re, random, copy, sys, types, md5, datetime, time, cgi
+import re, random, copy, sys, types, hashlib, datetime, time, cgi, hmac
 import gluon.sql 
 from storage import Storage
 
@@ -306,7 +306,10 @@ class CRYPT:
 
     encodes the value on validation with md5 checkshum
     """   
-    def __init__(self): pass
+    def __init__(self,key=None):
+        self.key=key
     def __call__(self,value):
-        return (md5.new(value).hexdigest(),None)
+        if self.key: 
+            return (hmac.new(self.key,value,hashlib.sha512).hexdigest(),None)
+        return (hashlib.md5(value).hexdigest(),None)
 
