@@ -469,7 +469,7 @@ class SQLTable(SQLStorage):
     def _drop(self):
         t=self._tablename
         if self._db._dbname=='oracle':
-            return ['DROP TABLE %s;','DROP SEQUENCE %s_sequence;' % (t,t)]
+            return ['DROP TABLE %s;' % t,'DROP SEQUENCE %s_sequence;' % t]
         return ['DROP TABLE %s;' % t]
     def drop(self):        
         logfile=open(os.path.join(self._db._folder,'sql.log'),'a')
@@ -521,7 +521,7 @@ class SQLTable(SQLStorage):
             id=int(self._db._cursor.fetchone()[0])
         elif self._db._dbname=='oracle':
             t=self._tablename
-            self._execute('SELECT %s_sequence.currval FROM dual;' %t)
+            self._db._execute('SELECT %s_sequence.currval FROM dual;' %t)
             id=int(self._db._cursor.fetchone()[0])
         else:
             id=None
