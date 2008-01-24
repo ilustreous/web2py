@@ -13,7 +13,7 @@ if sys.version[:3]!='2.5':
 
 ProgramName="web2py Web Framework"
 ProgramAuthor='Created by Massimo Di Pierro, Copyright 2007-2008'
-ProgramVersion='Version 1.18 (%s)' % open('VERSION','r').read().strip()
+ProgramVersion='Version 1.19 (%s)' % open('VERSION','r').read().strip()
 
 class IO:
     def __init__(self):

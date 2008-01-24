@@ -30,7 +30,6 @@ from itertools import count
 from BaseHTTPServer import BaseHTTPRequestHandler, HTTPServer
 from SocketServer import ThreadingMixIn
 import logging
-import portalocker
 
 try:
     from paste.util import killthread
@@ -295,10 +294,10 @@ class WSGIHandlerMixin:
 
     def log_web2py_response(self,time_in):
         line='%s, %s, %s, %s, %s, %s, %f\n' % (self.wsgi_environ['REMOTE_ADDR'], datetime.datetime.today().strftime('%Y-%m-%d %H:%M:%S'), self.wsgi_environ['REQUEST_METHOD'],self.wsgi_environ['PATH_INFO'].replace(',','%2C'),self.wsgi_environ['SERVER_PROTOCOL'],self.wsgi_curr_headers[0][:3],time.time()-time_in)
-        portalocker.lock(logfile, portalocker.LOCK_EX)
+        ### portalocker.lock(logfile, portalocker.LOCK_EX)
         logfile.write(line)
         logfile.flush()
-        portalocker.unlock(logfile)
+        ### portalocker.unlock(logfile)
 
     def wsgi_execute(self, environ=None):
         """
