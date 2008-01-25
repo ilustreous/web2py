@@ -98,7 +98,7 @@ class web2pyDialog:
         httplog=os.path.join(os.getcwd(),'httpserver.log')
         servermenu.add_command(label='View httpserver.log', command=lambda:try_start_browser(httplog))
         servermenu.add_command(label='Quit (pid:%i)' % os.getpid(), command=self.quit)
-        self.menu.add_cascade(label="Sever", menu=servermenu)
+        self.menu.add_cascade(label="Server", menu=servermenu)
 
         self.pagesmenu = Tkinter.Menu(self.menu,tearoff=0)  
         self.menu.add_cascade(label="Pages", menu=self.pagesmenu)
