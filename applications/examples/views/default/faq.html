@@ -2,14 +2,14 @@
 
 <h1>web2py<sup style="font-size:0.5em;">TM</sup> Frequently Asked Questions</h1>
 
-<h2>What is a Model-View-Controller framwork?</h2>
+<h2>What is a Model-View-Controller framework?</h2>
 
 <p>It is a software engineering design that separates your code for the data representation (model), data presentation (view) and application logic (controller)</p>
 
 <h2>Why is web2py better than PHP, Django, Turbogears, Pylons, or Rails?</h2>
 
 <p>Try it. You would not trust me any other way.<br/>
-I will just say that while all these systems are designed for developing web applciations, web2py is a web applications itself, the competitors are not (except Zope). Moreover web2py is the only one that allows you to distribute byte-code compiled versions of your applications and the only one to provide a ticketing system to report errors.</p>
+I will just say that while all these systems are designed for developing web applications, web2py is a web applications itself, the competitors are not (except Zope). Moreover web2py is the only one that allows you to distribute byte-code compiled versions of your applications and the only one to provide a ticketing system to report errors.</p>
 </p>
 
 <h2>What is the simplest application i can write?</h2>
@@ -31,7 +31,7 @@ def hello: return dict(message="Hello")
 
 <h2>How do I upgrade from one version to the next?</h2>
 
-<p>You just overwrite filed. None of your apps, including the administrative interface and the examples will be updated. If you want to update those. Unzip the new version and move your applicaitons from oldgluon/applications/ to newgluon/applicaitons.</p>
+<p>You just overwrite filed. None of your apps, including the administrative interface and the examples will be updated. If you want to update those. Unzip the new version and move your applications from oldgluon/applications/ to newgluon/applications.</p>
 
 <h2>How do I access form variables?</h2>
 <p>Use <tt>request.vars.your_variable</tt> both for GET and POST. If you try a variable that is not there, you get None, you do not get an Exception.</p>
@@ -43,8 +43,8 @@ def hello: return dict(message="Hello")
 <p>Use <tt>request.post_vars.your_variable</tt></p>
 
 <h2>What does a controller function return?</h2>
-<p>It should return a dictionary containing a definition of those variables you want to pass to the view. By default a function() in controller.py will be renederd by a view called controller/function.html. If this view is not found the generic.html view renders the variables in the dictionary.<br/>
-A controller function can also return a string. In this case the view is not exected and the string is returned instead.</p>
+<p>It should return a dictionary containing a definition of those variables you want to pass to the view. By default a function() in controller.py will be rendered by a view called controller/function.html. If this view is not found the generic.html view renders the variables in the dictionary.<br/>
+A controller function can also return a string. In this case the view is not executed and the string is returned instead.</p>
 
 <h2>Can I use web2py with SQLAlchemy?</h2>
 <p>

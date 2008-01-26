@@ -209,15 +209,18 @@ def console():
 
 def start():
     options=console()
+    root=None
     if options.password=='<ask>' and havetk:
-       root=Tkinter.Tk()
+       try: root=Tkinter.Tk()
+       except: pass
+    if root:
        root.focus_force()
        presentation(root)
        master=web2pyDialog(root)
        try: root.mainloop()
        except: master.quit()
        sys.exit()
-    if options.password=='<ask>':
+    if not root and options.password=='<ask>':
        options.password=raw_input('choose a password:')
     if not options.password: 
        print 'no password, no admin interface'

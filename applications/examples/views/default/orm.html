@@ -91,7 +91,7 @@
     >>> len(db(db.person.birth!=None).select()) ### test NULL
     1
 
-    # Examples of search consitions using lower, upper, and like
+    # Examples of search conditions using lower, upper, and like
 
     >>> len(db(db.person.name.upper()=='MAX').select())
     1
@@ -185,7 +185,7 @@
 
 <p><tt>migrate</tt> can be False (do not create/alter tables), True (create/alter tables) or a filename (create/alter tables and store migration information in the file).</p>
 <p>
-Mind there are little idiosincrasies like the fact that "user" is not a valid field name in PostgreSQL, or the fact that sqlite3 will ignore the type of a field and allow you to put anything in it despite the declared type. Every database backend has its own keywords that may conflict with your tablenames.
+Mind there are little idiosyncrasies like the fact that "user" is not a valid field name in PostgreSQL, or the fact that sqlite3 will ignore the type of a field and allow you to put anything in it despite the declared type. Every database backend has its own keywords that may conflict with your tablenames.
 </p><br/><br/>
 
 <h2>SQL + HTML Examples</h2>

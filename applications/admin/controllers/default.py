@@ -79,6 +79,8 @@ def site():
             response.flash='new application "%s" created' % appname
         except:
             response.flash='unable to create new application "%s"' % request.vars.filename
+    elif request.vars.has_key('file') and not request.vars.filename:
+        response.flash='you must specify a name for the uploaded application'
     elif request.vars.filename and request.vars.has_key('file'):
         try:
             appname=cleanpath(request.vars.filename)
