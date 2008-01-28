@@ -218,8 +218,11 @@ class SQLTABLE(TABLE):
             for colname in sqlrows.colnames:
                 tablename,fieldname=colname.split('.')
                 field=sqlrows._db[tablename][fieldname]
-                if record.has_key('update_record'): r=record[fieldname]
-                else: r=record[tablename][fieldname]               
+                if record.has_key(tablename) and isinstance(record,SQLStorage):
+                    r=record[tablename][fieldname]
+                elif record.has_key(fieldname):
+                    r=record[fieldname]
+                else: raise SyntaxError, "something wrong in SQLRows object"
                 r=str(field.formatter(r))
                 if upload and field.type=='upload' and r!='None':
                     if r: row.append(TD(A('file',_href='%s/%s' % (upload,r))))
