@@ -7,6 +7,7 @@ License: GPL v2
 import types, urllib, random, re, sys, os, shutil, cStringIO
 from html import FORM,INPUT,TEXTAREA,SELECT,OPTION,TABLE,TR,TD,TH,A,B,DIV
 from validators import IS_IN_SET, IS_NOT_IN_DB, CRYPT
+from sql import SQLStorage
 
 class SQLFORM(FORM):
     """
