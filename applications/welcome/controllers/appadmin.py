@@ -2,11 +2,13 @@
 ### make sure administrator is on localhost
 ############################################################
 
-import os
+import os, socket
 from gluon.contenttype import contenttype
 from gluon.fileutils import check_credentials
 
-if request.env.remote_addr!=request.env.http_host.split(':')[0]: 
+http_host = request.env.http_host.split(':')[0]
+remote_addr = request.env.remote_addr
+if remote_addr not in (http_host, socket.gethostbyname(remote_addr)):
     raise HTTP(400)
 if not check_credentials(request):
     redirect('/admin')
