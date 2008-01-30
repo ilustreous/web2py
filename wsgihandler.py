@@ -1,5 +1,6 @@
 """
-in apache with mod_wsgi put something like:
+This is a WSGI handler for Apache
+Requires apache+mod_wsgi. In httpd.conf put something like:
 
   LoadModule wsgi_module modules/mod_wsgi.so
   WSGIScriptAlias / /path/to/wsgihandler.py
