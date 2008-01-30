@@ -11,7 +11,7 @@ __all__=['reindent','Template']
 
 re_write=re.compile('\{\{=(?P<value>.*?)\}\}',re.DOTALL)
 re_html=re.compile('\}\}.*?\{\{',re.DOTALL)
-re_multiline=re.compile('(""".*?""")|(\'\'\'.*?\'\'\')',re.DOTALL)
+re_multiline=re.compile('((?:""").*?(?:"""))|'+"((?:''').*?(?:'''))",re.DOTALL)
 re_include_nameless=re.compile('\{\{\s*include\s*\}\}')
 re_include=re.compile('\{\{\s*include\s+[\'"](?P<name>.*?)[\'"]\s*\}\}')
 re_extend=re.compile('^\s*\{\{\s*extend\s+[\'"](?P<name>[^\']+)[\'"]\s*\}\}')
@@ -51,9 +51,6 @@ def replace(regex,text,f):
     output.append(text[i:len(text)])
     return ''.join(output)
 
-def cleanup(text):    
-    return "'''%s'''" % text[2:-2].replace('\\','\\\\\\\\').replace('\n','\\\\n').replace("'","\\x27")
-
 def parse_template(filename,path='views/',cache='cache/'):        
     filename=filename
     ##
@@ -87,7 +84,7 @@ def parse_template(filename,path='views/',cache='cache/'):
     ##
     text='}}%s{{'%re_write.sub('{{response.write(\g<value>)}}',data)
     text=replace(re_html,text,lambda x: '\nresponse.write(%s,escape=False)\n'%repr(x[2:-2]))
-    text=replace(re_multiline,text,lambda x: x.encode('string_escape'))    
+    text=replace(re_multiline,text,lambda x: x.replace('\n','\\n'))
     return reindent(text)
 
 if __name__=='__main__':

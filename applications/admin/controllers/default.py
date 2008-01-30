@@ -219,17 +219,19 @@ def edit_language():
     keys.sort()
     rows=[]
     rows.append(TR(B('Original'),B('Translation')))
-    for key in keys:
+    for keyi in range(len(keys)):
+        key=keys[keyi]
         if len(key)<=40:
-            rows.append(TR(key+' ',INPUT(_type='text',_name=key,value=strings[key],_size=40)))
+            rows.append(TR(key+' ',INPUT(_type='text',_name=str(keyi),value=strings[key],_size=40)))
         else:
-            rows.append(TR(key+':',TEXTAREA(_name=key,value=strings[key],_cols=40,_rows=5)))
+            rows.append(TR(key+':',TEXTAREA(_name=str(keyi),value=strings[key],_cols=40,_rows=5)))
     rows.append(TR('',INPUT(_type='submit',_value='update')))
     form=FORM(TABLE(*rows))
-    if form.accepts(request.vars,session,keepvalues=True):
+    if form.accepts(request.vars,keepvalues=True):
         txt='{\n'
-        for key in keys:
-            txt+='%s:%s,\n' % (repr(key),repr(form.vars[key]))
+        for keyi in range(len(keys)):
+            key=keys[keyi]
+            txt+='%s:%s,\n' % (repr(key),repr(form.vars[str(keyi)]))
         txt+='}\n'
         open('applications/'+filename,'w').write(txt)        
         response.flash="file saved on "+time.ctime()       

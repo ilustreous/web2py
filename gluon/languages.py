@@ -10,7 +10,13 @@ from fileutils import listdir
 __all__=['translator','findT','update_all_languages']
 
 # pattern to find T(bla bla bla) expressions
-regex_translate=re.compile("""[^\w.]T\((?P<name>(?:(?:["][^"]+["])|(?:[\'][^\']+[\'])))\)""")
+PY_STRING_LITERAL_RE= r'(?<=[^\w]T\()(?P<name>'+ \
+  r"[uU]?[rR]?(?:'''(?:[^']|'{1,2}(?!'))*''')|" +\
+              r"(?:'(?:[^'\\]|\\.)*')|" +\
+            r'(?:"""(?:[^"]|"{1,2}(?!"))*""")|'+ \
+              r'(?:"(?:[^"\\]|\\.)*"))'
+           
+regex_translate=re.compile(PY_STRING_LITERAL_RE,re.DOTALL)
 
 # patter for a valid accept_language
 regex_language=re.compile('[a-zA-Z]{2}(\-[a-zA-Z]{2})?(\-[a-zA-Z]+)?')
@@ -24,7 +30,8 @@ class lazyT:
         self.s=symbols
         self.t=self_t
     def __str__(self):
-        if self.t and self.t.has_key(self.m): return self.t[self.m] % self.s
+        m=self.m
+        if self.t and self.t.has_key(m): return self.t[m] % self.s
         return self.m % self.s
     def xml(self):
         return cgi.esacpe(str(self))
@@ -75,19 +82,22 @@ def findT(application,language='en-us'):
         sentences=eval(open(os.path.join(path,'languages/','%s.py' % language),'r').read())
     except:
         sentences={}
-    for file in listdir(path,'.+',0):        
+    mp=os.path.join(path,'models')
+    cp=os.path.join(path,'controllers')
+    vp=os.path.join(path,'views')
+    for file in listdir(mp,'.+\.py',0)+listdir(cp,'.+\.py',0)+listdir(vp,'.+\.html',0):
         data=open(file,'r').read()
         items=regex_translate.findall(data)        
         for item in items:
-            msg=item[1:-1]
-            if item and not sentences.has_key(msg):
+            msg=eval(item)
+            if msg and not sentences.has_key(msg):
                 sentences[msg]=''
     keys=sentences.keys()
     keys.sort()
     file=open(os.path.join(path,'languages/','%s.py' % language),'w')
     file.write('{\n')
     for key in keys:
-        file.write("%s:%s,\n" % (repr(str(key)),repr(str(sentences[key]))))
+        file.write("%s:%s,\n" % (repr(key),repr(str(sentences[key]))))
     file.write('}\n')
     file.close()
 
