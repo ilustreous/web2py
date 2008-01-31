@@ -172,7 +172,10 @@ class SQLStorage(dict):
     a dictionary that let you do d['a'] as well as d.a
     """
     def __getattr__(self, key): return self[key]
-    def __setattr__(self, key, value): self[key] = value
+    def __setattr__(self, key, value):
+        if self.has_key(key):
+            raise SyntaxError, 'Object exists and cannot be redefined'
+        self[key] = value
     def __repr__(self): return '<SQLStorage ' + dict.__repr__(self) + '>'
 
 class SQLCallableList(list):
@@ -223,7 +226,7 @@ class SQLDB(SQLStorage):
         return
     def __init__(self,uri='sqlite://dummy.db'):
         self._uri=uri
-        self._lastsql=''
+        self['_lastsql']=''
         self.tables=SQLCallableList()
         pid=thread.get_ident()
         ### check if there is a folder for this thread else use ''
@@ -283,7 +286,7 @@ class SQLDB(SQLStorage):
             self._cursor=self._connection.cursor()
             self._execute=lambda *a,**b: self._cursor.execute(*a,**b)
             query='BEGIN;'
-            self._lastsql=query
+            self['_lastsql']=query
             self._execute(query)
             self._execute("SET CLIENT_ENCODING TO 'UNICODE';") ### not completely sure but should work
         elif self._uri[:9]=='oracle://':
@@ -327,7 +330,7 @@ class SQLDB(SQLStorage):
     def rollback(self):
         self._connection.rollback()
     def executesql(self,query):
-        self._lastsql=query
+        self['_lastsql']=query
         self._execute(query)
         return self._cursor.fetchall()
 
@@ -408,7 +411,7 @@ class SQLTable(SQLStorage):
             logfile.write('timestamp: %s\n' % \
                           datetime.datetime.today().isoformat())
             logfile.write(query+'\n')
-            self._db._lastsql=query
+            self._db['_lastsql']=query
             self._db._execute(query)       
             if self._db._dbname=='oracle':
                t=self._tablename
@@ -454,7 +457,7 @@ class SQLTable(SQLStorage):
                 logfile.write('timestamp: %s\n' % \
                               datetime.datetime.today().isoformat())
                 logfile.write(query+'\n')
-                self._db._lastsql=query
+                self._db['_lastsql']=query
                 self._db._execute(query)               
                 if sql_fields.has_key(key): sql_fields_old[key]=sql_fields[key]
                 else: del sql_fields_old[key]
@@ -474,7 +477,7 @@ class SQLTable(SQLStorage):
     def drop(self):        
         logfile=open(os.path.join(self._db._folder,'sql.log'),'a')
         queries=self._drop()
-        self._db._lastsql='\n'.join(queries)
+        self._db['_lastsql']='\n'.join(queries)
         for query in queries: 
             logfile.write(query+'\n')
             self._db._execute(query)
@@ -509,7 +512,7 @@ class SQLTable(SQLStorage):
         return 'INSERT INTO %s(%s) VALUES (%s);' % (sql_t,sql_f,sql_v)
     def insert(self,**fields):
         query=self._insert(**fields)
-        self._db._lastsql=query
+        self._db['_lastsql']=query
         self._db._execute(query)
         if self._db._dbname=='sqlite':
               id=self._db._cursor.lastrowid 
@@ -744,7 +747,7 @@ class SQLSet:
         Always returns a SQLRows object, even if it may be empty
         """
         def response(query):
-            self._db._lastsql=query
+            self._db['_lastsql']=query
             self._db._execute(query)
             return self._db._cursor.fetchall()
         if not attributes.has_key('cache'):
@@ -766,7 +769,7 @@ class SQLSet:
         return 'DELETE FROM %s%s;' % (tablename,sql_w)
     def delete(self):
         query=self._delete()
-        self._db._lastsql=query
+        self._db['_lastsql']=query
         self._db._execute(query)
     def _update(self,**fields):
         tablenames=self._tables
@@ -780,7 +783,7 @@ class SQLSet:
         return 'UPDATE %s %s%s;' % (sql_t,sql_v,sql_w)
     def update(self,**fields):
         query=self._update(**fields)
-        self._db._lastsql=query
+        self._db['_lastsql']=query
         self._db._execute(query)
 
 def update_record(t,s,a):
