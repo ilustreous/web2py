@@ -411,6 +411,11 @@ class FORM(DIV):
         if self.formname!=None:
            self.components.append(INPUT(_type='hidden',
                                   _name='_formname',_value=self.formname))
+        if self.attributes.has_key('hidden'):
+           hidden=self.attributes['hidden']
+           for key,value in hidden.items():
+               self.components.append(INPUT(_type='hidden',
+                                      _name=key,_value=value))
         return DIV.xml(self)
 
 class BEAUTIFY(DIV):
