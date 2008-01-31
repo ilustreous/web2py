@@ -9,7 +9,7 @@ from storage import Storage
 from validators import *
 from highlight import highlight
 
-__all__=['A', 'B', 'BEAUTIFY', 'BODY', 'BR', 'CENTER', 'CODE', 'DIV', 'EM', 'EMBED', 'FORM', 'H1', 'H2', 'H3', 'H4', 'H5', 'H6', 'HEAD', 'HR', 'HTML', 'IMG', 'INPUT', 'LI', 'LINK', 'LO', 'LU', 'META', 'OBJECT', 'ON', 'OPTION', 'P', 'PRE', 'SCRIPT', 'SELECT', 'SPAN', 'STYLE', 'TABLE', 'TD', 'TEXTAREA', 'TH', 'TITLE', 'TR', 'TT', 'URL', 'XML']
+__all__=['A', 'B', 'BEAUTIFY', 'BODY', 'BR', 'CENTER', 'CODE', 'DIV', 'EM', 'EMBED', 'FIELDSET', 'FORM', 'H1', 'H2', 'H3', 'H4', 'H5', 'H6', 'HEAD', 'HR', 'HTML', 'IFRAME', 'IMG', 'INPUT', 'LABEL', 'LI', 'LINK', 'LO', 'LU', 'META', 'OBJECT', 'ON', 'OPTION', 'P', 'PRE', 'SCRIPT', 'SELECT', 'SPAN', 'STYLE', 'TABLE', 'TD', 'TEXTAREA', 'TH', 'TITLE', 'TR', 'TT', 'URL', 'XML']
 
 def URL(a=None,c=None,f=None,r=None,args=[],vars={}):
     """
@@ -181,7 +181,13 @@ class H5(DIV): tag='h5'
 
 class H6(DIV): tag='h6'
 
-class P(DIV): tag='p'
+class P(DIV):
+    tag='p'
+    def xml(self):
+        text=DIV.xml(self)
+        if self.attributes.has_key('cr2br') and self.attributes['cr2br']:
+             text=text.replace('\n','<br/>')
+        return text
 
 class B(DIV): tag='B'
 
@@ -219,6 +225,8 @@ class CODE(DIV):
         counter=1 if not self.attributes.has_key('counter') else self.attributes['counter']
         styles={} if not self.attributes.has_key('styles') else self.attributes['styles']
         return highlight(''.join(self.components),language=language,link=link,counter=counter,styles=styles,attributes=self.attributes)
+
+class LABEL(DIV): tag='label'
 
 class LI(DIV): tag='li'
 
@@ -260,6 +268,8 @@ class TABLE(DIV):
             else:
                 components.append(TR(*c))
         self.components=components
+
+class IFRAME(DIV): tag='iframe'
 
 class INPUT(DIV):
     """ 
@@ -374,6 +384,8 @@ class SELECT(INPUT):
                self.attributes['value']==components[-1].attributes['_value']:
                 components[-1].attributes['_selected']=ON
         self.components=components
+
+class FIELDSET(DIV): tag='fieldset'
 
 class FORM(DIV): 
     """

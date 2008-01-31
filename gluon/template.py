@@ -11,7 +11,15 @@ __all__=['reindent','Template']
 
 re_write=re.compile('\{\{=(?P<value>.*?)\}\}',re.DOTALL)
 re_html=re.compile('\}\}.*?\{\{',re.DOTALL)
-re_multiline=re.compile('((?:""").*?(?:"""))|'+"((?:''').*?(?:'''))",re.DOTALL)
+#re_strings=re.compile('((?:""").*?(?:"""))|'+"((?:''').*?(?:'''))"+'((?:""").*?(?:"""))|'+"((?:''').*?(?:'''))"
+
+PY_STRING_LITERAL_RE= r'(?P<name>'+ \
+  r"[uU]?[rR]?(?:'''(?:[^']|'{1,2}(?!'))*''')|" +\
+              r"(?:'(?:[^'\\]|\\.)*')|" +\
+            r'(?:"""(?:[^"]|"{1,2}(?!"))*""")|'+ \
+              r'(?:"(?:[^"\\]|\\.)*"))'
+re_strings=re.compile(PY_STRING_LITERAL_RE,re.DOTALL)
+
 re_include_nameless=re.compile('\{\{\s*include\s*\}\}')
 re_include=re.compile('\{\{\s*include\s+[\'"](?P<name>.*?)[\'"]\s*\}\}')
 re_extend=re.compile('^\s*\{\{\s*extend\s+[\'"](?P<name>[^\']+)[\'"]\s*\}\}')
@@ -84,7 +92,7 @@ def parse_template(filename,path='views/',cache='cache/'):
     ##
     text='}}%s{{'%re_write.sub('{{response.write(\g<value>)}}',data)
     text=replace(re_html,text,lambda x: '\nresponse.write(%s,escape=False)\n'%repr(x[2:-2]))
-    text=replace(re_multiline,text,lambda x: x.replace('\n','\\n'))
+    text=replace(re_strings,text,lambda x: x.replace('\n','\\n'))
     return reindent(text)
 
 if __name__=='__main__':

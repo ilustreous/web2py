@@ -5,7 +5,7 @@ License: GPL v2
 """
 
 import types, urllib, random, re, sys, os, shutil, cStringIO
-from html import FORM,INPUT,TEXTAREA,SELECT,OPTION,TABLE,TR,TD,TH,A,B,DIV
+from html import FORM,INPUT,TEXTAREA,SELECT,OPTION,TABLE,TR,TD,TH,A,B,DIV,LABEL
 from validators import IS_IN_SET, IS_NOT_IN_DB, CRYPT
 from sql import SQLStorage
 
@@ -64,6 +64,7 @@ class SQLFORM(FORM):
                 label=labels[fieldname]
             else: 
                 label=fieldname.replace('_',' ').capitalize()+': '
+            label=LABEL(label,_for=fieldname,_id='%s:label'%field_id)
             if field.type=='blob' or field.type=='text':
                 inp=TEXTAREA(_type='text',_id=field_id,
                     _name=fieldname,value=default, requires=field.requires)
