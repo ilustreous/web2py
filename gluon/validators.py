@@ -240,7 +240,7 @@ class IS_DATE:
 
     INPUT(_type='text',_name='name',requires=IS_DATE())
 
-    date has to be in the ISO8960 format YYYY-MM-DDD
+    date has to be in the ISO8960 format YYYY-MM-DD
     """
     def __init__(self,format='%Y-%m-%d',error_message='must be YYYY-MM-DD!'):
         self.format=format
@@ -261,10 +261,10 @@ class IS_DATETIME:
 
     INPUT(_type='text',_name='name',requires=IS_DATETIME())
 
-    datetime has to be in the ISO8960 format YYYY-MM-DDD hh:mm:ss
+    datetime has to be in the ISO8960 format YYYY-MM-DD hh:mm:ss
     """
     isodatetime='%Y-%m-%d %H:%M:%S'
-    def __init__(self,format='%Y-%m-%d %H:%M:%S',error_message='must be YYYY-MM-SS HH:MM:SS!'):
+    def __init__(self,format='%Y-%m-%d %H:%M:%S',error_message='must be YYYY-MM-DD HH:MM:SS!'):
         self.format=format
         self.error_message=error_message        
     def __call__(self,value):
