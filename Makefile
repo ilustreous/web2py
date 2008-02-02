@@ -10,7 +10,7 @@ backup:
 	mv web2py.zip ../web2py.zip.old | echo 'none'
 	cd ..; zip -r web2py.zip web2py
 all:
-	echo `date` > VERSION
+	echo 'Version 1.20 ('`date`')' > VERSION
 	### build epydoc
 	rm -r applications/examples/static/epydoc/ | echo 'none'
 	epydoc --config epydoc.conf

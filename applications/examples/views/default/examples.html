@@ -586,3 +586,20 @@ def fade():
 <b>In view: ajax_examples/fade.html </b><br/>
 {{=CODE(open(request.folder+'views/ajax_examples/fade.html','r').read(),language='html',link='/examples/global/vars/')}}
 <p>Try it here: <a href="/{{=request.application}}/ajax_examples/fade">fade</a></p>
+
+<h2>Testing Examples</h2>
+
+<br/><br/>
+<h3>Example {{=c}}{{c+=1}}</h3>
+<p>Using the Python doctest notation it is possible to write tests for all controller functions. Tests are then run via the administrative interface which generates a report. Here is an example of a test in the code:
+{{=CODE("""
+def index():
+    '''
+    This is a docstring. The following 3 lines are a doctest:
+    >>> request.vars.name='Max'
+    >>> index()
+    {'name': 'Max'}
+    '''
+    return dict(name=request.vars.name)
+""".strip(),language='web2py',link='/examples/global/vars/')}}
+</p>

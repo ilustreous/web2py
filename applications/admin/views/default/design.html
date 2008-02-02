@@ -55,7 +55,9 @@ for c in controllers: controller_functions+=[c[:-3]+'/%s.html'%x for x in functi
 <h2 id="controllers" onclick="collapse('controllers_inner');">Controllers</h2>
 <div id="controllers_inner"><i>the application logic, each URL path is mapped in one exposed function in the controller</i>
 <br/><br/>
-{{if not controllers:}}There are no controllers{{pass}}
+{{if not controllers:}}There are no controllers{{else:}}
+[ <a href='/{{=request.application}}/default/test/{{=app}}'>test</a> ]
+{{pass}}
 <ul>
 {{for c in controllers:}}<li>{{=peekfile('controllers',c)}}
 [ {{=editfile('controllers',c)}} |

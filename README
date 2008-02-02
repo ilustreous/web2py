@@ -167,6 +167,16 @@ cxoracle should work, apart for limitby
 .../examples is now mapped to .../examples/default/index etc.
 .../init is now mapped to .../welcome if init is not present
 
+web2py 1.19
+minor typos
+
+web2py 1.20
+new IFRAME, LABEL, FIELDSET validators 
+P(..cr2br=True) option
+FORM and SQLFORM have hidden=dict(...) option for REST
+testing framework.
+improved examples pages
+
 TODO:
 unicode in default datetime fields? fix
 upload folder.

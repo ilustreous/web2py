@@ -17,27 +17,27 @@
     #                   required=False, default=None,
     #                   requires=[IS_EMAIL(error_message='invalid email')])
 
-    >>> tmp=db.define_table('users',\
-              SQLField('stringfield','string',length=32,required=True),\
-              SQLField('booleanfield','boolean',default=False),\
-              SQLField('passwordfield','password'),\
-              SQLField('textfield','text'),\
-              SQLField('blobfield','blob'),\
-              SQLField('uploadfield','upload'),\
-              SQLField('integerfield','integer'),\
-              SQLField('doublefield','double'),\
-              SQLField('datefield','date',default=datetime.date.today()),\
-              SQLField('timefield','time'),\
-              SQLField('datetimefield','datetime'),\
+    >>> tmp=db.define_table('users',
+              SQLField('stringfield','string',length=32,required=True),
+              SQLField('booleanfield','boolean',default=False),
+              SQLField('passwordfield','password'),
+              SQLField('textfield','text'),
+              SQLField('blobfield','blob'),
+              SQLField('uploadfield','upload'),
+              SQLField('integerfield','integer'),
+              SQLField('doublefield','double'),
+              SQLField('datefield','date',default=datetime.date.today()),
+              SQLField('timefield','time'),
+              SQLField('datetimefield','datetime'),
               migrate='test_user.table')
 
    # Insert a field
 
-    >>> db.users.insert(stringfield='a',booleanfield=True,\
-                       passwordfield='p',textfield='x',blobfield='x',\
-                       uploadfield=None, integerfield=5,doublefield=3.14,\
-                       datefield=datetime.date(2001,1,1),\
-                       timefield=datetime.time(12,30,15),\
+    >>> db.users.insert(stringfield='a',booleanfield=True,
+                       passwordfield='p',textfield='x',blobfield='x',
+                       uploadfield=None, integerfield=5,doublefield=3.14,
+                       datefield=datetime.date(2001,1,1),
+                       timefield=datetime.time(12,30,15),
                        datetimefield=datetime.datetime(2002,2,2,12,30,15))
     1
 
@@ -47,9 +47,9 @@
 
     # Examples of insert, select, update, delete
 
-    >>> tmp=db.define_table('person',\
-              SQLField('name'), \
-              SQLField('birth','date'),\
+    >>> tmp=db.define_table('person',
+              SQLField('name'), 
+              SQLField('birth','date'),
               migrate='test_person.table')
     >>> person_id=db.person.insert(name="Marco",birth='2005-06-22')
     >>> person_id=db.person.insert(name="Massimo",birth='1971-12-21')
@@ -112,10 +112,10 @@
 
     # Example of one 2 many relation
 
-    >>> tmp=db.define_table('dog', \
-              SQLField('name'), \
-              SQLField('birth','date'), \
-              SQLField('owner',db.person),\
+    >>> tmp=db.define_table('dog', 
+              SQLField('name'), 
+              SQLField('birth','date'), 
+              SQLField('owner',db.person),
               migrate='test_dog.table')
     >>> db.dog.insert(name='Snoopy',birth=None,owner=person_id)
     1
@@ -132,13 +132,13 @@
 
     # Example of many 2 many relation and SQLSet
  
-    >>> tmp=db.define_table('author',SQLField('name'),\
+    >>> tmp=db.define_table('author',SQLField('name'),
                             migrate='test_author.table')
-    >>> tmp=db.define_table('paper',SQLField('title'),\
+    >>> tmp=db.define_table('paper',SQLField('title'),
                             migrate='test_paper.table')
-    >>> tmp=db.define_table('authorship',\
-            SQLField('author_id',db.author),\
-            SQLField('paper_id',db.paper),\
+    >>> tmp=db.define_table('authorship',
+            SQLField('author_id',db.author),
+            SQLField('paper_id',db.paper),
             migrate='test_authorship.table')
     >>> aid=db.author.insert(name='Massimo')
     >>> pid=db.paper.insert(title='QCD')
@@ -146,7 +146,7 @@
 
     # Define a SQLSet
 
-    >>> authored_papers=db((db.author.id==db.authorship.author_id)&\
+    >>> authored_papers=db((db.author.id==db.authorship.author_id)&
                            (db.paper.id==db.authorship.paper_id))
     >>> rows=authored_papers.select(db.author.name,db.paper.title)
     >>> for row in rows: print row.author.name, row.paper.title

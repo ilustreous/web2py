@@ -10,9 +10,34 @@ from restricted import restricted
 from fileutils import listdir
 from myregex import regex_expose
 from http import HTTP
+from html import CODE
 import os, py_compile, marshal, imp, types
 
+
 error_message='<html><body><h1>Invalid request</h1>%s</body></html>'
+
+TEST_CODE=r"""
+def _TEST():
+    import doctest, gluon.fileutils, sys, cStringIO, types, cgi
+    if not gluon.fileutils.check_credentials(request): raise HTTP(400)
+    stdout=sys.stdout
+    response._vars='<h2>Testing controller "%s.py" ... done.</h2><br/>\n' % request.controller
+    for key in [key for key in globals() if not key in __symbols__+['_TEST']]:
+        if type(eval(key))==types.FunctionType: 
+            if doctest.DocTestFinder().find(eval(key)):
+                sys.stdout=cStringIO.StringIO()
+                name='applications/%s/controllers/%s.py in %s.__doc__' % (request.application, request.controller, key)
+                doctest.run_docstring_examples(eval(key),globals(),False,name=name)
+                report=sys.stdout.getvalue().strip()
+                pf='failed' if report else 'passed'
+                response._vars+='<h3 class="%s">Function %s [%s]</h3>'%(pf,key,pf)
+                if report: response._vars+=CODE(report,language='web2py').xml()
+                response._vars+='<br/>\n'
+            else:
+                response._vars+='<h3 class="nodoctests">Function %s [no doctests]</h3><br/>'%(key)
+    sys.stdout=stdout
+_TEST()
+"""
 
 def save_pyc(filename):
     py_compile.compile(filename)
@@ -94,6 +119,14 @@ def run_controller_in(controller,function,environment):
         if not os.access(filename,os.R_OK): 
             raise HTTP(400,error_message % 'invalid function')
         restricted(read_pyc(filename),environment,layer=filename)
+    elif function=='_TEST':
+        filename=os.path.join(folder,'controllers/%s.py' % controller)
+        if not os.access(filename,os.R_OK):
+            raise HTTP(400,error_message % 'invalid controller')
+        environment['__symbols__']=environment.keys()
+        code=open(filename,'r').read()
+        code+=TEST_CODE
+        restricted(code,environment,layer=filename)
     else:
         filename=os.path.join(folder,'controllers/%s.py' % controller)
         if not os.access(filename,os.R_OK):

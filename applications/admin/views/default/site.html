@@ -14,7 +14,7 @@ def app_create_form(sender=request.function):
 }}
 
 <h1>Installed applications</h1>
-<div style="text-align:right;">web2py version: {{=open('VERSION','r').read()}}</div>
+<div style="text-align:right;">web2py {{=open('VERSION','r').read()}}</div>
 
 {{for a in apps:}} {{if a==request.application:}}
 <h2><a href="">{{=a}}</a></h2> [ 

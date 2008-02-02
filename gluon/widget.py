@@ -11,9 +11,9 @@ if sys.version[:3]!='2.5':
     sys.stderr.write('web2py requires Python 2.5 but you are running:\n%s' % sys.version)
     sys.exit(1)
 
-ProgramName="web2py Web Framework"
+ProgramName="web2py Enterprise Framework"
 ProgramAuthor='Created by Massimo Di Pierro, Copyright 2007-2008'
-ProgramVersion='Version 1.19 (%s)' % open('VERSION','r').read().strip()
+ProgramVersion=open('VERSION','r').read().strip()
 
 class IO:
     def __init__(self):

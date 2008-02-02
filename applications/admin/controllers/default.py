@@ -195,6 +195,11 @@ def peek():
     extension=filename[filename.rfind('.')+1:].lower()    
     return dict(app=request.args[0],filename=filename,data=data,extension=extension)
 
+def test():
+    app=request.args[0]
+    controllers=listdir('applications/%s/controllers/' % app, '.*\.py$')
+    return dict(app=app,controllers=controllers)
+
 def edit():
     """ admin controller function """
     filename='/'.join(request.args)    
@@ -209,6 +214,7 @@ def edit():
         response.flash="file saved on "+time.ctime()       
     except: pass
     return dict(app=request.args[0],filename=filename,filetype=filetype,data=data)
+
 
 def edit_language():
     """ admin controller function """

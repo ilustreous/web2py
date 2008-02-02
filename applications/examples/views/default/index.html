@@ -51,59 +51,66 @@
 <a href="http://ma.gnolia.com/bookmarklet/add?url=http://mdp.cti.depaul.edu/examples&title=web2py" target="_blank">
 <img title="Ma.gnolia" alt="Ma.gnolia" src="/{{=request.application}}/static/bookmarks/magnolia.png" width="16" height="16" border="0" />
 </a>
-
-
 <br/>
-<a href=" http://groups.google.com/group/web2py">join our Google group</a><br/>
-<a href="mailto:mdipierro@cs.depaul.edu">ask us a question</a><br/>
 Visitor count since Oct 1st, 2007: {{=len(os.listdir(request.folder+'sessions/'))+77143}} {{#visitors since latest cleanup}}
 </div>
 <!-- End Slashdot It link -->
 
-<h1>web2py<sup style="font-size:0.5em;">TM</sup> Enterprise Web Framework</h1>
-<img src="http://mac.softpedia.com/images/spyward/softpedia_clean_award_f.gif" align="right"/>
+<table width="100%" border="0" cellspacing="0" cellpaddning="0">
+<tr><td align="left" valign="top">
+<h1>web2py<sup style="font-size:0.5em;">TM</sup> Enterprise Framework</h1>
 
-<span style="color: red">formerly known as "Gluon" and always backward compatible!<br/>
-New Version 1.19 - posted on {{=open('VERSION','r').read()}} - please upgrade<br/><br/></span>
+<span style="color: red">Formerly known as "Gluon" and always backward compatible!<br/>
+Current {{=open('VERSION','r').read().strip()}}. Please upgrade.<br/><br/></span>
 
 <h3>
-web2py is an open source full-stack Enterprise Web Framework
+web2py is an open source full-stack Enterprise Framework
 for agile development of secure database-driven web-based applications,
-written and programmable in Python.<br/>
-Created by <a href="http://www.cti.depaul.edu/people/facultyInfo.asp?id=343">Massimo Di Pierro</a>. &copy; 2007-2008.
-</h3><br/>
-
-<center>
-<object type="application/x-shockwave-flash" width="400" height="200" data="http://www.vimeo.com/hubnut/?user_id=user315328&amp;color=ff9933&amp;background=ffffff&amp;fullscreen=1&amp;stream=videos&amp;id=&amp;server=www.vimeo.com"><param name="quality" value="best" /><param name="allowfullscreen" value="true" /><param name="scale" value="showAll" /><param name="movie" value="http://www.vimeo.com/hubnut/?user_id=user315328&amp;color=ff9933&amp;background=ffffff&amp;fullscreen=1&amp;stream=videos&amp;id=&amp;server=www.vimeo.com" /></object>
-</center>
-
-Docs:
-
-<a href="http://mdp.cti.depaul.edu/examples/static/compiled_docs_beta.pdf">Collection of Docs in PDF format (beta)</a><br/>
-
-<a href="http://mdp.cti.depaul.edu/examples/static/web2py_talk.pdf">Some PDF Slides</a>,
-<a href="http://mdp.cti.depaul.edu/examples/static/cookbook.pdf">Cookbook tutorial</a> 
-(<a href="http://mdp.cti.depaul.edu/appliances/default/download/app.source.130193843596.tar">cookbook app</a>), 
-and the <a href="http://mdp.cti.depaul.edu/examples/global/vars">new docs tab</a>.
+written and programmable in Python. Created by <a href="http://www.cti.depaul.edu/people/facultyInfo.asp?id=343">Massimo Di Pierro</a>. &copy; 2007-2008.
+</h3></td>
+<td align="center" valign="middle">
+<img src="http://mac.softpedia.com/images/spyward/softpedia_clean_award_f.gif" align="right"/>
+</td></tr></table>
 <br/>
-<a href="http://www.cti.depaul.edu">DePaul University</a> offers an <a href="http://www.cti.depaul.edu/programs/courses.asp?courseid=438&subject=CSC&section=courses">online course</a> covering web frameworks and web2py in particular.
+
+<table width="100%" border="0" cellspacing="0" cellpaddning="0">
+<tr><td align="left" valign="top">
+<h2>Learning opportunitites</h2>
+<br/>
+<ul>
+<li><a href="http://mdp.cti.depaul.edu/examples/default/download">Download web2py</a></li>
+<li><a href="http://mdp.cti.depaul.edu/examples/static/cookbook.pdf">Cookbook tutorial</a> (<a href="http://mdp.cti.depaul.edu/appliances/default/download/app.source.130193843596.tar">cookbook app</a>)</li>
+<li><a href="/examples/default/examples">Lots of examples</a></li>
+<li><a href="http://mdp.cti.depaul.edu/examples/static/compiled_docs_beta.pdf">Collection of Docs in PDF format (beta)</a></li>
+<li><a href="/examples/default/api">Interactive documentation</a>
+and <a href="/examples/static/epydoc/index.html">epydocs</a></li>
+<li><a href="http://mdp.cti.depaul.edu/appliances">Appliances repository (lots of free apps)</a></li>
+<li><a href="http://www.cti.depaul.edu/programs/courses.asp?courseid=438&subject=CSC&section=courses">Online course</a></li>
+<li><a href="http://code.google.com/p/web2py">Browse the latest code</a></li>
+<li><a href="http://groups.google.com/group/web2py">Join us for questions</a></li>
+</ul>
+</td><td align="center" valign="middle">
+<object type="application/x-shockwave-flash" width="400" height="200" data="http://www.vimeo.com/hubnut/?user_id=user315328&amp;color=ff9933&amp;background=ffffff&amp;fullscreen=1&amp;stream=videos&amp;id=&amp;server=www.vimeo.com"><param name="quality" value="best" /><param name="allowfullscreen" value="true" /><param name="scale" value="showAll" /><param name="movie" value="http://www.vimeo.com/hubnut/?user_id=user315328&amp;color=ff9933&amp;background=ffffff&amp;fullscreen=1&amp;stream=videos&amp;id=&amp;server=www.vimeo.com" /></object>
+</td></tr></table>
+
 <br/><br/>
 
 <h2>Why web2py?</h2><br/>
 
 <ul>
-<li>web2py comes packaged with anything you need for development including web server and SQL database. It requires no installation, no scripting, no configuration. It can run off a USB drive and <a href="http://mdp.cti.depaul.edu/examples/static/gluonce.jpg">cellphones</a>. web2py apps are platform independent.</li>
-<li>web2py allows development, deployment, maintenance, and database administration of apps via a web interface.</li>
-<li>web2py allows to byte-code compile apps for distribution in closed source.</li>
-<li>web2py manages sessions, cookies, cache, and errors. Errors are managed via a built-in ticketing system.</li>
+<li>No installation, No configuration, No console scripting, No dependencies. It even runs off a USB drive.</li>
+<li>Everything is done through the provided web interface (including development, debugging, testing, maintenantce, deployment, internationalization, and database administration)</li>
+<li>It is portable. Runs on Windows, Mac, Linux, Unix and some <a href="http://mdp.cti.depaul.edu/examples/static/gluonce.jpg">cellphones</a>.</li>
+<li>No limitation on licensing of the applications you develop. web2py even allows you to bytecode compile them and distribute in closed-sorce format (as long they do not contain web2py source code, read the <a href="/{{=request.application}}/default/license">license</a>)
 <li>web2py prevents the most common types of vulnerabilities: Cross Site Scripting, Injection Flaws, and Malicious File Execution.</li>
 <li>web2py includes libraries to handle JSON, AJAX, RSS, CSV, RTF, XML, and WIKI markup and can talk to SQLite, MySQL, PostgreSQL and Oracle databases.</li>
+<li>web2py guides the developer to follow well established software engineering patterns such as the Model-View-Controller and testing.</li>
 <li>web2py is really easy to use. To develop with web2py you only need to know <a href="http://www.python.org">Python</a> (<a href="http://www.poromenos.org/tutorials/python">the easiest of programing languages</a>) and HTML ({{=A('compare web2py with PHP',_href=URL(r=request,f='web2py_vs_php'))}}).</li>
-<li>web2py guides the developer to follow well established software engineering patterns such as the Model-View-Controller.</li>
+<li>web2py includes a web interafce to doctests (the python testing library) which tests functions in your application and generates real-time reports.</li>
 <li>web2py has an <a href="http://mdp.cti.depaul.edu/appliances/">appliances repository</a> where new free and ready to use apps are added daily.</li>
 </ul>
 
-<h2>Example</h2><br/>
+<h2>A taste of web2py</h2><br/>
 
 Consider the following complete application which consists a model (which describes the data representation): <tt>db.py</tt><br/><br/>
 {{=CODE("""
@@ -127,4 +134,3 @@ def index():
 <li>Creates a web page called index with upload form for db.image. Try it <a href="/{{=request.application}}/images_examples/index">here</a></li>
 <li>On upload the file is renamed in a secure way, saved, and the name of the file is stored in a new field db.image record.</li>
 </ul>
-More examples are available <a href="/{{=request.application}}/default/examples">here</a>.

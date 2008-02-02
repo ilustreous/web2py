@@ -11,18 +11,21 @@
 </li>
 <li>Multiple concurrent applications each with its own folders, sessions, static files, error logs, etc.</li>
 <li>Built-in internationalization. Example:
-<pre>    T("hello world")</pre></li>
+{{=CODE("""T("hello world")""")}}
 <li>Ticketing system for reporting and logging errors (and make sure code is never exposed to users).</li>
-<li>View/Template language with full Python support but with no indentation requirements. Example: <pre>    &#123;&#123;extend 'layout.html'&#125;&#125;&#123;&#123;for i in range(10):&#125;&#125;hello&#123;&#123;pass&#125;&#125;</pre></li>
+<li>View/Template language with full Python support but with no indentation requirements. Example: 
+{{=CODE("{"+"{extend 'layout.html'}"+"}\n{"+"{for i in range(10):}"+"}hello{"+"{pass}"+"}")}}
+</li>
 <li>Object Relation Mapper (similar to SQLObjects) for interfacing the database in Python without SQL. Works with SQLite3, PostgreSQL, MySQL and Oracle (via cxOracle, experimental). It can do joins, orderby, groupby and limitby. Example:
-<pre>    db.define_table('users',SQLField('name'))
-    db().select(db.users.name)</pre>
+{{=CODE("""db.define_table('users',SQLField('name'))
+db().select(db.users.name)""")}}
 </li>
 <li>A database administrative interface to browse, insert, edit, update and delete records. It also allows import/export in csv.</li>
-<li>Helpers for building HTML (including FORMs, SQLFORMs and SQLTABLEs). Example: <pre>    form=SQLFORM(db.users)</pre></li>
+<li>Helpers for building HTML (including FORMs, SQLFORMs and SQLTABLEs). Example:
+{{=CODE("""form=SQLFORM(db.users)""")}}</li>
 <li>FORMs and SQLFORMs perform validation of input. Example:
-<pre>    if form.accepts(response.vars,session):
-        response.flash='record inserted'</pre></li>
+{{=CODE("""if form.accepts(response.vars,session):
+response.flash='record inserted'""")}}</li>
 <li>Supports database migrations (with PostgreSQL, partially with sqlite)</li>
 <li>Designed for security. URLs are validated, forms are validated, template variables are escaped, SQL is escaped, no client side storage (other than session cookie) and it never exposes application code. FORMs enforce navigation and prevent double submission.</li>
 <li>A powerful and granular cache system can cache in ram/disk/both a single function, a database select, a controller or an entire page.
