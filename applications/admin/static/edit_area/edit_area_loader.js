@@ -45,7 +45,7 @@
 			,allow_toggle: true		// true or false
 			,language: "en"
 			,syntax: ""
-			,syntax_selection_allow: "basic,brainfuck,c,cpp,css,html,js,pas,php,python,sql,vb,xml"
+			,syntax_selection_allow: "basic,c,cpp,css,html,js,pas,php,python,sql,vb,xml"
 			,display: "onload" 		// onload or later
 			,max_undo: 30
 			,browsers: "known"	// all or known

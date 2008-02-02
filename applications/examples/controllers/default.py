@@ -14,7 +14,7 @@ response.menu=[
   ['license',request.function=='license','/%s/default/license'%app],
   ['thanks',request.function=='thanks','/%s/default/thanks'%app]]
 
-@cache(request.env.path_info,time_expire=600,cache_model=cache.ram) 
+@cache(request.env.path_info,time_expire=-1,cache_model=cache.ram) 
 def index(): return response.render(dict())
 
 @cache(request.env.path_info,time_expire=600,cache_model=cache.ram) 
@@ -46,3 +46,5 @@ def web2py_vs_php(): return response.render(dict())
 
 @cache(request.env.path_info,time_expire=600,cache_model=cache.ram) 
 def version(): return open('VERSION','r').read()
+
+def pyamf_howto(): return dict()
