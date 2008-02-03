@@ -35,6 +35,8 @@ all:
 	cp applications/admin/controllers/appadmin.py applications/welcome/controllers
 	cp applications/admin/controllers/appadmin.py applications/examples/controllers	
 	### update the license
+	cp ABOUT applications/admin/
+	cp ABOUT applications/examples/
 	cp LICENSE applications/admin/
 	cp LICENSE applications/examples/
 	### build the basic apps
