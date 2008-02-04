@@ -18,6 +18,7 @@ from fileutils import listdir
 from contenttype import contenttype
 from sql import SQLDB, SQLField
 from sqlhtml import SQLFORM, SQLTABLE
+from rewrite import rewrite
 import myregex
 import html, validators
 import httpserver # this is paste wsgi web server
@@ -259,6 +260,8 @@ def wsgibase(environ, responder):
         ticket=e.log(request)
         if session_file: portalocker.unlock(session_file)
         return HTTP(200,error_message_ticket % ticket).to(responder)
+
+wsgibase,html.URL=rewrite(wsgibase,html.URL)
 
 def save_password(password):
    """
