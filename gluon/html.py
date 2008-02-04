@@ -346,7 +346,7 @@ class INPUT(DIV):
 class TEXTAREA(INPUT): 
     """
     TEXTAREA(_name='sometext',value='bla '*100,requires=IS_NOT_EMPTY())
-    'bla bla bla ...' will be the contect of the textarea field.
+    'bla bla bla ...' will be the content of the textarea field.
     """
     tag='textarea'
     def postprocessing(self):

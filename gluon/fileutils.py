@@ -4,10 +4,10 @@ Developed by Massimo Di Pierro <mdipierro@cs.depaul.edu>
 License: GPL v2
 """
 
-from storage import load_storage
+import storage
 
-__all__=['listdir', 'cleanpath', 'tar', 'untar', 'tar_compiled', 'check_credentials']
-
+__all__=['listdir', 'cleanpath', 'tar', 'untar', 'tar_compiled', 
+         'get_session', 'check_credentials']
 
 def listdir(path,expression='^.+$',drop=True,add_dirs=False):
     """
@@ -68,12 +68,16 @@ def tar_compiled(file,dir,expression='^.+$'):
         if file[:11]=='controllers': continue
         tar.add(dir+file,file,False)
 
-def check_credentials(request,other_application='admin'):
+def get_session(request,other_application='admin'):
     """ checks that user is authorized to access other_application""" 
-    if request.application==other_application: return request.authorized
+    if request.application==other_application: raise KeyError
     try:
         session_id=request.cookies['session_id_'+other_application].value
-        osession=load_storage('applications/%s/sessions/%s'%(other_application,session_id))
-        return osession.authorized
-    except IOError: pass
-    return False
+        osession=storage.load_storage('applications/%s/sessions/%s' % \
+                                      (other_application,session_id))
+    except IOError: osession=storage.Storage()
+    return osession
+
+def check_credentials(request,other_application='admin'):
+    """ checks that user is authorized to access other_application""" 
+    return get_session(request,other_application).authorized
