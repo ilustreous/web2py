@@ -11,14 +11,13 @@ from fileutils import listdir
 from myregex import regex_expose
 from http import HTTP
 from html import CODE
-import os, py_compile, marshal, imp, types
-
+import os, py_compile, marshal, imp, types, doctest
 
 error_message='<html><body><h1>Invalid request</h1>%s</body></html>'
 
 TEST_CODE=r"""
 def _TEST():
-    import doctest, gluon.fileutils, sys, cStringIO, types, cgi
+    import doctest, sys, cStringIO, types, cgi, gluon.fileutils
     if not gluon.fileutils.check_credentials(request): raise HTTP(400)
     stdout=sys.stdout
     response._vars='<h2>Testing controller "%s.py" ... done.</h2><br/>\n' % request.controller
@@ -31,7 +30,7 @@ def _TEST():
                 report=sys.stdout.getvalue().strip()
                 pf='failed' if report else 'passed'
                 response._vars+='<h3 class="%s">Function %s [%s]</h3>'%(pf,key,pf)
-                if report: response._vars+=CODE(report,language='web2py').xml()
+                if report: response._vars+=CODE(report,language='web2py',link='/examples/global/vars/').xml()
                 response._vars+='<br/>\n'
             else:
                 response._vars+='<h3 class="nodoctests">Function %s [no doctests]</h3><br/>'%(key)

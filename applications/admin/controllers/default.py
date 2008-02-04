@@ -7,6 +7,7 @@ from gluon.fileutils import listdir, cleanpath, tar, tar_compiled, untar
 from gluon.languages import findT, update_all_languages
 from gluon.myregex import *
 from gluon.restricted import *
+from gluon.contrib.markdown import WIKI
 from gluon.compileapp import compile_application, remove_compiled_application
 import time,os,sys,re,urllib,socket
 
@@ -103,7 +104,7 @@ def pack():
         filename='deposit/%s.tar' % app 
         tar(filename,'applications/%s/' % app,'^[\w\.]+$')
     except: redirect(URL(r=request,f='site'))
-    response.headers['Content-Type']='applicaiton/x-tar'
+    response.headers['Content-Type']='application/x-tar'
     return open(filename,'rb').read()
 
 def pack_compiled():        
@@ -113,7 +114,7 @@ def pack_compiled():
         filename='deposit/%s.tar' % app 
         tar_compiled(filename,'applications/%s/' % app)
     except: redirect(URL(r=request,f='site'))
-    response.headers['Content-Type']='applicaiton/x-tar'
+    response.headers['Content-Type']='application/x-tar'
     return open(filename,'rb').read()
 
 def uninstall():
@@ -259,9 +260,9 @@ def about():
     """ admin controller function """
     app=request.args[0] 
     ### check if file is not there 
-    about=open('applications/%s/ABOUT' % app,'r').read().replace('\n\n','<br/>')
-    license=open('applications/%s/LICENSE' % app,'r').read().replace('\n\n','<br/>')
-    return dict(app=app,about=XML(about),license=XML(license))
+    about=open('applications/%s/ABOUT' % app,'r').read()
+    license=open('applications/%s/LICENSE' % app,'r').read()
+    return dict(app=app,about=WIKI(about),license=WIKI(license))
 
 def design():
     """ admin controller function """

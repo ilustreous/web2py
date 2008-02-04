@@ -56,13 +56,12 @@ Visitor count since Oct 1st, 2007: {{=len(os.listdir(request.folder+'sessions/')
 </div>
 <!-- End Slashdot It link -->
 
-<table width="100%" border="0" cellspacing="0" cellpaddning="0">
-<tr><td align="left" valign="top">
 <h1>web2py<sup style="font-size:0.5em;">TM</sup> Enterprise Web Framework</h1>
 
+<table width="100%" border="0" cellspacing="0" cellpaddning="0">
+<tr><td align="left" valign="top">
 <span style="color: red">Formerly known as "Gluon" and always backward compatible!<br/>
 Current {{=open('VERSION','r').read().strip()}}. Please upgrade.<br/><br/></span>
-
 <h3>
 web2py is an open source full-stack Enterprise Framework
 for agile development of secure database-driven web-based applications,
@@ -104,7 +103,7 @@ and <a href="/examples/static/epydoc/index.html">epydocs</a></li>
 <li>No limitation on licensing of the applications you develop. web2py even allows you to bytecode compile them and distribute in closed-sorce format (as long they do not contain web2py source code, read the <a href="/{{=request.application}}/default/license">license</a>)
 <li>web2py prevents the most common types of vulnerabilities: Cross Site Scripting, Injection Flaws, and Malicious File Execution.</li>
 <li>web2py includes libraries to handle JSON, AJAX, RSS, CSV, RTF, XML, REST, and WIKI markup and can talk to SQLite, MySQL, PostgreSQL and Oracle databases.</li>
-<li>web2py also works with third party python libraries. For it can talk to Falsh via PyAMF. <a href="/{{=request.application}}/default/pyamf_howto">here</a> is a tutorial.</li>
+<li>web2py also works with third party python libraries. For example, it can talk to Falsh via PyAMF. <a href="/{{=request.application}}/default/pyamf_howto">Here</a> is a tutorial.</li>
 <li>web2py guides the developer to follow well established software engineering patterns such as the Model-View-Controller and testing.</li>
 <li>web2py is really easy to use. To develop with web2py you only need to know <a href="http://www.python.org">Python</a> (<a href="http://www.poromenos.org/tutorials/python">the easiest of programing languages</a>) and HTML ({{=A('compare web2py with PHP',_href=URL(r=request,f='web2py_vs_php'))}}).</li>
 <li>web2py includes a web interafce to doctests (the python testing library) which tests functions in your application and generates real-time reports.</li>

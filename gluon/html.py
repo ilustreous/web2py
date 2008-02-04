@@ -34,7 +34,7 @@ def URL(a=None,c=None,f=None,r=None,args=[],vars={}):
         function=r.function
     if a: application=a    
     if c: controller=c
-    if f: function=f 
+    if f: function=f if isinstance(f,str) else f.__name__ 
     if not (application and controller and function):
         raise SyntaxError, 'not enough information to build the url'
     other=''

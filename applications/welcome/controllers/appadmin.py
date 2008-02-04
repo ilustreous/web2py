@@ -3,14 +3,14 @@
 ############################################################
 
 import os, socket
-from gluon.contenttype import contenttype
-from gluon.fileutils import check_credentials
+import gluon.contenttype
+import gluon.fileutils
 
 http_host = request.env.http_host.split(':')[0]
 remote_addr = request.env.remote_addr
 if remote_addr not in (http_host, socket.gethostbyname(remote_addr)):
     raise HTTP(400)
-if not check_credentials(request):
+if not gluon.fileutils.check_credentials(request):
     redirect('/admin')
 
 response.view='appadmin.html'
@@ -52,8 +52,9 @@ def insert():
 ############################################################
 
 def download():
+    import os, gluon.contenttype
     filename=request.args[0]
-    response.headers['Content-Type']=contenttype(filename)
+    response.headers['Content-Type']=gluon.contenttype.contenttype(filename)
     return open(os.path.join(request.folder,'uploads/','%s' % filename),'rb').read()
 
 def csv():
