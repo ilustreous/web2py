@@ -13,11 +13,12 @@ def rewrite(wsgibase,URL):
     routes_in=[(re.compile(k),v) for k,v in symbols['routes_in']]
     routes_out=[(re.compile(k),v) for k,v in symbols['routes_out']]    
     def filter_in(e):
-        key=e['REMOTE_ADDR']+':'+e['PATH_INFO']
+        path=e['PATH_INFO']
+        key=e['REMOTE_ADDR']+':'+path
         for regex,value in routes_in:
             if regex.match(key): 
-                key=regex.sub(value,key)
-        e['REMOTE_ADDR'],e['PATH_INFO']=key.split(':',1)
+                path=regex.sub(value,key)
+        e['PATH_INFO']=path
         return e
     def filter_out(url):
         items=url.split('?',1)
