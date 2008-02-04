@@ -20,8 +20,9 @@ def rewrite(wsgibase,URL):
         e['REMOTE_ADDR'],e['PATH_INFO']=key.split(':',1)
         return e
     def filter_out(url):
+        items=url.split('?',1)
         for regex,value in routes_out:
-            if regex.match(url): return regex.sub(value,url)
+            if regex.match(items[0]): return '?'.join([regex.sub(value,items[0])]+items[1:])
         return url
     wsgibase_new=lambda e,r: wsgibase(filter_in(e),r)
     URL_new=lambda *a,**b: filter_out(URL(*a,**b))
