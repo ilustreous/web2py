@@ -7,7 +7,7 @@ License: GPL v2
 import re, cgi, sys, os
 from restricted import *
 
-__all__=['reindent','Template']
+__all__=['reindent','parse_template']
 
 re_write=re.compile('\{\{=(?P<value>.*?)\}\}',re.DOTALL)
 re_html=re.compile('\}\}.*?\{\{',re.DOTALL)

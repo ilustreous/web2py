@@ -47,9 +47,12 @@ class Response(Storage):
         else: 
             try: self.body.write(data.xml())
             except AttributeError: self.body.write(cgi.escape(str(data)))
-    def render(self,vars):
-        self._vars=vars
-        for key,value in vars.items(): self._view_environment[key]=value
+    def render(self,*a,**b):
+        if len(a)>1 or (len(a)==1 and not hasattr(a,'items')): 
+            raise SyntaxError        
+        self._vars=a[0] if len(a) else {}
+        for key,value in b.items(): self._vars[key]=value
+        for key,value in self._vars.items(): self._view_environment[key]=value
         run_view_in(self._view_environment)
         self.body=self.body.getvalue()
         return self.body
