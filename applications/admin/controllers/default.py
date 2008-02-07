@@ -3,7 +3,7 @@
 ############################################################
 ### import required modules/functions
 ############################################################
-from gluon.fileutils import listdir, cleanpath, tar, tar_compiled, untar
+from gluon.fileutils import listdir,cleanpath,tar,tar_compiled,untar,fix_newlines
 from gluon.languages import findT, update_all_languages
 from gluon.myregex import *
 from gluon.restricted import *
@@ -90,6 +90,7 @@ def site():
             path='applications/%s/' % appname
             os.mkdir(path)
             untar(tarname,path)
+            fix_newlines(path)
             response.flash='application %s installed' % appname
         except:
             response.flash='unable to install application "%s"' % request.vars.filename

@@ -5,6 +5,8 @@ License: GPL v2
 """
 
 import storage
+import os
+import re
 
 __all__=['listdir', 'cleanpath', 'tar', 'untar', 'tar_compiled', 
          'get_session', 'check_credentials']
@@ -81,3 +83,10 @@ def get_session(request,other_application='admin'):
 def check_credentials(request,other_application='admin'):
     """ checks that user is authorized to access other_application""" 
     return get_session(request,other_application).authorized
+
+def fix_newlines(path):
+    regex=re.compile(r'(\r\n|\r|\n)')
+    for filename in listdir(path,'.*\.(py|html)$',drop=False):
+        data=open(filename,'rb').read()
+        data=regex.sub('\n',data)
+        open(filename,'wb').write(data)
