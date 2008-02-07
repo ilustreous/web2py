@@ -19,6 +19,7 @@ from contenttype import contenttype
 from sql import SQLDB, SQLField
 from sqlhtml import SQLFORM, SQLTABLE
 from rewrite import rewrite
+from xmlrpc import handler
 import myregex
 import html, validators
 import httpserver # this is paste wsgi web server
@@ -233,6 +234,8 @@ def wsgibase(environ, responder):
                 cookie[session_id_name]['path']='/'
                 http_response.headers.append(('Set-Cookie',str(cookie)[11:]))
                 cPickle.dump(dict(session),session_file)
+            elif session_file and len(session)==0:
+                os.unlink(session_filename)
             ###################################################   
             # whatever happens return the intended HTTP response
             ###################################################                
