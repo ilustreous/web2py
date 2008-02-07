@@ -113,6 +113,7 @@ def wsgibase(environ, responder):
     try:
         try:
             session_file=None
+            session_new=False
             ###################################################
             # parse the environment variables - DONE
             ###################################################
@@ -123,7 +124,8 @@ def wsgibase(environ, responder):
             ###################################################
             path=request.env.path_info[1:].replace('\\','/')
             if not regex_url.match(path): 
-                raise HTTP(400,error_message)
+                raise HTTP(400,error_message,
+                           headers=dict(web2py_error='invalid path'))
             items=path.split('/')
             ###################################################
             # serve if a static file
@@ -132,7 +134,8 @@ def wsgibase(environ, responder):
                 static_file='applications/%s/static/%s' % \
                     (items[0],'/'.join(items[2:]))            
                 if not os.access(static_file,os.R_OK): 
-                    raise HTTP(400,error_message)
+                    raise HTTP(400,error_message,
+                               headers=dict(web2py_error='invalid application'))
                 serve_static_file(static_file)            
             ###################################################
             # parse application, controller and function
@@ -157,7 +160,8 @@ def wsgibase(environ, responder):
             if not os.access(request.folder,os.F_OK):
                 if items==['init','default','index']: 
                    redirect('/welcome/default/index')
-                raise HTTP(400,error_message)
+                raise HTTP(400,error_message,
+                           headers=dict(web2py_error='invalid application'))
             ###################################################
             # get the GET and POST data -DONE
             ###################################################
@@ -211,9 +215,7 @@ def wsgibase(environ, responder):
             if not response.session_id:
                 response.session_id=request.env.remote_addr+'.'+str(int(time.time()))+'.'+str(random())[2:]
                 session_filename=os.path.join(request.folder,'sessions/',response.session_id)
-                session_file=open(session_filename,'wb')
-                portalocker.lock(session_file,portalocker.LOCK_EX)
-
+                session_new=True
             response.cookies[session_id_name]=response.session_id
             ###################################################
             # run controller
@@ -233,9 +235,10 @@ def wsgibase(environ, responder):
                 for key,value in response.cookies.items(): cookie[key]=value
                 cookie[session_id_name]['path']='/'
                 http_response.headers.append(('Set-Cookie',str(cookie)[11:]))
+                if session_new:
+                    session_file=open(session_filename,'wb')
+                    portalocker.lock(session_file,portalocker.LOCK_EX)
                 cPickle.dump(dict(session),session_file)
-            elif session_file and len(session)==0:
-                os.unlink(session_filename)
             ###################################################   
             # whatever happens return the intended HTTP response
             ###################################################                
@@ -248,7 +251,8 @@ def wsgibase(environ, responder):
             SQLDB.close_all_instances(SQLDB.rollback)
             ticket=e.log(request)
             if session_file: portalocker.unlock(session_file)
-            return HTTP(200,error_message_ticket % ticket).to(responder)
+            return HTTP(200,error_message_ticket % ticket,
+                        headers=dict(web2py_error='ticket %s'%ticket)).to(responder)
     except Exception, exception:
         ###################################################
         # on application error, rollback database
@@ -262,7 +266,8 @@ def wsgibase(environ, responder):
         print '*'*49
         ticket=e.log(request)
         if session_file: portalocker.unlock(session_file)
-        return HTTP(200,error_message_ticket % ticket).to(responder)
+        return HTTP(200,error_message_ticket % ticket,
+                    headers=dict(web2py_error='ticket %s'%ticket)).to(responder)
 
 wsgibase,html.URL=rewrite(wsgibase,html.URL)
 
