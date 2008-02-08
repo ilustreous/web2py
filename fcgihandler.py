@@ -22,4 +22,6 @@ Put something like this in the lighttpd.conf file:
 import gluon.main
 import gluon.contrib.fcgi
 application=gluon.main.wsgibase
+## or
+# application=gluon.main.wsgibase_with_logging
 gluon.contrib.fcgi.WSGIServer(application,bindAddress='/tmp/fcgi.sock').run()

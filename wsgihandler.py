@@ -9,3 +9,5 @@ Requires apache+mod_wsgi. In httpd.conf put something like:
 
 import gluon.main
 application=gluon.main.wsgibase
+## or
+# application=gluon.main.wsgibase_with_logging

@@ -37,7 +37,8 @@ class RestrictedError:
            'traceback':str(self.traceback)}
         f=request.env.remote_addr+'.'+str(int(time.time()))+'.'+str(random())[2:]
         cPickle.dump(d,open(request.folder+'errors/'+f,'wb'))
-        return '<a href="/admin/default/ticket/%s/%s" target="_blank">%s/%s</a>' % (a,f,a,f)
+        return '%s/%s' % (a,f)
+
     def load(self,file):
         """
         loads a logged exception.

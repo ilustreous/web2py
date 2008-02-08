@@ -19,7 +19,7 @@ TEST_CODE=r"""
 def _TEST():
     import doctest, sys, cStringIO, types, cgi, gluon.fileutils
     if not gluon.fileutils.check_credentials(request):
-        raise HTTP(400,headers=dict(web2py_error='invalid credentials'))
+        raise HTTP(400,web2py_error='invalid credentials')
     stdout=sys.stdout
     html='<h2>Testing controller "%s.py" ... done.</h2><br/>\n' % request.controller
     for key in [key for key in globals() if not key in __symbols__+['_TEST']]:
@@ -119,13 +119,13 @@ def run_controller_in(controller,function,environment):
         filename=os.path.join(path,'controllers_%s_%s.pyc' %(controller,function))
         if not os.access(filename,os.R_OK): 
             raise HTTP(400,error_message % 'invalid function',
-                       headers=dict(web2py_error='invalid function'))
+                       web2py_error='invalid function')
         restricted(read_pyc(filename),environment,layer=filename)
     elif function=='_TEST':
         filename=os.path.join(folder,'controllers/%s.py' % controller)
         if not os.access(filename,os.R_OK):
             raise HTTP(400,error_message % 'invalid controller',
-                       headers=dict(web2py_error='invalid controller'))
+                       web2py_error='invalid controller')
         environment['__symbols__']=environment.keys()
         code=open(filename,'r').read()
         code+=TEST_CODE
@@ -134,12 +134,12 @@ def run_controller_in(controller,function,environment):
         filename=os.path.join(folder,'controllers/%s.py' % controller)
         if not os.access(filename,os.R_OK):
             raise HTTP(400,error_message % 'invalid controller',
-                       headers=dict(web2py_error='invalid controller'))
+                       web2py_error='invalid controller')
         code=open(filename,'r').read()
         exposed=regex_expose.findall(code)
         if not function in exposed: 
             raise HTTP(400,error_message % 'invalid function',
-                       headers=dict(web2py_error='invalid function'))
+                       web2py_error='invalid function')
         code+='\n\nresponse._vars=%s()' % function        
         restricted(code,environment,layer=filename)
     response=environment['response']
@@ -162,7 +162,7 @@ def run_view_in(environment):
              filename=os.path.join(folder,'compiled/','views_generic.pyc')
         if not os.access(filename,os.R_OK): 
             raise HTTP(400,error_message % 'invalid view',
-                       headers=dict(web2py_error='invalid view'))
+                       web2py_error='invalid view')
         code=read_pyc(filename)
         #response.body=restricted(code,environment,layer=filename) 
         restricted(code,environment,layer=filename) 
@@ -173,7 +173,7 @@ def run_view_in(environment):
         filename=os.path.join(folder,'views/',response.view)
         if not os.access(filename,os.R_OK):
              raise HTTP(400,error_message % 'invalid view',
-                        headers=dict(web2py_error='invalid view'))
+                        web2py_error='invalid view')
         code=parse_template(response.view,os.path.join(folder,'views/'))
         #response.body=restricted(code,environment,layer=filename) 
         restricted(code,environment,layer=filename)

@@ -4,7 +4,9 @@ Developed by Massimo Di Pierro <mdipierro@cs.depaul.edu>
 License: GPL v2
 """
 
-import cgi, cStringIO, Cookie, cPickle, os, re, copy, sys, types, time, thread
+import cgi, cStringIO, Cookie, cPickle, os
+import re, copy, sys, types, time, thread
+import datetime
 #from wsgiref.simple_server import make_server, demo_app
 from random import random
 from storage import Storage, load_storage, save_storage
@@ -20,9 +22,10 @@ from sql import SQLDB, SQLField
 from sqlhtml import SQLFORM, SQLTABLE
 from rewrite import rewrite
 from xmlrpc import handler
+import html
+import validators
 import myregex
-import html, validators
-import httpserver # this is paste wsgi web server
+import wsgiserver
 import portalocker
 ### contrib moduels
 import contrib.simplejson
@@ -30,7 +33,7 @@ import contrib.pyrtf
 import contrib.rss2
 import contrib.markdown
 
-__all__=['wsgibase']
+__all__=['wsgibase', 'wsgibase_with_logging', 'save_password']
 
 ### Security Checks: validate URL and session_id here, accept_language is validated in languages
 # pattern to find valid paths in url /application/controller/...
@@ -39,7 +42,8 @@ regex_url=re.compile('(?:^$)|(?:^(\w+/?){0,3}$)|(?:^(\w+/){3}\w+(/?\.?[\w\-\.]+)
 regex_session_id=re.compile('([0-9]+\.)+[0-9]+')
 
 error_message='<html><body><h1>Invalid request</h1></body></html>'
-error_message_ticket='<html><body><h1>Internal error</h1>Ticket issued: %s</body></html>'
+error_message_ticket='<html><body><h1>Internal error</h1>Ticket issued: <a href="/admin/default/ticket/%s" target="_blank">%s</a></body></html>'
+
 working_folder=os.getcwd()
 
 def serve_static_file(filename):
@@ -124,8 +128,7 @@ def wsgibase(environ, responder):
             ###################################################
             path=request.env.path_info[1:].replace('\\','/')
             if not regex_url.match(path): 
-                raise HTTP(400,error_message,
-                           headers=dict(web2py_error='invalid path'))
+                raise HTTP(400,error_message,web2py_error='invalid path')
             items=path.split('/')
             ###################################################
             # serve if a static file
@@ -134,8 +137,7 @@ def wsgibase(environ, responder):
                 static_file='applications/%s/static/%s' % \
                     (items[0],'/'.join(items[2:]))            
                 if not os.access(static_file,os.R_OK): 
-                    raise HTTP(400,error_message,
-                               headers=dict(web2py_error='invalid application'))
+                    raise HTTP(400,error_message,web2py_error='invalid application')
                 serve_static_file(static_file)            
             ###################################################
             # parse application, controller and function
@@ -160,8 +162,7 @@ def wsgibase(environ, responder):
             if not os.access(request.folder,os.F_OK):
                 if items==['init','default','index']: 
                    redirect('/welcome/default/index')
-                raise HTTP(400,error_message,
-                           headers=dict(web2py_error='invalid application'))
+                raise HTTP(400,error_message,web2py_error='invalid application')
             ###################################################
             # get the GET and POST data -DONE
             ###################################################
@@ -251,8 +252,8 @@ def wsgibase(environ, responder):
             SQLDB.close_all_instances(SQLDB.rollback)
             ticket=e.log(request)
             if session_file: portalocker.unlock(session_file)
-            return HTTP(200,error_message_ticket % ticket,
-                        headers=dict(web2py_error='ticket %s'%ticket)).to(responder)
+            return HTTP(200,error_message_ticket % (ticket,ticket),\
+               web2py_error='ticket %s'%ticket).to(responder)
     except Exception, exception:
         ###################################################
         # on application error, rollback database
@@ -266,30 +267,61 @@ def wsgibase(environ, responder):
         print '*'*49
         ticket=e.log(request)
         if session_file: portalocker.unlock(session_file)
-        return HTTP(200,error_message_ticket % ticket,
-                    headers=dict(web2py_error='ticket %s'%ticket)).to(responder)
+        return HTTP(200,error_message_ticket % (ticket,ticket),
+                web2py_error='ticket %s'%ticket).to(responder)
 
 wsgibase,html.URL=rewrite(wsgibase,html.URL)
 
 def save_password(password):
-   """
-   used by main() to save the password in the parameters.py file.
-   """
-   if password=='<recycle>': return
-   import gluon.validators
-   crypt=gluon.validators.CRYPT()
-   file=open('parameters.py','w')
-   if len(password)>0: file.write('password="%s"\n' % crypt(password)[0])
-   else: file.write('password=None\n')
-   file.close()
+    """
+    used by main() to save the password in the parameters.py file.
+    """
+    if password=='<recycle>': return
+    import gluon.validators
+    crypt=gluon.validators.CRYPT()
+    file=open('parameters.py','w')
+    if len(password)>0: file.write('password="%s"\n' % crypt(password)[0])
+    else: file.write('password=None\n')
+    file.close()
 
-def main(ip='127.0.0.1',port=8000,password=''):    
-    """
-    starts the web server.
-    """
-    save_password(password)
-    print 'starting web server...'
-    # for testing only: make_server(ip,int(port),wsgibase).serve_forever()
-    open('httpserver.pid','w').write(str(os.getpid()))
-    httpserver.serve(wsgibase,server_version="web2py-Paste/1.0",
-                     protocol_version="HTTP/1.0", host=ip, port=str(port))
+def wsgibase_with_logging(environ, responder):
+    status_headers=[]
+    def responder2(s,h):
+         status_headers.append(s)
+         status_headers.append(h)
+         return responder(s,h)
+    time_in=time.time()
+    ret=wsgibase(environ,responder2)
+    line='%s, %s, %s, %s, %s, %s, %f\n' % (environ['REMOTE_ADDR'], datetime.datetime.today().strftime('%Y-%m-%d %H:%M:%S'), environ['REQUEST_METHOD'],environ['PATH_INFO'].replace(',','%2C'),environ['SERVER_PROTOCOL'],status_headers[0][:3],time.time()-time_in)
+    open('httpserver.log','a').write(line)
+    return ret
+
+class HttpServer:
+    def __init__(self,ip='127.0.0.1',port=8000,password='',
+                 ssl_certificate='ssl/server.crt',
+                 ssl_private_key='ssl/server.key'):
+        """
+        starts the web server.
+        """
+        save_password(password)
+        print 'starting web server...'        
+        server = wsgiserver.CherryPyWSGIServer((ip, port),
+                 wsgibase_with_logging,
+ 	         server_name='www.web2py.com')
+        if port%10==3 and wsgiserver.SSL and \
+           os.access(ssl_certificate,os.R_OK) and \
+           os.access(ssl_private_key,os.R_OK):
+            server.ssl_certificate=ssl_certificate
+            server.ssl_private_key=ssl_private_key
+            print 'ssl is on, using ssl certificates in ssl/'
+        elif not wsgiserver.SSL:
+            print 'Warning: no OpenSSL libraries available'
+        elif port%10==3:
+            print 'there are no ssl certificates in ssl/'
+        self.server=server
+    def start(self):
+        open('httpserver.pid','w').write(str(os.getpid()))            
+        self.server.start()
+    def stop(self):
+        self.server.stop()
+        os.unlink('httpserver.pid')

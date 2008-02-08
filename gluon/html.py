@@ -9,7 +9,7 @@ from storage import Storage
 from validators import *
 from highlight import highlight
 
-__all__=['A', 'B', 'BEAUTIFY', 'BODY', 'BR', 'CENTER', 'CODE', 'DIV', 'EM', 'EMBED', 'FIELDSET', 'FORM', 'H1', 'H2', 'H3', 'H4', 'H5', 'H6', 'HEAD', 'HR', 'HTML', 'IFRAME', 'IMG', 'INPUT', 'LABEL', 'LI', 'LINK', 'LO', 'LU', 'META', 'OBJECT', 'ON', 'OPTION', 'P', 'PRE', 'SCRIPT', 'SELECT', 'SPAN', 'STYLE', 'TABLE', 'TD', 'TEXTAREA', 'TH', 'TITLE', 'TR', 'TT', 'URL', 'XML']
+__all__=['A', 'B', 'BEAUTIFY', 'BODY', 'BR', 'CENTER', 'CODE', 'DIV', 'EM', 'EMBED', 'FIELDSET', 'FORM', 'H1', 'H2', 'H3', 'H4', 'H5', 'H6', 'HEAD', 'HR', 'HTML', 'IFRAME', 'IMG', 'INPUT', 'LABEL', 'LI', 'LINK', 'OL', 'UL', 'META', 'OBJECT', 'ON', 'OPTION', 'P', 'PRE', 'SCRIPT', 'SELECT', 'SPAN', 'STYLE', 'TABLE', 'TD', 'TEXTAREA', 'TH', 'TITLE', 'TR', 'TT', 'URL', 'XML']
 
 def URL(a=None,c=None,f=None,r=None,args=[],vars={}):
     """
@@ -230,7 +230,7 @@ class LABEL(DIV): tag='label'
 
 class LI(DIV): tag='li'
 
-class LU(DIV): 
+class UL(DIV): 
     tag='lu'
     def postprocessing(self):        
         components=[]
@@ -241,7 +241,7 @@ class LU(DIV):
                 components.append(LI(c))
         self.components=components
 
-class LO(LU):  tag='lo'
+class OL(UL):  tag='lo'
 
 class TD(DIV): tag='td'
 
@@ -481,9 +481,9 @@ def test():
     >>> from validators import *
     >>> print DIV(A('click me',_href=URL(a='a',c='b',f='c')),BR(),HR(),DIV(SPAN("World"),_class='unkown')).xml()
     <div><a href="/a/b/c">click me</a><br/><hr/><div class="unkown"><span>World</span></div></div>
-    >>> print DIV(LU("doc","cat","mouse")).xml()
+    >>> print DIV(UL("doc","cat","mouse")).xml()
     <div><lu><li>doc</li><li>cat</li><li>mouse</li></lu></div>
-    >>> print DIV(LU("doc",LI("cat", _class='felin'),18)).xml()
+    >>> print DIV(UL("doc",LI("cat", _class='felin'),18)).xml()
     <div><lu><li>doc</li><li class="felin">cat</li><li>18</li></lu></div>
     >>> print TABLE(['a','b','c'],TR('d','e','f'),TR(TD(1),TD(2),TD(3))).xml()
     <table><tr><td>a</td><td>b</td><td>c</td></tr><tr><td>d</td><td>e</td><td>f</td></tr><tr><td>1</td><td>2</td><td>3</td></tr></table>

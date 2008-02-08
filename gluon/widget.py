@@ -33,17 +33,14 @@ print ProgramName
 print ProgramAuthor
 print ProgramVersion
 
-from gluon.main import main
+from gluon.main import HttpServer
 from gluon.fileutils import tar, untar
 from optparse import *
 import time, os, webbrowser, thread, re, cStringIO
 
-def start_server(ip,port,password):    
-    thread.start_new_thread(main,(ip,port,password))
-
 def try_start_browser(url):
     try: webbrowser.open(url)
-    except: print 'warning: unable to detect your brwoser'
+    except: print 'warning: unable to detect your browser'
 
 def start_browser(ip,port):
     print 'please visit:'
@@ -118,11 +115,15 @@ class web2pyDialog:
         self.ip.insert(Tkinter.END,'127.0.0.1')
         self.ip.grid(row=1, column=1)
         Tkinter.Label(self.root, text="Running from port:",justify=Tkinter.LEFT).grid(row=2,column=0)
-        self.port = Tkinter.Entry(self.root)
-        self.port.insert(Tkinter.END,'8000')
-        self.port.grid(row=2, column=1)
+        self.port_number = Tkinter.Entry(self.root)
+        self.port_number.insert(Tkinter.END,'8000')
+        self.port_number.grid(row=2, column=1)
         self.button_start=Tkinter.Button(self.root,text='start server',command=self.start)
         self.button_start.grid(row=3, column=1)
+        self.button_stop=Tkinter.Button(self.root,text='stop server',command=self.stop)
+        self.button_stop.grid(row=4, column=1)
+        self.button_stop.configure(state='disabled')
+
         frame=Tkinter.Frame(self.root)
         frame.grid(row=4,column=0,columnspan=2)
         #self.text=Tkinter.Text(frame,wrap='char',width=60)
@@ -157,20 +158,31 @@ class web2pyDialog:
         ip=self.ip.get()
         if ip and not re.compile('\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}').match(ip):
             return self.error('invalid host ip address')
-        try: port=int(self.port.get())
+        try: port=int(self.port_number.get())
         except: 
             return self.error('invalid port number')
         self.url='http://%s:%s' % (ip,port)
+        print self.url
         self.connect_pages()
         self.button_start.configure(state='disabled',text='server running')
-        try: start_server(ip,port,password)        
+        try:
+            self.server=HttpServer(ip,port,password)        
+            thread.start_new_thread(self.server.start,())            
         except Exception, e:
             self.button_start.configure(state='normal')
             return self.error(str(e))
+        self.button_stop.configure(state='normal')
         thread.start_new_thread(start_browser,(ip,port))
         self.password.configure(state='readonly')
         self.ip.configure(state='readonly')
-        self.port.configure(state='readonly')
+        self.port_number.configure(state='readonly')
+    def stop(self):
+        self.button_start.configure(state='normal',text='start server')
+        self.button_stop.configure(state='disabled')
+        self.password.configure(state='normal')
+        self.ip.configure(state='normal')
+        self.port_number.configure(state='normal')
+        self.server.stop()
 
 def console():
     usage="""python web2py.py"""
@@ -224,8 +236,10 @@ def start():
        options.password=raw_input('choose a password:')
     if not options.password: 
        print 'no password, no admin interface'
-    ip,port=options.ip,options.port
+    ip,port=options.ip,int(options.port)
     print 'please visit:'
     print '\thttp://%s:%s/welcome' % (ip,port)
     print 'use "kill -SIGTERM %i" to shutdown the web2py server'  % os.getpid()
-    main(options.ip,options.port,options.password)
+    server=HttpServer(ip,port,options.password)
+    try: server.start()
+    except KeyboardInterrupt: server.stop()
