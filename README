@@ -177,6 +177,12 @@ FORM and SQLFORM have hidden=dict(...) option for REST
 testing framework.
 improved examples pages
 
+web2py 1.21
+replaced paste.httpserver with cherrypy.wsgi server
+temporary sessions are no longer saved
+widget has [stop] button
+logging is done by main
+
 TODO:
 unicode in default datetime fields? fix
 upload folder.

@@ -80,16 +80,6 @@ import csv
 
 import ctypes
 
-import curses
-
-import curses.ascii
-
-import curses.panel
-
-import curses.textpad
-
-import curses.wrapper
-
 import datetime
 
 import decimal
