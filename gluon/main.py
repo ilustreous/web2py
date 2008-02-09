@@ -22,6 +22,7 @@ from sql import SQLDB, SQLField
 from sqlhtml import SQLFORM, SQLTABLE
 from rewrite import rewrite
 from xmlrpc import handler
+from streamer import streamer
 import html
 import validators
 import myregex
@@ -45,18 +46,6 @@ error_message='<html><body><h1>Invalid request</h1></body></html>'
 error_message_ticket='<html><body><h1>Internal error</h1>Ticket issued: <a href="/admin/default/ticket/%s" target="_blank">%s</a></body></html>'
 
 working_folder=os.getcwd()
-
-def serve_static_file(filename):
-    """
-    called by wsgibase (a wsgi application) and used to serve static files.
-    this function must run from the [applciation] folder. 
-    static files are located in /applciations/[application]/static/
-    """
-    data=open(filename,'rb').read()
-    length=len(data)
-    headers={}
-    headers['Content-Type']=contenttype(filename)
-    raise HTTP(200,data,**headers)
 
 def serve_controller(request,response,session):    
     """
@@ -97,7 +86,7 @@ def serve_controller(request,response,session):
     run_models_in(environment)
     response._view_environment=copy.copy(environment)  
     run_controller_in(request.controller,request.function,environment)
-    if type(response.body)!=type(""):
+    if not type(response.body) in [types.StringType, types.GeneratorType]:
         for key,value in response._vars.items(): 
             response._view_environment[key]=value
         run_view_in(response._view_environment)
@@ -138,7 +127,8 @@ def wsgibase(environ, responder):
                     (items[0],'/'.join(items[2:]))            
                 if not os.access(static_file,os.R_OK): 
                     raise HTTP(400,error_message,web2py_error='invalid application')
-                serve_static_file(static_file)            
+                headers={'Content-Type':contenttype(static_file)}
+                raise HTTP(200,streamer(open(static_file,'rb')),**headers)
             ###################################################
             # parse application, controller and function
             ###################################################
@@ -235,7 +225,7 @@ def wsgibase(environ, responder):
                 cookie=Cookie.SimpleCookie()
                 for key,value in response.cookies.items(): cookie[key]=value
                 cookie[session_id_name]['path']='/'
-                http_response.headers.append(('Set-Cookie',str(cookie)[11:]))
+                http_response.headers['Set-Cookie']=str(cookie)[11:]
                 if session_new:
                     session_file=open(session_filename,'wb')
                     portalocker.lock(session_file,portalocker.LOCK_EX)

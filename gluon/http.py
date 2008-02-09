@@ -51,11 +51,14 @@ class HTTP:
         self.body=body
         if not headers.has_key('Content-Type'):
               headers['Content-Type']='text/html'
-        headers['Content-Length']=str(len(body))
-        self.headers=headers.items()
+        self.headers=headers
     def to(self,responder):
-        responder(self.status,self.headers)
-        return [self.body]
+        responder(self.status,self.headers.items())
+        if hasattr(self.body,'__iter__') and not isinstance(self.body,str):
+            return self.body
+        body=str(self.body)
+        self.headers['Content-Length']=len(body)
+        return [body]
 
 def redirect(location,how=303): 
     raise HTTP(how,

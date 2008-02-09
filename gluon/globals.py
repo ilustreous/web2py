@@ -6,6 +6,7 @@ License: GPL v2
 
 from storage import Storage
 from compileapp import run_view_in
+from streamer import streamer
 import sys, cPickle, cgi, cStringIO, thread, time, shelve
 
 __all__=['Request','Response','Session']
@@ -55,6 +56,9 @@ class Response(Storage):
         for key,value in self._vars.items(): self._view_environment[key]=value
         run_view_in(self._view_environment)
         self.body=self.body.getvalue()
+        return self.body
+    def stream(self,stream,chunk_size=10):
+        self.body=streamer(stream,chunk_size)
         return self.body
 
 class Session(Storage): 
