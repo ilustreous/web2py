@@ -36,7 +36,7 @@ print ProgramVersion
 from gluon.main import HttpServer, save_password
 from gluon.fileutils import tar, untar
 from optparse import *
-import time, webbrowser, thread, re, cStringIO, os, stat, socket
+import time, webbrowser, thread, re, cStringIO, os, stat, socket, signal
 
 def try_start_browser(url):
     try: webbrowser.open(url)
@@ -142,7 +142,8 @@ class web2pyDialog:
                 url=self.url+'/'+file
                 self.pagesmenu.add_command(label=url, command=lambda u=url:try_start_browser(u))
     def quit(self):
-        self.server.stop()
+        try: self.server.stop()
+        except: pass
         self.root.destroy()
         sys.exit()
     def error(self,message):
@@ -182,7 +183,7 @@ class web2pyDialog:
     def update_canvas(self):
         try:
             t1=os.stat('httpserver.log')[stat.ST_SIZE]
-        except IOError:
+        except:
             self.canvas.after(1000, self.update_canvas ) 
             return
         try:
@@ -264,6 +265,7 @@ def start():
        root.focus_force()
        presentation(root)
        master=web2pyDialog(root)
+       signal.signal(signal.SIGTERM,lambda a,b: master.quit())
        try: root.mainloop()
        except: master.quit()
        sys.exit()
