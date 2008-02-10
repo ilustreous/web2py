@@ -53,7 +53,7 @@ class HTTP:
               headers['Content-Type']='text/html'
         self.headers=headers
     def to(self,responder):
-        responder(self.status,self.headers.items())
+        responder(self.status,[(k,str(v)) for k,v in self.headers.items()])
         if hasattr(self.body,'__iter__') and not isinstance(self.body,str):
             return self.body
         body=str(self.body)
