@@ -563,10 +563,11 @@ class SQLXorable:
     def __ge__(self,value): return SQLQuery(self,'>=',value)
     def like(self,value): return SQLQuery(self,'like',value)
     def belongs(self,other): 
-        if isinstance(other,(list,tuple)):
-            return SQLXorable(str(self)+' IN '+str(tuple(other)),None,None)
-        elif isinstance(other,str):
+        if isinstance(other,str):
             return SQLXorable(str(self)+' IN (%s)'%other[:-1],None,None)
+        elif hasattr(other,'__iter__'):
+            r=','.join([sql_represent(item,self.type,self._db) for item in other])
+            return SQLXorable(str(self)+' IN (%s)'%r,None,None)
         else: raise SyntaxError, 'do not know what to do'
     # for use in both SQLQuery and sortby
     def __add__(self,other): return SQLXorable(str(self)+'+'+str(other),'float',None)
