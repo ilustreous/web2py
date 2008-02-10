@@ -91,7 +91,7 @@ def fix_newlines(path):
         data=regex.sub('\n',data)
         open(filename,'wb').write(data)
 
-def copystream(src,dest,size=None,chunk_size=1):
+def copystream(src,dest,size=None,chunk_size=10**5):
     """
     this is here because I think there is a bug in shutil.copyfileobj
     """
