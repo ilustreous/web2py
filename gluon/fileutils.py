@@ -96,6 +96,7 @@ def copystream(src,dest,size=None,chunk_size=10**5):
     this is here because I think there is a bug in shutil.copyfileobj
     """
     while size:
+        if size!=None and size<chunk_size: chunk_size=size
         data=src.read(chunk_size)
         length=len(data)
         if size!=None:
