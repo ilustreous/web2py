@@ -8,7 +8,8 @@ from storage import Storage
 from compileapp import run_view_in
 from streamer import streamer
 from xmlrpc import handler
-import sys, cPickle, cgi, cStringIO, thread, time, shelve
+from contenttype import contenttype
+import sys, cPickle, cgi, cStringIO, thread, time, shelve, os, stat
 
 __all__=['Request','Response','Session']
 
@@ -64,6 +65,12 @@ class Response(Storage):
         > return response.stream(file,100)
         the file content will be streamed at 100 bytes at the time
         """
+        filename=stream.name if hasattr(stream,'name') else None
+        keys=[item.lower() for item in self.headers.keys()]
+        if filename and not 'content-type' in keys:
+             self.headers['Content-Type']=contenttype(filename)
+        if filename and not 'content-length' in keys:
+             self.headers['Content-Length']=os.stat(filename)[stat.ST_SIZE]
         self.body=streamer(stream,chunk_size)
         return self.body
     def xmlrpc(self,request,methods):

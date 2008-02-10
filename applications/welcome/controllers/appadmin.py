@@ -52,10 +52,8 @@ def insert():
 ############################################################
 
 def download():
-    import os, stat, gluon.contenttype
+    import os
     filename=os.path.join(request.folder,'uploads/','%s' % request.args[0])
-    response.headers['Content-Type']=gluon.contenttype.contenttype(filename)
-    response.headers['Content-Length']=os.stat(filename)[stat.ST_SIZE]
     return response.stream(open(filename,'rb'),4096)
 
 def csv():
