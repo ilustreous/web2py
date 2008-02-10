@@ -41,7 +41,8 @@ response.menu.append(('help',False,'/examples/default/index'))
 
 try:
     _config={}
-    restricted(open('parameters.py','r').read(),_config)
+    port=int(request.env.http_host.split(':')[1])
+    restricted(open('parameters_%i.py'%port,'r').read(),_config)
     if not _config.has_key('password') or not _config['password']:
         raise HTTP(400)
 except: raise HTTP(400)

@@ -33,10 +33,10 @@ print ProgramName
 print ProgramAuthor
 print ProgramVersion
 
-from gluon.main import HttpServer
+from gluon.main import HttpServer, save_password
 from gluon.fileutils import tar, untar
 from optparse import *
-import time, os, webbrowser, thread, re, cStringIO
+import time, webbrowser, thread, re, cStringIO, os, stat, socket
 
 def try_start_browser(url):
     try: webbrowser.open(url)
@@ -107,33 +107,29 @@ class web2pyDialog:
 
         self.root.config(menu=self.menu)
         self.root.protocol("WM_DELETE_WINDOW", self.quit)
-        Tkinter.Label(self.root, text="Choose a password:",justify=Tkinter.LEFT).grid(row=0,column=0)
+        sticky=Tkinter.NW
+        Tkinter.Label(self.root, text="Choose a password:",justify=Tkinter.LEFT).grid(row=0,column=0,sticky=sticky)
         self.password = Tkinter.Entry(self.root,show='*')
-        self.password.grid(row=0, column=1)
-        Tkinter.Label(self.root, text="Running from host:",justify=Tkinter.LEFT).grid(row=1,column=0)
+        self.password.grid(row=0, column=1,sticky=sticky)
+        Tkinter.Label(self.root, text="Running from host:",justify=Tkinter.LEFT).grid(row=1,column=0,sticky=sticky)
         self.ip = Tkinter.Entry(self.root)
         self.ip.insert(Tkinter.END,'127.0.0.1')
-        self.ip.grid(row=1, column=1)
-        Tkinter.Label(self.root, text="Running from port:",justify=Tkinter.LEFT).grid(row=2,column=0)
+        self.ip.grid(row=1, column=1,sticky=sticky)
+        Tkinter.Label(self.root, text="Running from port:",justify=Tkinter.LEFT).grid(row=2,column=0,sticky=sticky)
         self.port_number = Tkinter.Entry(self.root)
         self.port_number.insert(Tkinter.END,'8000')
-        self.port_number.grid(row=2, column=1)
-        self.button_start=Tkinter.Button(self.root,text='start server',command=self.start)
-        self.button_start.grid(row=3, column=1)
-        self.button_stop=Tkinter.Button(self.root,text='stop server',command=self.stop)
-        self.button_stop.grid(row=4, column=1)
-        self.button_stop.configure(state='disabled')
-
+        self.port_number.grid(row=2, column=1,sticky=sticky)
+        self.canvas=Tkinter.Canvas(self.root,width=300,height=100,bg='black')
+        self.canvas.grid(row=3,column=0,columnspan=2)
+        self.canvas.after(1000,self.update_canvas)
         frame=Tkinter.Frame(self.root)
         frame.grid(row=4,column=0,columnspan=2)
-        #self.text=Tkinter.Text(frame,wrap='char',width=60)
-        #self.text.pack(side="left", expand=1, fill="both")
-        #scrollbar=Tkinter.Scrollbar(frame, orient="v", command=self.text.yview)
-        #scrollbar.pack(side="left", fill="y")
-        #self.text.configure(yscrollcommand=scrollbar.set)
-        #self.text.insert('end',sys.stdout.buffer.getvalue())
-        #self.text.configure(state='disabled')
-        #sys.stdout.callback=self.update
+        self.button_start=Tkinter.Button(frame,text='start server',command=self.start)
+        self.button_start.grid(row=0, column=0)
+        self.button_stop=Tkinter.Button(frame,text='stop server',command=self.stop)
+        self.button_stop.grid(row=0, column=1)
+        self.button_stop.configure(state='disabled')
+
     def update(self,text):
         try:
             self.text.configure(state='normal')
@@ -146,6 +142,7 @@ class web2pyDialog:
                 url=self.url+'/'+file
                 self.pagesmenu.add_command(label=url, command=lambda u=url:try_start_browser(u))
     def quit(self):
+        self.server.stop()
         self.root.destroy()
         sys.exit()
     def error(self,message):
@@ -162,9 +159,8 @@ class web2pyDialog:
         except: 
             return self.error('invalid port number')
         self.url='http://%s:%s' % (ip,port)
-        print self.url
         self.connect_pages()
-        self.button_start.configure(state='disabled',text='server running')
+        self.button_start.configure(state='disabled')
         try:
             self.server=HttpServer(ip,port,password)        
             thread.start_new_thread(self.server.start,())            
@@ -177,16 +173,38 @@ class web2pyDialog:
         self.ip.configure(state='readonly')
         self.port_number.configure(state='readonly')
     def stop(self):
-        self.button_start.configure(state='normal',text='start server')
+        self.button_start.configure(state='normal')
         self.button_stop.configure(state='disabled')
         self.password.configure(state='normal')
         self.ip.configure(state='normal')
         self.port_number.configure(state='normal')
         self.server.stop()
+    def update_canvas(self):
+        try:
+            t1=os.stat('httpserver.log')[stat.ST_SIZE]
+        except IOError:
+            self.canvas.after(1000, self.update_canvas ) 
+            return
+        try:
+            file=open('httpserver.log','r')
+            file.seek(self.t0)
+            data=file.read(t1-self.t0)
+            self.p0=self.p0[1:]+[1+98/(1+data.count('\n'))]
+            for i in range(len(self.p0)-1):
+                c=self.canvas.coords(self.q0[i])
+                self.canvas.coords(self.q0[i],
+                                   (c[0],self.p0[i],c[2],self.p0[i+1]))
+            self.t0=t1
+        except Exception, e:
+            self.t0=time.time()
+            self.t0=t1
+            self.p0=[0]*300
+            self.q0=[self.canvas.create_line(i,99,i+1,99,fill='green') for i in range(len(self.p0))]
+        self.canvas.after(1000, self.update_canvas ) 
 
 def console():
     usage="""python web2py.py"""
-    description="""web2py Web Framework startup script"""
+    description="""web2py Web Framework startup script. ATTENTION: unless a password is specified (-a 'passwd')  web2py will attempt to run a GUI. In this case command line options are ignored."""
     parser=OptionParser(usage,None,Option,ProgramVersion)
     parser.description=description
     parser.add_option('-i','--ip',default='127.0.0.1',dest='ip',
@@ -194,9 +212,26 @@ def console():
     parser.add_option('-p','--port',default='8000',dest='port',
                   help='the port for of server (8000)')
     parser.add_option('-a','--password',default='<ask>',dest='password',
-                  help='the password to be used for administration')
+                  help='the password to be used for administration'+\
+                       "(use -a '<recycle>' to reuse the last password)")
     parser.add_option('-u','--upgrade',default='no',dest='upgrade',
                   help='upgrade applications')
+    parser.add_option('-c','--ssl_certificate',default='',
+                  dest='ssl_certificate',
+                  help='file that contains ssl certificate')
+    parser.add_option('-k','--ssl_private_key',default='',
+                  dest='ssl_private_key',
+                  help='file that contains ssl private key')
+    parser.add_option('-d','--pid_filename',default='httpserver.pid',
+                  dest='pid_filename',
+                  help='file where to store the pid of the server')
+    parser.add_option('-l','--log_filename',default='httpserver.log',
+                  dest='log_filename',
+                  help='file where to log connections')
+    parser.add_option('-s','--server_name',default=socket.gethostname(),
+                  dest='server_name',
+                  help='the server name for the web server')
+
     (options, args) = parser.parse_args()
     if not os.access('applications', os.F_OK):
         os.mkdir('applications')
@@ -240,6 +275,11 @@ def start():
     print 'please visit:'
     print '\thttp://%s:%s/welcome' % (ip,port)
     print 'use "kill -SIGTERM %i" to shutdown the web2py server'  % os.getpid()
-    server=HttpServer(ip,port,options.password)
+    server=HttpServer(ip=ip,port=port,password=options.password,
+                      pid_filename=options.pid_filename,
+                      log_filename=options.log_filename,
+                      ssl_certificate=options.ssl_certificate,
+                      ssl_private_key=options.ssl_private_key,
+                      server_name=options.server_name)
     try: server.start()
     except KeyboardInterrupt: server.stop()

@@ -7,6 +7,7 @@ License: GPL v2
 from storage import Storage
 from compileapp import run_view_in
 from streamer import streamer
+from xmlrpc import handler
 import sys, cPickle, cgi, cStringIO, thread, time, shelve
 
 __all__=['Request','Response','Session']
@@ -58,8 +59,26 @@ class Response(Storage):
         self.body=self.body.getvalue()
         return self.body
     def stream(self,stream,chunk_size=10):
+        """
+        if a controller function
+        > return response.stream(file,100)
+        the file content will be streamed at 100 bytes at the time
+        """
         self.body=streamer(stream,chunk_size)
         return self.body
+    def xmlrpc(self,request,methods):
+        """
+        assuming: 
+        > def add(a,b): return a+b
+        if a controller function "func" 
+        > return response.xmlrpc(request,[add])
+        the controller will be able to handle xmlrpc requests for 
+        the add function. Example:
+        > import xmlrpclib
+        > connection=xmlrpclib.ServerProxy('http://hostname/app/contr/func')
+        > print connection.add(3,4)        
+        """
+        return handler(request,self,methods)
 
 class Session(Storage): 
     """

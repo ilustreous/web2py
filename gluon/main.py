@@ -6,7 +6,8 @@ License: GPL v2
 
 import cgi, cStringIO, Cookie, cPickle, os
 import re, copy, sys, types, time, thread
-import datetime
+import datetime, signal, socket
+import tempfile
 #from wsgiref.simple_server import make_server, demo_app
 from random import random
 from storage import Storage, load_storage, save_storage
@@ -16,7 +17,7 @@ from http import HTTP, redirect
 from globals import Request, Response, Session
 from cache import Cache
 from compileapp import run_models_in, run_controller_in, run_view_in
-from fileutils import listdir
+from fileutils import listdir, copystream
 from contenttype import contenttype
 from sql import SQLDB, SQLField
 from sqlhtml import SQLFORM, SQLTABLE
@@ -32,9 +33,10 @@ import portalocker
 import contrib.simplejson
 import contrib.pyrtf
 import contrib.rss2
+import contrib.feedparser
 import contrib.markdown
 
-__all__=['wsgibase', 'wsgibase_with_logging', 'save_password']
+__all__=['wsgibase', 'save_password', 'HttpServer']
 
 ### Security Checks: validate URL and session_id here, accept_language is validated in languages
 # pattern to find valid paths in url /application/controller/...
@@ -156,15 +158,14 @@ def wsgibase(environ, responder):
             ###################################################
             # get the GET and POST data -DONE
             ###################################################
-            try: 
-                 length=int(request.env.content_length)
-                 body=request.env.wsgi_input.read(length)
-            except Exception,e:
-                 body='' 
-            request.body=body
-            if request.env.request_method in ['POST', 'BOTH']:           
-                dpost=cgi.FieldStorage(fp=cStringIO.StringIO(body),
-                                         environ=environ,keep_blank_values=1)
+            request.body=tempfile.TemporaryFile()            
+            if request.env.content_length:
+                copystream(request.env.wsgi_input,request.body,
+                           int(request.env.content_length))
+            if request.env.request_method in ['POST', 'BOTH']:
+                dpost=cgi.FieldStorage(fp=request.body,
+                                       environ=environ,keep_blank_values=1)
+                request.body.seek(0)
                 try: keys=dpost.keys()
                 except TypeError: keys=[]
                 for key in keys: 
@@ -262,56 +263,68 @@ def wsgibase(environ, responder):
 
 wsgibase,html.URL=rewrite(wsgibase,html.URL)
 
-def save_password(password):
+def save_password(password,port):
     """
     used by main() to save the password in the parameters.py file.
     """
     if password=='<recycle>': return
     import gluon.validators
     crypt=gluon.validators.CRYPT()
-    file=open('parameters.py','w')
+    file=open('parameters_%i.py'%port,'w')
     if len(password)>0: file.write('password="%s"\n' % crypt(password)[0])
     else: file.write('password=None\n')
     file.close()
 
-def wsgibase_with_logging(environ, responder):
-    status_headers=[]
-    def responder2(s,h):
-         status_headers.append(s)
-         status_headers.append(h)
-         return responder(s,h)
-    time_in=time.time()
-    ret=wsgibase(environ,responder2)
-    line='%s, %s, %s, %s, %s, %s, %f\n' % (environ['REMOTE_ADDR'], datetime.datetime.today().strftime('%Y-%m-%d %H:%M:%S'), environ['REQUEST_METHOD'],environ['PATH_INFO'].replace(',','%2C'),environ['SERVER_PROTOCOL'],status_headers[0][:3],time.time()-time_in)
-    open('httpserver.log','a').write(line)
-    return ret
+def appfactory(wsgiapp=wsgibase,logfilename='httpsever.log'):
+    def app_with_logging(environ, responder):
+        status_headers=[]
+        def responder2(s,h):
+            status_headers.append(s)
+            status_headers.append(h)
+            return responder(s,h)
+        time_in=time.time()
+        ret=wsgiapp(environ,responder2)
+        try:
+            line='%s, %s, %s, %s, %s, %s, %f\n' % (environ['REMOTE_ADDR'], datetime.datetime.today().strftime('%Y-%m-%d %H:%M:%S'), environ['REQUEST_METHOD'],environ['PATH_INFO'].replace(',','%2C'),environ['SERVER_PROTOCOL'],status_headers[0][:3],time.time()-time_in)
+            open(logfilename,'a').write(line)
+        except: pass
+        return ret
+    return app_with_logging
 
 class HttpServer:
     def __init__(self,ip='127.0.0.1',port=8000,password='',
-                 ssl_certificate='ssl/server.crt',
-                 ssl_private_key='ssl/server.key'):
+                 pid_filename='httpserver.pid',
+                 log_filename='httpserver.log',
+                 ssl_certificate=None,
+                 ssl_private_key=None,
+                 server_name=None):
         """
         starts the web server.
         """
-        save_password(password)
+        save_password(password,port)
+        self.pid_filename=pid_filename
+        if not server_name: server_name=socket.gethostname()
         print 'starting web server...'        
-        server = wsgiserver.CherryPyWSGIServer((ip, port),
-                 wsgibase_with_logging,
- 	         server_name='www.web2py.com')
-        if port%10==3 and wsgiserver.SSL and \
-           os.access(ssl_certificate,os.R_OK) and \
-           os.access(ssl_private_key,os.R_OK):
-            server.ssl_certificate=ssl_certificate
-            server.ssl_private_key=ssl_private_key
-            print 'ssl is on, using ssl certificates in ssl/'
+        self.server=wsgiserver.CherryPyWSGIServer((ip, port),
+                    appfactory(wsgibase,log_filename),
+ 	            server_name=server_name)
+        if not ssl_certificate or not ssl_private_key:
+            print 'SSL is off'
         elif not wsgiserver.SSL:
-            print 'Warning: no OpenSSL libraries available'
-        elif port%10==3:
-            print 'there are no ssl certificates in ssl/'
-        self.server=server
+            print 'Error: OpenSSL libraries available. SSL is OFF'
+        elif not os.access(ssl_certificate,os.R_OK):
+            print 'Error: unable to open SSL certificate. SSL is OFF'
+        elif not os.access(ssl_private_key,os.R_OK):
+            print 'Error: unable to open SSL private key. SSL is OFF'
+        else:
+            self.server.ssl_certificate=ssl_certificate
+            self.server.ssl_private_key=ssl_private_key
+            print 'SSL is ON'
     def start(self):
-        open('httpserver.pid','w').write(str(os.getpid()))            
+        try: signal.signal(signal.SIGTERM,lambda a,b,s=self:s.stop())
+        except: pass
+        open(self.pid_filename,'w').write(str(os.getpid()))
         self.server.start()
     def stop(self):
         self.server.stop()
-        os.unlink('httpserver.pid')
+        os.unlink(self.pid_filename)

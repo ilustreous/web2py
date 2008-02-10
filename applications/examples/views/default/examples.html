@@ -602,4 +602,33 @@ def index():
     '''
     return dict(name=request.vars.name)
 """.strip(),language='web2py',link='/examples/global/vars/')}}
-</p>
+<p></p>
+
+<h2>Large Files Example</h2>
+
+<br/><br/>
+<h3>Example {{=c}}{{c+=1}}</h3>
+<p>It is very easy in web2py to stream large files. Here is an example of a controller that does so:</p>
+{{=CODE("""
+def streamer():
+    return response.stream(open('largefile.mpg4','rb'),chunk_size=4096)
+""".strip(),language='web2py',link='/examples/global/vars/')}}
+<p></p>
+
+<h2>XML-RPC Example</h2>
+
+<br/><br/>
+<h3>Example {{=c}}{{c+=1}}</h3>
+<p>Web2py has native support for the XMLRPC protocol. Below is a controller function "handler" that exposes two functions, "add" and "sub" via XMLRPC. The controller "tester" executes the two function remotely via xmlrpc.</p>
+{{=CODE("""
+def add(a,b): return a+b
+def sub(a,b): return a-b
+
+def handler(): return response.xmlrpc(request,[add,sub])
+
+def tester():
+    import xmlrpclib
+    server=xmlrpclib.ServerProxy('http://hostname:port/app/controller/handler')
+    return str(server.add(3,4)+server.sub(3,4))
+""".strip(),language='web2py',link='/examples/global/vars/')}}
+<p></p>

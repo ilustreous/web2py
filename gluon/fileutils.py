@@ -90,3 +90,20 @@ def fix_newlines(path):
         data=open(filename,'rb').read()
         data=regex.sub('\n',data)
         open(filename,'wb').write(data)
+
+def copystream(src,dest,size=None,chunk_size=1):
+    """
+    this is here because I think there is a bug in shutil.copyfileobj
+    """
+    while size:
+        data=src.read(chunk_size)
+        length=len(data)
+        if size!=None:
+            if length>size: data,length=data[:size],size
+            size-=length
+        if length==0: break
+        dest.write(data)
+        if length<chunk_size: break
+    dest.seek(0)
+    return
+    
