@@ -54,7 +54,7 @@ def insert():
 def download():
     import os
     filename=os.path.join(request.folder,'uploads/','%s' % request.args[0])
-    return response.stream(open(filename,'rb'),4096)
+    return response.stream(open(filename,'rb'))
 
 def csv():
     import gluon.contenttype, csv, cStringIO

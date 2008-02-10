@@ -180,13 +180,11 @@ improved examples pages
 web2py 1.21
 replaced paste.httpserver with cherrypy.wsgi server
 temporary sessions are no longer saved
-widget has [stop] button
-logging is done by main
+widget has [stop] button and graph
+logging is done by main by appfactory
+fixed a bug in sql belongs
 
 TODO:
-unicode in default datetime fields? fix
 upload folder.
-unicode in languages.py 
 index for any SQLField
-test cxoracle
 
