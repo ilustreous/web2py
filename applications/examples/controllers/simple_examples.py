@@ -60,22 +60,24 @@ def makertf():
     response.headers['Content-Type']='text/rtf'
     return q.dumps(doc)
 
-def makerss():
+def rss_aggregator():
     import datetime
     import gluon.contrib.rss2 as rss2
-    rss = rss2.RSS2(
-       title = "web2py feed",
-       link = "http://mdp.cti.depaul.edu",
-       description = "About web2py",
+    import gluon.contrib.feedparser as feedparser
+    d = feedparser.parse("http://rss.slashdot.org/Slashdot/slashdot/to")
+
+    rss = rss2.RSS2(title=d.channel.title,
+       link = d.channel.link,
+       description = d.channel.description,
        lastBuildDate = datetime.datetime.now(),
        items = [
           rss2.RSSItem(
-            title = "web2py and PyRSS2Gen-0.0",
-            link = "http://mdp.cti.depaul.edu/",
-            description = "web2py can now make rss feeds!",
-            guid = rss2.Guid("http://mdp.cti.depaul.edu/"),
-            pubDate = datetime.datetime(2007, 11, 14, 10, 30)),
-        ])
+            title = entry.title,
+            link = entry.link,
+            description = entry.description,
+            # guid = rss2.Guid('unkown'),
+            pubDate = datetime.datetime.now()) for entry in d.entries]
+       )
     response.headers['Content-Type']='application/rss+xml'
     return rss2.dumps(rss)
 

@@ -36,7 +36,7 @@ print ProgramVersion
 from gluon.main import HttpServer, save_password
 from gluon.fileutils import tar, untar
 from optparse import *
-import time, webbrowser, thread, re, cStringIO, os, stat, socket, signal
+import time, webbrowser, thread, re, cStringIO, os, stat, socket, signal, math
 
 def try_start_browser(url):
     try: webbrowser.open(url)
@@ -190,7 +190,7 @@ class web2pyDialog:
             file=open('httpserver.log','r')
             file.seek(self.t0)
             data=file.read(t1-self.t0)
-            self.p0=self.p0[1:]+[1+98/(1+data.count('\n'))]
+            self.p0=self.p0[1:]+[10+90.0/math.sqrt(1+data.count('\n'))]
             for i in range(len(self.p0)-1):
                 c=self.canvas.coords(self.q0[i])
                 self.canvas.coords(self.q0[i],
@@ -199,8 +199,8 @@ class web2pyDialog:
         except Exception, e:
             self.t0=time.time()
             self.t0=t1
-            self.p0=[0]*300
-            self.q0=[self.canvas.create_line(i,99,i+1,99,fill='green') for i in range(len(self.p0))]
+            self.p0=[100]*300
+            self.q0=[self.canvas.create_line(i,100,i+1,100,fill='green') for i in range(len(self.p0)-1)]
         self.canvas.after(1000, self.update_canvas ) 
 
 def console():

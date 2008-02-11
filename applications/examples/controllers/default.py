@@ -14,7 +14,9 @@ response.menu=[
   ['license',request.function=='license','/%s/default/license'%app],
   ['thanks',request.function=='thanks','/%s/default/thanks'%app]]
 
-@cache(request.env.path_info,time_expire=-1,cache_model=cache.ram) 
+response.session_id=None
+
+@cache(request.env.path_info,time_expire=600,cache_model=cache.ram) 
 def index(): return response.render(dict())
 
 @cache(request.env.path_info,time_expire=600,cache_model=cache.ram) 
