@@ -59,7 +59,7 @@ class Response(Storage):
         run_view_in(self._view_environment)
         self.body=self.body.getvalue()
         return self.body
-    def stream(self,stream,chunk_size=10):
+    def stream(self,stream,chunk_size=10**6):
         """
         if a controller function
         > return response.stream(file,100)

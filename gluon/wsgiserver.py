@@ -565,9 +565,8 @@ class HTTPRequest(object):
         
         if self.chunked_write and chunk:
             buf = [hex(len(chunk))[2:], "\r\n", chunk, "\r\n"]
-            self.sendall("".join(buf))
-        else:
-            self.sendall(chunk)
+            chunk="".join(buf)
+        self.sendall(chunk)
     
     def send_headers(self):
         """Assert, process, and send the HTTP response message-headers."""
