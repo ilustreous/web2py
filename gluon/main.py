@@ -6,7 +6,7 @@ License: GPL v2
 
 import cgi, cStringIO, Cookie, cPickle, os
 import re, copy, sys, types, time, thread
-import datetime, signal, socket
+import datetime, signal, socket, stat
 import tempfile
 #from wsgiref.simple_server import make_server, demo_app
 from random import random
@@ -129,7 +129,8 @@ def wsgibase(environ, responder):
                     (items[0],'/'.join(items[2:]))            
                 if not os.access(static_file,os.R_OK): 
                     raise HTTP(400,error_message,web2py_error='invalid application')
-                headers={'Content-Type':contenttype(static_file)}
+                headers={'Content-Type':contenttype(static_file),
+                         'Content-Length':os.stat(static_file)[stat.ST_SIZE]}
                 raise HTTP(200,streamer(open(static_file,'rb')),**headers)
             ###################################################
             # parse application, controller and function
