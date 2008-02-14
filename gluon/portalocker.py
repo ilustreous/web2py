@@ -76,7 +76,7 @@ elif os.name =='posix':
                 fcntl.flock(file.fileno(), fcntl.LOCK_UN)
 
 else:
-        def lock(file, flags): pas
+        def lock(file, flags): pass
         def unlock(file): pass
 
 if __name__ == '__main__':
