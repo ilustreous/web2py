@@ -250,10 +250,12 @@ def wsgibase(environ, responder):
         try: SQLDB.close_all_instances(SQLDB.rollback)
         except: pass
         e=RestrictedError('Framework','','',locals())
-        print '*'*10,'intenral error traceback','*'*10
-        print e.traceback
-        print '*'*49
-        ticket=e.log(request)
+        try: ticket=e.log(request)
+        except:
+            ticket='unrecoverable'
+            print '*'*10,'intenral error traceback','*'*10
+            print e.traceback
+            print '*'*49
         if session_file: portalocker.unlock(session_file)
         return HTTP(200,error_message_ticket % (ticket,ticket),
                 web2py_error='ticket %s'%ticket).to(responder)

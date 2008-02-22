@@ -237,20 +237,18 @@ def console():
                   help='the folder where to run web2py')
 
     (options, args) = parser.parse_args()
-    if not os.access('applications', os.F_OK):
-        os.mkdir('applications')
-    if not os.access('applications/admin', os.F_OK):
-        os.mkdir('applications/admin')
-    if not os.access('applications/welcome', os.F_OK):
-        os.mkdir('applications/welcome')
-    if not os.access('applications/examples', os.F_OK):
-        os.mkdir('applications/examples')
-    if not os.access('deposit', os.F_OK):
-        os.mkdir('deposit')
+    if not os.access('applications', os.F_OK): os.mkdir('applications')
+    if not os.access('deposit', os.F_OK): os.mkdir('deposit')
     if not os.access('applications/__init__.py',os.F_OK) or options.upgrade=='yes':
         print 'unpacking apps, this may take a few minutes...'
+        if not os.access('applications/admin', os.F_OK): 
+           os.mkdir('applications/admin')
         untar('admin.tar','applications/admin/')
+        if not os.access('applications/welcome', os.F_OK):
+           os.mkdir('applications/welcome')
         untar('welcome.tar','applications/welcome/')
+        if not os.access('applications/examples', os.F_OK):
+           os.mkdir('applications/examples')
         untar('examples.tar','applications/examples/')
         open('applications/__init__.py','w').write('')
         print 'default applications are now installed'    
