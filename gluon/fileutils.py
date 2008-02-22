@@ -77,7 +77,7 @@ def get_session(request,other_application='admin'):
         session_id=request.cookies['session_id_'+other_application].value
         osession=storage.load_storage('applications/%s/sessions/%s' % \
                                       (other_application,session_id))
-    except IOError: osession=storage.Storage()
+    except: osession=storage.Storage()
     return osession
 
 def check_credentials(request,other_application='admin'):

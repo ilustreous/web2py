@@ -4,17 +4,17 @@ Developed by Massimo Di Pierro <mdipierro@cs.depaul.edu>
 License: GPL v2
 """
 
-import time, portalocker, shelve, thread, cPickle, dbhash
+import time, portalocker, shelve, thread, cPickle, dbhash, os
 
 __all__=['Cache']
 
 class CacheInRam:
     locker=thread.allocate_lock()
     storage={}
-    def __init__(self,application):
-        self.application=application
+    def __init__(self,request):
+        self.request=request
     def __call__(self,key,f,time_expire=300):
-        key='%s/%s' % (self.application,key)
+        key='%s/%s' % (self.request.application,key)
         dt=time_expire
         self.locker.acquire()
         value=None
@@ -33,12 +33,12 @@ class CacheInRam:
         return value
 
 class CacheOnDisk:
-    def __init__(self,application):
-        a=self.application=application
-        self.locker=open('applications/%s/cache/cache.lock'%a,'a')
-        self.shelve_name='applications/%s/cache/cache.shelve'%a
+    def __init__(self,request):
+	self.request=request
+        self.locker=open(os.path.join(request.folder,'cache/cache.lock'),'a')
+        self.shelve_name=os.path.join(request.folder,'cache/cache.shelve')
     def __call__(self,key,f,time_expire=300): 
-        key='%s/%s' % (self.application,key)
+        key='%s/%s' % (self.request.application,key)
         dt=time_expire
         portalocker.lock(self.locker, portalocker.LOCK_EX)
         storage=shelve.open(self.shelve_name)
@@ -59,9 +59,9 @@ class CacheOnDisk:
         return value
 
 class Cache:
-    def __init__(self,application):
-        self.ram=CacheInRam(application)
-        self.disk=CacheOnDisk(application)
+    def __init__(self,request):
+        self.ram=CacheInRam(request)
+        self.disk=CacheOnDisk(request)
     def __call__(self,key=None,time_expire=300,cache_model=None):
         if not cache_model: cache_model=self.ram
         def tmp(func):

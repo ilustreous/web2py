@@ -232,6 +232,9 @@ def console():
     parser.add_option('-s','--server_name',default=socket.gethostname(),
                   dest='server_name',
                   help='the server name for the web server')
+    parser.add_option('-f','--folder',default=os.getcwd(),
+                  dest='folder',
+                  help='the folder where to run web2py')
 
     (options, args) = parser.parse_args()
     if not os.access('applications', os.F_OK):
@@ -282,6 +285,7 @@ def start():
                       log_filename=options.log_filename,
                       ssl_certificate=options.ssl_certificate,
                       ssl_private_key=options.ssl_private_key,
-                      server_name=options.server_name)
+                      server_name=options.server_name,
+                      path=options.folder)
     try: server.start()
     except KeyboardInterrupt: server.stop()

@@ -52,7 +52,6 @@
 <img title="Ma.gnolia" alt="Ma.gnolia" src="/{{=request.application}}/static/bookmarks/magnolia.png" width="16" height="16" border="0" />
 </a>
 <br/>
-Visitor count since Oct 1st, 2007: {{=len(os.listdir(request.folder+'sessions/'))+77143}} {{#visitors since latest cleanup}}
 </div>
 <!-- End Slashdot It link -->
 
@@ -125,7 +124,7 @@ def index():
     return dict(form=form)
 """.strip(),language='web2py',link='/examples/global/vars/')}}
 <br/>and a view (which describes the data presenation): <tt>images_examples/index.html</tt>:<br/><br/>
-{{=CODE(open('applications/examples/views/images_examples/index.html','r').read(),language='html')}}
+{{=CODE(open(os.path.join(request.folder,'../examples/views/images_examples/index.html'),'r').read(),language='html')}}
 <br/>What does it do?
 <ul>
 <li>Creates the database db in file 'images.db'</li>
@@ -134,3 +133,9 @@ def index():
 <li>Creates a web page called index with upload form for db.image. Try it <a href="/{{=request.application}}/images_examples/index">here</a></li>
 <li>On upload the file is renamed in a secure way, saved, and the name of the file is stored in a new field db.image record.</li>
 </ul>
+
+<h2>Our visitors</h2>
+
+<center>
+<a href="http://www3.clustrmaps.com/counter/maps.php?url=http://mdp.cti.depaul.edu" id="clustrMapsLink"><img src="http://www3.clustrmaps.com/counter/index2.php?url=http://mdp.cti.depaul.edu" style="border:0px;" alt="Locations of visitors to this page" title="Locations of visitors to this page" id="clustrMapsImg" onError="this.onError=null; this.src='http://www2.clustrmaps.com/images/clustrmaps-back-soon.jpg'; document.getElementById('clustrMapsLink').href='http://www2.clustrmaps.com'" /></a>
+</center>

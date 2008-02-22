@@ -1,0 +1,95 @@
+{{extend 'layout.html'}}
+{{from gluon.contrib.markdown import WIKI}}
+
+<h1>HowTo: Creating Flash RPC applications using Web2PY and PyAMF</h1>
+
+<b>by Sharriff Aina</b><br/><br/>
+
+<p>I would explain with a very simple example how you can create Flash
+RPC applications using Web2py as a RPC service provider. I expect you
+to be familiar with the following topics as they are beyond the scope
+of this HowTo:
+
+<lu>
+<li> Actionscript programming</li>
+<li> RPC Web services</li>
+<li> AMF</li>
+<li> Web2PY programming</li>
+</lu>
+
+Start off by getting the latest Web2Py from <a href=
+"http://www.web2py.com">the site</a>. 
+Next, retrieve the latest version of PyAMF from the
+Python CheeseShop or directly from the PyAMF site(http://pyamf.org/
+wiki/Download)</p>
+
+<p>Lets create a simple service that takes 2 numerical values, adds them
+together and returns the sum. We would call the service "addNumbers".
+Create a flash file using Adobe Flash (all versions as from MX 2004),
+in the first frame of the file, add these lines:
+{{=CODE("""import mx.remoting.Service;
+import mx.rpc.RelayResponder;
+import mx.rpc.FaultEvent;
+import mx.rpc.ResultEvent;
+import mx.remoting.PendingCall;
+
+val1 = 23;
+val2 = 86;
+
+service = new Service("http://localhost:8000/pyamf_test/default/
+gateway", null, "addNumbers", null, null);
+var pc:PendingCall = service.addNumbers(val1, val2);
+pc.responder = new RelayResponder(this, "onResult", "onFault");
+
+function onResult(re:ResultEvent):Void {
+        trace("Result : " + re.result);
+        txt_result.text = re.result;
+}
+
+function onFault(fault:FaultEvent):Void {
+        trace("Fault: " + fault.fault.faultstring);
+}
+
+stop();""")}}
+
+The last thing to do would be to create a dynamic text field called
+"txt_result" and place it on the stage.</p>
+
+<p>As you have noticed, we have imported the mx remoting classes to
+enable Remoting in Flash, you can get them 
+<a href="http://www.adobe.com/products/flashremoting/downloads/components/">here</a>. 
+I would be using the 
+Actionscript version 2 version of the classes. Add the path of the
+classes to your class path in the Adobe Flash IDE or just place the
+"mx" folder next to the newly created file. Compile and
+export(publish) the swf flash file as "pyamf_test.swf".</p>
+
+<p>Lets set up the gateway in Web2Py as we defined in our Flash file,
+create a new appliance, "pyamf_test", in the "default" controller,
+create a function called "gateway" and add these lines to it:
+{{=CODE("""import pyamf
+import pyamf.remoting.gateway
+
+def addNumbers(val1, val2):
+   return val1 + val2
+
+services={'addNumbers.addNumbers':addNumbers}
+
+def gateway():
+   base_gateway = pyamf.remoting.gateway.BaseGateway(services)
+   context = pyamf.get_context(pyamf.AMF0)
+   pyamf_request = pyamf.remoting.decode(request.body.read(), context)
+   pyamf_response = pyamf.remoting.Envelope(pyamf_request.amfVersion,
+                                            pyamf_request.clientType)
+   for name, message in pyamf_request:
+       pyamf_response[name] = base_gateway.getProcessor(message)(message)
+   response.headers['Content-Type'] = pyamf.remoting.CONTENT_TYPE
+   return pyamf.remoting.encode(pyamf_response, context).getvalue()""",language='web2py',link='/examples/global/vars/')}}</p>
+
+<p>Next, place the pyamf_test.amf, pyamf_test.html,
+AC_RunActiveContent.js, crossdomain.xml files in the "static" folder
+of the pyamf_test controller,fireup WEb2py using 8000 as the server
+port, point your browser to <br/>
+<tt>http://localhost:8000/pyamf_test/static/pyamf_test.html</tt><br/>
+and see the result of the "addNumbers" function displayed in the
+textfield.</p>

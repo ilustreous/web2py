@@ -73,11 +73,11 @@ class translator:
     def __call__(self,message,symbols={}):
         return lazyT(message,symbols,self.t)
             
-def findT(application,language='en-us'):
+def findT(application_path,language='en-us'):
     """ 
     must be run by the admin app 
     """
-    path=os.path.join('applications/',application)
+    path=application_path
     try:
         sentences=eval(open(os.path.join(path,'languages/','%s.py' % language),'r').read())
     except:
@@ -101,7 +101,7 @@ def findT(application,language='en-us'):
     file.write('}\n')
     file.close()
 
-def update_all_languages(application):
-    path='applications/%s/languages/' % application
+def update_all_languages(application_path):
+    path=os.path.join(application_path,'languages')
     for language in  listdir(path,'.+'):
-        findT(application,language[:-3])
+        findT(application_path,language[:-3])

@@ -33,7 +33,7 @@ class SQLFORM(FORM):
             for example _class, _id, _style, _action,_method, etc.
 
     """
-    def __init__(self,table,record=None,deletable=False,linkto=None,upload=None,fields=None,labels=None,submit_button='Submit',**attributes):
+    def __init__(self,table,record=None,deletable=False,linkto=None,upload=None,fields=None,labels=None,submit_button='Submit',showid=True,**attributes):
         """
         SQLFORM(db.table,
                record=None,
@@ -53,7 +53,8 @@ class SQLFORM(FORM):
             field_id='%s_%s' % (table._tablename,fieldname)
             if fieldname=='id':                
                 if record: 
-                    xfields.append(TR(TD('Record id:'), TD(B(record['id']))))
+                    if showid:
+                        xfields.append(TR(TD('Record id:'),TD(B(record['id']))))
                     self.record_id=str(record['id'])
                 continue
             field=self.table[fieldname]            

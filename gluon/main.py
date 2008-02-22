@@ -36,7 +36,7 @@ import contrib.rss2
 import contrib.feedparser
 import contrib.markdown
 
-__all__=['wsgibase', 'save_password', 'HttpServer']
+__all__=['wsgibase', 'save_password', 'appfactory', 'HttpServer']
 
 ### Security Checks: validate URL and session_id here, accept_language is validated in languages
 # pattern to find valid paths in url /application/controller/...
@@ -72,7 +72,7 @@ def serve_controller(request,response,session):
     environment['request']=request
     environment['response']=response    
     environment['session']=session
-    environment['cache']=Cache(request.application)
+    environment['cache']=Cache(request)
     environment['SQLDB']=SQLDB
     SQLDB._set_thread_folder(os.path.join(request.folder,'databases'))    
     environment['SQLField']=SQLField
@@ -101,7 +101,7 @@ def wsgibase(environ, responder):
     is requested (static or dynamical). it can be called by paste.httpserver
     or by apache mod_wsgi.
     """
-    os.chdir(working_folder) ### to recover if the app does chdir
+    ### os.chdir(working_folder) ### to recover if the app does chdir
     request=Request()
     response=Response()
     session=Session()
@@ -114,6 +114,7 @@ def wsgibase(environ, responder):
             ###################################################
             for key, value in environ.items():
                 request.env[key.lower().replace('.','_')]=value
+            if not request.env.web2py_path: request.env.web2py_path=working_folder
             ###################################################
             # valudate the path in url
             ###################################################
@@ -125,8 +126,7 @@ def wsgibase(environ, responder):
             # serve if a static file
             ###################################################
             if len(items)>2 and items[1]=='static':
-                static_file='applications/%s/static/%s' % \
-                    (items[0],'/'.join(items[2:]))            
+                static_file=os.path.join(request.env.web2py_path,'applications',items[0],'static','/'.join(items[2:]))
                 if not os.access(static_file,os.R_OK): 
                     raise HTTP(400,error_message,web2py_error='invalid application')
                 headers={'Content-Type':contenttype(static_file),
@@ -144,14 +144,10 @@ def wsgibase(environ, responder):
             request.application=items[0]
             request.controller=items[1]
             request.function=items[2]
-            if os.name in ['nt','posix']:
-                request.folder='applications/%s/'%request.application
-            else: ### windows CE has no relative paths so take care of it here
-                request.folder='%s/applications/%s/'% \
-                               (os.getcwd(),request.application)            
+            request.folder=os.path.join(request.env.web2py_path,'applications',request.application)+'/'
             ###################################################
             # access the requested application
-            ###################################################                
+            ################################################### 
             if not os.access(request.folder,os.F_OK):
                 if items==['init','default','index']: 
                    redirect('/welcome/default/index')
@@ -250,7 +246,7 @@ def wsgibase(environ, responder):
         ###################################################
         # on application error, rollback database
         ###################################################        
-        os.chdir(working_folder) ### to recover if the app does chdir
+        ### os.chdir(working_folder) ### to recover if the app does chdir
         try: SQLDB.close_all_instances(SQLDB.rollback)
         except: pass
         e=RestrictedError('Framework','','',locals())
@@ -276,8 +272,9 @@ def save_password(password,port):
     else: file.write('password=None\n')
     file.close()
 
-def appfactory(wsgiapp=wsgibase,logfilename='httpsever.log'):
+def appfactory(wsgiapp=wsgibase,logfilename='httpsever.log',web2py_path=working_folder):
     def app_with_logging(environ, responder):
+        environ['web2py_path']=web2py_path
         status_headers=[]
         def responder2(s,h):
             status_headers.append(s)
@@ -286,6 +283,7 @@ def appfactory(wsgiapp=wsgibase,logfilename='httpsever.log'):
         time_in=time.time()
         ret=wsgiapp(environ,responder2)
         try:
+            if not logfilename: raise IOError
             line='%s, %s, %s, %s, %s, %s, %f\n' % (environ['REMOTE_ADDR'], datetime.datetime.today().strftime('%Y-%m-%d %H:%M:%S'), environ['REQUEST_METHOD'],environ['PATH_INFO'].replace(',','%2C'),environ['SERVER_PROTOCOL'],status_headers[0][:3],time.time()-time_in)
             open(logfilename,'a').write(line)
         except: pass
@@ -298,7 +296,8 @@ class HttpServer:
                  log_filename='httpserver.log',
                  ssl_certificate=None,
                  ssl_private_key=None,
-                 server_name=None):
+                 server_name=None,
+                 path=working_folder):
         """
         starts the web server.
         """
@@ -307,7 +306,7 @@ class HttpServer:
         if not server_name: server_name=socket.gethostname()
         print 'starting web server...'        
         self.server=wsgiserver.CherryPyWSGIServer((ip, port),
-                    appfactory(wsgibase,log_filename),
+                    appfactory(wsgibase,log_filename,web2py_path=path),
  	            server_name=server_name)
         if not ssl_certificate or not ssl_private_key:
             print 'SSL is off'

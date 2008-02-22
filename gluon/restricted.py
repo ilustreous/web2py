@@ -4,7 +4,7 @@ Developed by Massimo Di Pierro <mdipierro@cs.depaul.edu>
 License: GPL v2
 """
 
-import sys, cStringIO, cPickle, traceback, copy, cgi, types, time
+import sys, cStringIO, cPickle, traceback, copy, cgi, types, time, os
 from random import random
 from html import BEAUTIFY
 
@@ -36,7 +36,7 @@ class RestrictedError:
            'output':str(self.output),
            'traceback':str(self.traceback)}
         f=request.env.remote_addr+'.'+str(int(time.time()))+'.'+str(random())[2:]
-        cPickle.dump(d,open(request.folder+'errors/'+f,'wb'))
+        cPickle.dump(d,open(os.path.join(request.folder,'errors',f),'wb'))
         return '%s/%s' % (a,f)
 
     def load(self,file):

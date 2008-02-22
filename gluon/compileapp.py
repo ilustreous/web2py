@@ -26,7 +26,7 @@ def _TEST():
         if type(eval(key))==types.FunctionType: 
             if doctest.DocTestFinder().find(eval(key)):
                 sys.stdout=cStringIO.StringIO()
-                name='applications/%s/controllers/%s.py in %s.__doc__' % (request.application, request.controller, key)
+                name='%s/controllers/%s.py in %s.__doc__' % (request.folder, request.controller, key)
                 doctest.run_docstring_examples(eval(key),globals(),False,name=name)
                 report=sys.stdout.getvalue().strip()
                 pf='failed' if report else 'passed'

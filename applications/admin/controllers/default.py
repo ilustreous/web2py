@@ -39,10 +39,12 @@ response.menu.append(('help',False,'/examples/default/index'))
 ### exposed functions
 ############################################################
 
+def apath(path=''): return os.path.join(request.folder,'..',path)
+
 try:
     _config={}
     port=int(request.env.http_host.split(':')[1])
-    restricted(open('parameters_%i.py'%port,'r').read(),_config)
+    restricted(open(apath('../parameters_%i.py'%port),'r').read(),_config)
     if not _config.has_key('password') or not _config['password']:
         raise HTTP(400)
 except: raise HTTP(400)
@@ -54,12 +56,12 @@ def index():
             session.authorized=True
             try:        
                 version=urllib.urlopen('http://mdp.cti.depaul.edu/examples/default/version').read()
-                myversion=open('VERSION','r').read()
+                myversion=open(apath('../VERSION'),'r').read()
                 if version!=myversion: session.flash='A new version of web2py is available, you should upgrade at http://mdp.cti.depaul.edu/examples'
             except: pass
             redirect(URL(r=request,f='site'))
         else: response.flash='invalid password'
-    apps=[file for file in os.listdir('applications/') if file.find('.')<0]    
+    apps=[file for file in os.listdir(apath()) if file.find('.')<0]    
     return dict(apps=apps)
 
 if not session.authorized and not request.function=='index': 
@@ -75,7 +77,7 @@ def site():
     if request.vars.filename and not request.vars.has_key('file'):
         try:
             appname=cleanpath(request.vars.filename)
-            path='applications/%s/' % appname
+            path=apath(appname)
             os.mkdir(path)
             untar('welcome.tar',path)
             response.flash='new application "%s" created' % appname
@@ -86,9 +88,9 @@ def site():
     elif request.vars.filename and request.vars.has_key('file'):
         try:
             appname=cleanpath(request.vars.filename)
-            tarname='deposit/%s.tar' % appname
+            tarname=apath('../deposit/%s.tar' % appname)
             open(tarname,'wb').write(request.vars.file.file.read())
-            path='applications/%s/' % appname
+            path=apath(appname)
             os.mkdir(path)
             untar(tarname,path)
             fix_newlines(path)
@@ -96,15 +98,15 @@ def site():
         except:
             response.flash='unable to install application "%s"' % request.vars.filename
     regex=re.compile('^\w+$')
-    apps=[file for file in os.listdir('applications/') if regex.match(file)]
+    apps=[file for file in os.listdir(apath()) if regex.match(file)]
     return dict(app=None,apps=apps)
 
 def pack():        
     """ admin controller function """
     try: 
         app=request.args[0]
-        filename='deposit/%s.tar' % app 
-        tar(filename,'applications/%s/' % app,'^[\w\.]+$')
+        filename=apath('../deposit/%s.tar' % app)
+        tar(filename,apath(app),'^[\w\.]+$')
     except: redirect(URL(r=request,f='site'))
     response.headers['Content-Type']='application/x-tar'
     return open(filename,'rb').read()
@@ -113,8 +115,8 @@ def pack_compiled():
     """ admin controller function """
     try: 
         app=request.args[0]
-        filename='deposit/%s.tar' % app 
-        tar_compiled(filename,'applications/%s/' % app)
+        filename=apath('../deposit/%s.tar' % app)
+        tar_compiled(apath(app))
     except: redirect(URL(r=request,f='site'))
     response.headers['Content-Type']='application/x-tar'
     return open(filename,'rb').read()
@@ -127,8 +129,8 @@ def uninstall():
         elif request.vars['delete']!='YES':
              session.flash=''
              redirect(URL(r=request,f='site'))        
-        filename='deposit/%s.tar' % app 
-        path='applications/%s/' % app
+        filename=apath('../deposit/%s.tar' % app )
+        path=apath(app)
         tar(filename,path,'^[\w\.]+$')
         for root,dirs,files in os.walk(path,topdown=False):
             for name in files: os.remove(os.path.join(root,name))
@@ -142,12 +144,12 @@ def uninstall():
 def cleanup():        
     """ admin controller function """
     app=request.args[0]
-    files=listdir('applications/%s/errors/' % app,'',0)
+    files=listdir(apath('%s/errors/' % app),'',0)
     for file in files: os.unlink(file)
-    files=listdir('applications/%s/sessions/' % app,'',0)
+    files=listdir(apath('%s/sessions/' % app),'',0)
     for file in files: os.unlink(file)
     session.flash="cache, errors and sessions cleaned"
-    files=listdir('applications/%s/cache/' % app,'',0)
+    files=listdir(apath('%s/cache/' % app),'',0)
     for file in files: 
         try: os.unlink(file)
         except: session.flash="cache is in use, errors and sessions cleaned"
@@ -156,7 +158,7 @@ def cleanup():
 def compile_app():
     """ admin controller function """
     app=request.args[0]
-    folder='applications/%s/'%app
+    folder=apath(app)
     try:
         compile_application(folder)
         session.flash='application compiled'
@@ -168,7 +170,7 @@ def compile_app():
 def remove_compiled_app():
     """ admin controller function """
     app=request.args[0]
-    remove_compiled_application('applications/%s/'%app)
+    remove_compiled_application(apath(app))
     session.flash='compiled application removed'
     redirect(URL(r=request,f='site'))
 
@@ -181,7 +183,7 @@ def delete():
         elif request.vars['delete']!='YES':
              session.flash='file "%s" was not deleted' % filename
              redirect(URL(r=request,f=sender))
-        os.unlink('applications/'+filename)
+        os.unlink(apath(filename))
         session.flash='file "%s" deleted' % filename
     except:
         session.flash='unable to delete file "%s"' % filename
@@ -191,7 +193,7 @@ def peek():
     """ admin controller function """
     filename='/'.join(request.args)
     try:
-        data=open('applications/'+filename,'r').read()
+        data=open(apath(filename),'r').read()
     except IOError: 
         session.flash='file does not exist'
         redirect(URL(r=request,f='site'))
@@ -200,7 +202,7 @@ def peek():
 
 def test():
     app=request.args[0]
-    controllers=listdir('applications/%s/controllers/' % app, '.*\.py$')
+    controllers=listdir(apath('%s/controllers/' % app), '.*\.py$')
     return dict(app=app,controllers=controllers)
 
 def edit():
@@ -210,10 +212,10 @@ def edit():
     elif filename[-5:]=='.html': filetype='html'
     else: filetype=''
     ### check if file is not there 
-    data=open('applications/'+filename,'r').read()
+    data=open(apath(filename),'r').read()
     try:
         data=request.vars.data.replace('\r\n','\n').strip()
-        open('applications/'+filename,'w').write(data)
+        open(apath(filename),'w').write(data)
         response.flash="file saved on "+time.ctime()       
     except: pass
     return dict(app=request.args[0],filename=filename,filetype=filetype,data=data)
@@ -223,7 +225,7 @@ def edit_language():
     """ admin controller function """
     filename='/'.join(request.args)    
     ### check if file is not there 
-    strings=eval(open('applications/'+filename,'r').read())
+    strings=eval(open(apath(filename),'r').read())
     keys=strings.keys()
     keys.sort()
     rows=[]
@@ -242,7 +244,7 @@ def edit_language():
             key=keys[keyi]
             txt+='%s:%s,\n' % (repr(key),repr(form.vars[str(keyi)]))
         txt+='}\n'
-        open('applications/'+filename,'w').write(txt)        
+        open(apath(filename),'w').write(txt)        
         response.flash="file saved on "+time.ctime()       
     return dict(app=request.args[0],filename=filename,form=form)
 
@@ -250,10 +252,10 @@ def htmledit():
     """ admin controller function """
     filename='/'.join(request.args)    
     ### check if file is not there 
-    data=open('applications/'+filename,'r').read()
+    data=open(apath(filename),'r').read()
     try:
         data=request.vars.data.replace('\r\n','\n') 
-        open('applications/'+filename,'w').write(data)
+        open(apath(filename),'w').write(data)
         response.flash="file saved on "+time.ctime()       
     except: pass
     return dict(app=request.args[0],filename=filename,data=data)
@@ -262,8 +264,8 @@ def about():
     """ admin controller function """
     app=request.args[0] 
     ### check if file is not there 
-    about=open('applications/%s/ABOUT' % app,'r').read()
-    license=open('applications/%s/LICENSE' % app,'r').read()
+    about=open(apath('%s/ABOUT' % app),'r').read()
+    license=open(apath('%s/LICENSE' % app),'r').read()
     return dict(app=app,about=WIKI(about),license=WIKI(license))
 
 def design():
@@ -271,47 +273,47 @@ def design():
     app=request.args[0] 
     if not response.slash and app==request.application:
         response.flash='ATTENTION: you cannot edit the running application!'
-    if os.access('applications/%s/compiled' % app,os.R_OK):
+    if os.access(apath('%s/compiled' % app),os.R_OK):
         session.flash='application is compiled and cannot be designed'
         redirect(URL(r=request,f='site'))
-    models=listdir('applications/%s/models/' % app, '.*\.py$')
+    models=listdir(apath('%s/models/' % app), '.*\.py$')
     defines={}
     for m in models:
-        data=open('applications/%s/models/%s'%(app,m),'r').read()
+        data=open(apath('%s/models/%s'%(app,m)),'r').read()
         defines[m]=regex_tables.findall(data)
         defines[m].sort()
-    controllers=listdir('applications/%s/controllers/' % app, '.*\.py$')
+    controllers=listdir(apath('%s/controllers/' % app), '.*\.py$')
     controllers.sort()
     functions={}    
     for c in controllers:
-        data=open('applications/%s/controllers/%s' % (app,c),'r').read()
+        data=open(apath('%s/controllers/%s' % (app,c)),'r').read()
         items=regex_expose.findall(data)
         functions[c]=items
-    views=listdir('applications/%s/views/' % app,'.*\.html$')
+    views=listdir(apath('%s/views/' % app),'.*\.html$')
     views.sort()
     extend={}
     include={}
     for c in views:
-        data=open('applications/%s/views/%s' % (app,c),'r').read()
+        data=open(apath('%s/views/%s' % (app,c)),'r').read()
         items=regex_extend.findall(data)
         if items: extend[c]=items[0][1]
         items=regex_include.findall(data)
         include[c]=[i[1] for i in items]
-    statics=listdir('applications/%s/static/' % app)
+    statics=listdir(apath('%s/static/' % app))
     statics.sort()
-    languages=listdir('applications/%s/languages/' % app, '[\w-]*\.py')
+    languages=listdir(apath('%s/languages/' % app), '[\w-]*\.py')
     return dict(app=app,models=models,defines=defines,controllers=controllers,functions=functions,views=views,extend=extend,include=include,statics=statics,languages=languages)
 
 
 def create_file():
     """ admin controller function """
     try:
-        path=os.path.join('applications/',request.vars.location)
+        path=apath(request.vars.location)
         filename=re.sub('[^\w./-]+','_',request.vars.filename)        
         if path[-11:]=='/languages/':
             if len(filename)==0: raise SyntaxError
             app=path.split('/')[-3] 
-            findT(app,filename)
+            findT(apath(app),filename)
             session.flash='language file "%s" created/updated' % filename
             redirect(request.vars.sender)
         elif path[-8:]=='/models/': 
@@ -346,7 +348,7 @@ def create_file():
 def upload_file(): 
     """ admin controller function """
     try:
-        path=os.path.join('applications/',request.vars.location)
+        path=apath(request.vars.location)
         filename=re.sub('[^\w./]+','_',request.vars.filename)
         if path[-8:]=='/models/' and not filename[-3:]=='.py': filename+='.py'
         if path[-13:]=='/controllers/' and not filename[-3:]=='.py': filename+='.py'
@@ -370,8 +372,8 @@ def errors():
     app=request.args[0] 
     for item in request.vars:
         if item[:7]=='delete_':
-            os.unlink('applications/%s/errors/%s' % (app,item[7:]))
-    tickets=os.listdir('applications/%s/errors/' % app)
+            os.unlink(apath('%s/errors/%s' % (app,item[7:])))
+    tickets=os.listdir(apath('%s/errors/' % app))
     return dict(app=app,tickets=tickets)
 
 def ticket():        
@@ -379,12 +381,12 @@ def ticket():
     app=request.args[0] 
     ticket=request.args[1] 
     e=RestrictedError()
-    e.load('applications/%s/errors/%s' % (app,ticket))
+    e.load(apath('%s/errors/%s' % (app,ticket)))
     return dict(app=app,ticket=ticket,traceback=e.traceback,code=e.code,layer=e.layer)
 
 def update_languages():
     """ admin controller function """
     app=request.args[0]
-    update_all_languages(app)
+    update_all_languages(apath(app))
     session.flash='languages updated'
     redirect(URL(r=request,f='design/'+app))
