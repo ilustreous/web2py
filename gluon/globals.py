@@ -9,7 +9,8 @@ from compileapp import run_view_in
 from streamer import streamer
 from xmlrpc import handler
 from contenttype import contenttype
-import sys, cPickle, cgi, cStringIO, thread, time, shelve, os, stat
+from html import xmlescape
+import sys, cPickle, cStringIO, thread, time, shelve, os, stat
 
 __all__=['Request','Response','Session']
 
@@ -47,9 +48,7 @@ class Response(Storage):
         self._view_environment=None
     def write(self,data,escape=True):
         if not escape: self.body.write(str(data))
-        else: 
-            try: self.body.write(data.xml())
-            except AttributeError: self.body.write(cgi.escape(str(data)))
+        else: self.body.write(xmlescape(data))
     def render(self,*a,**b):
         if len(a)>1 or (len(a)==1 and not hasattr(a[0],'items')):
             raise SyntaxError        

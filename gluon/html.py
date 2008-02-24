@@ -8,8 +8,18 @@ import cgi, re, random, copy, sys, types, urllib, tokenize, keyword
 from storage import Storage
 from validators import *
 from highlight import highlight
+import sanitizer
 
-__all__=['A', 'B', 'BEAUTIFY', 'BODY', 'BR', 'CENTER', 'CODE', 'DIV', 'EM', 'EMBED', 'FIELDSET', 'FORM', 'H1', 'H2', 'H3', 'H4', 'H5', 'H6', 'HEAD', 'HR', 'HTML', 'IFRAME', 'IMG', 'INPUT', 'LABEL', 'LI', 'LINK', 'OL', 'UL', 'META', 'OBJECT', 'ON', 'OPTION', 'P', 'PRE', 'SCRIPT', 'SELECT', 'SPAN', 'STYLE', 'TABLE', 'TD', 'TEXTAREA', 'TH', 'TITLE', 'TR', 'TT', 'URL', 'XML']
+__all__=['A', 'B', 'BEAUTIFY', 'BODY', 'BR', 'CENTER', 'CODE', 'DIV', 'EM', 'EMBED', 'FIELDSET', 'FORM', 'H1', 'H2', 'H3', 'H4', 'H5', 'H6', 'HEAD', 'HR', 'HTML', 'IFRAME', 'IMG', 'INPUT', 'LABEL', 'LI', 'LINK', 'OL', 'UL', 'META', 'OBJECT', 'ON', 'OPTION', 'P', 'PRE', 'SCRIPT', 'SELECT', 'SPAN', 'STYLE', 'TABLE', 'TD', 'TEXTAREA', 'TH', 'TITLE', 'TR', 'TT', 'URL', 'XML', 'xmlescape']
+
+def xmlescape(data,quote=False):
+    try: 
+        data=data.xml()
+    except AttributeError:
+        if not isinstance(data,(str,unicode)): data=str(data) 
+        if isinstance(data,unicode): data=data.encode("utf8","xmlcharrefreplace")
+        data=cgi.escape(data,quote)
+    return data
 
 def URL(a=None,c=None,f=None,r=None,args=[],vars={}):
     """
@@ -55,7 +65,8 @@ class XML:
     use it to wrap a string that contains XML/HTML so that it will not be 
     escaped by the template
     """
-    def __init__(self,text):
+    def __init__(self,text,sanitize=False,permitted_tags=['a','b','blockquote','br/','i', 'li', 'ol','ul', 'p', 'cite','code','pre','img/']):        
+        if sanitize: text=sanitizer.sanitize(text,permitted_tags)
         self.text=text
     def xml(self):
         return self.text
@@ -123,12 +134,9 @@ class DIV:
             if hasattr(c,'rec_accepts'): c.rec_accepts(vars)            
     def _xml(self):
         items=self.attributes.items()
-        fa=' '.join([key[1:].lower() for key,value in items if key[:1]=='_' and value==None]+['%s="%s"' % (key[1:].lower(),str(value).replace('"',"'")) for key,value in self.attributes.items() if key[:1]=='_' and value])
+        fa=' '.join([key[1:].lower() for key,value in items if key[:1]=='_' and value==None]+['%s="%s"' % (key[1:].lower(),xmlescape(value,True)) for key,value in self.attributes.items() if key[:1]=='_' and value])
         if fa: fa=' '+fa
-        co=''
-        for component in self.components:
-            try: co+=component.xml()
-            except AttributeError: co+=cgi.escape(str(component))
+        co=''.join([xmlescape(component) for component in self.components])
         return fa,co
     def xml(self):
         fa,co=self._xml()
