@@ -118,6 +118,8 @@ def wsgibase(environ, responder):
             ###################################################
             # valudate the path in url
             ###################################################
+            if not request.env.path_info and request.env.request_uri:
+                request.env.path_info=request.env.request_uri # for fcgi
             path=request.env.path_info[1:].replace('\\','/')
             if not regex_url.match(path): 
                 raise HTTP(400,error_message,web2py_error='invalid path')

@@ -126,7 +126,6 @@ class DIV:
                 return False
         if formname and formname!=vars._formname: return False
         self.rec_accepts(vars)
-        ### SOMETHING WRONG HERE AND LINE 448        
         if not len(self.errors) and not keepvalues: self.rec_clear(True)
         return len(self.errors)==0        
     def rec_accepts(self,vars):
@@ -320,9 +319,12 @@ class INPUT(DIV):
                        del self.attributes['_checked']
             elif self.attributes['_type']=='text':
                    self.attributes['_value']=self.attributes['value']
+        elif not self.attributes.has_key('_type') and \
+           self.attributes.has_key('value') and self.attributes['value']!=None:
+            self.attributes['_value']=self.attributes['value']
     def rec_accepts(self,vars):
         if not self.attributes.has_key('_name'): return True
-        name=self.attributes['_name']        
+        name=self.attributes['_name']
         if vars.has_key(name): value=vars[name]
         elif self.attributes.has_key('value') and \
            self.attributes['value']!=None: value=self.attributes['value']

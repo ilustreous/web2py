@@ -12,7 +12,7 @@ Put something like this in the lighttpd.conf file:
   server.errorlog      = "/tmp/error.log"
   fastcgi.server =    ( ".fcgi" =>
                         ( "localhost" =>
-                            ( "min-procs" => 1
+                            ( "min-procs" => 1,
                               "socket"    => "/tmp/fcgi.sock"
                             )
                         )
@@ -20,8 +20,9 @@ Put something like this in the lighttpd.conf file:
 """
 
 import gluon.main
-import gluon.contrib.fcgi
+import gluon.contrib.gateways.fcgi as fcgi
 application=gluon.main.wsgibase
+
 ## or
 # application=gluon.main.wsgibase_with_logging
-gluon.contrib.fcgi.WSGIServer(application,bindAddress='/tmp/fcgi.sock').run()
+fcgi.WSGIServer(application,bindAddress='/tmp/fcgi.sock').run()

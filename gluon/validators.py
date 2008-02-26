@@ -160,7 +160,7 @@ class IS_FLOAT_IN_RANGE:
     def __call__(self,value):        
         try:
             value=float(value)
-            if self.minimum<=value<self.maximum: return (value,None)
+            if self.minimum<=value<=self.maximum: return (value,None)
         except ValueError: pass
         return (value,self.error_message)
 

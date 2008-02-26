@@ -716,6 +716,7 @@ class SQLSet:
         self._tables=[]
         # find out wchich tables are involved
         self.sql_w=str(where)
+        #print self.sql_w
         self._tables=parse_tablenames(self.sql_w)
         #print self._tables
     def __call__(self,where):
