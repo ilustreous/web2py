@@ -5,6 +5,6 @@ def WIKI(text, encoding="utf8", safe_mode='escape',**attributes):
     if not text: test=''
     if attributes.has_key('extras'): extras=attributes['extras']
     else: extras=None
-    text=text.decode(encoding)
+    text=text.decode(encoding,'replace')
     return XML(markdown(text,extras=extras,safe_mode=safe_mode).encode(encoding,'xmlcharrefreplace'),**attributes)
 

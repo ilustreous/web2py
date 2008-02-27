@@ -20,6 +20,7 @@ def xssescape(text):
 class XssCleaner(HTMLParser):
     def __init__(self, 
                  permitted_tags = ['a','b','blockquote','br/','i', 'li', 'ol', 'ul', 'p', 'cite','code','pre','img/'],
+                 allowed_attributes={'a':['href','title'],'img':['src','alt'],'blockquote':['type']},
                  fmt = AbstractFormatter):
         HTMLParser.__init__(self, fmt)
         self.result=""
@@ -27,7 +28,7 @@ class XssCleaner(HTMLParser):
         self.permitted_tags=[i for i in permitted_tags if i[-1]!='/']
         self.requires_no_close=[i[:-1] for i in permitted_tags if i[-1]=='/']
         self.permitted_tags+=self.requires_no_close
-        self.allowed_attributes = {'a':['href','title'],'img':['src','alt'],'blockquote':['type']}
+        self.allowed_attributes = allowed_attributes
         # The only schemes allowed in URLs (for href and src attributes).
         # Adding "javascript" or "vbscript" to this list would not be smart.
         self.allowed_schemes = ['http','https','ftp']
@@ -104,5 +105,5 @@ class XssCleaner(HTMLParser):
             tg += "> "
         return xssescape(tg.strip())
 
-def sanitize(text,permitted_tags = ['a','b','blockquote','br/','i', 'li', 'ol','ul', 'p', 'cite','code','pre','img/']):
-    return XssCleaner(permitted_tags=permitted_tags).strip(text)
+def sanitize(text,permitted_tags = ['a','b','blockquote','br/','i', 'li', 'ol','ul', 'p', 'cite','code','pre','img/'],allowed_attributes={'a':['href','title'],'img':['src','alt'],'blockquote':['type']}):
+    return XssCleaner(permitted_tags=permitted_tagsa,allowed_attributes=allowed_attributes).strip(text)

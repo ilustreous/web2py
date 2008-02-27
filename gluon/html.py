@@ -65,8 +65,8 @@ class XML:
     use it to wrap a string that contains XML/HTML so that it will not be 
     escaped by the template
     """
-    def __init__(self,text,sanitize=False,permitted_tags=['a','b','blockquote','br/','i', 'li', 'ol','ul', 'p', 'cite','code','pre','img/']):        
-        if sanitize: text=sanitizer.sanitize(text,permitted_tags)
+    def __init__(self,text,sanitize=False,permitted_tags=['a','b','blockquote','br/','i', 'li', 'ol','ul', 'p', 'cite','code','pre','img/'],allowed_attributes={'a':['href','title'],'img':['src','alt'],'blockquote':['type']}):        
+        if sanitize: text=sanitizer.sanitize(text,permitted_tags,allowed_attributes)
         self.text=text
     def xml(self):
         return self.text
@@ -238,7 +238,7 @@ class LABEL(DIV): tag='label'
 class LI(DIV): tag='li'
 
 class UL(DIV): 
-    tag='lu'
+    tag='ul'
     def postprocessing(self):        
         components=[]
         for c in self.components:
@@ -248,7 +248,7 @@ class UL(DIV):
                 components.append(LI(c))
         self.components=components
 
-class OL(UL):  tag='lo'
+class OL(UL):  tag='ol'
 
 class TD(DIV): tag='td'
 
