@@ -8,7 +8,7 @@ Developed in Python by Massimo Di Pierro <mdipierro@cs.depaul.edu>
 import sys, cStringIO
 
 if sys.version[:3]!='2.5':
-    sys.stderr.write('web2py requires Python 2.5 to guarantee backward compatibility but, instead, you are running:\n%s' % sys.version)
+    sys.stderr.write('Warning: web2py requires Python 2.5 but, instead, you are running:\n%s' % sys.version)
 
 ProgramName="web2py Enterprise Web Framework"
 ProgramAuthor='Created by Massimo Di Pierro, Copyright 2007-2008'
