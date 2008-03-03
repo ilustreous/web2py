@@ -123,7 +123,8 @@ class IS_NOT_IN_DB:
         fieldname=str(self.field)
         id_field='%s.id' % fieldname[:fieldname.find('.')]
         value_field=gluon.sql.sql_represent(value,'string',None)
-        value_id='0' if not self.record_id else gluon.sql.sql_represent(self.record_id,'integer',None)
+        if not self.record_id: value_id='0'
+        else: value_id=gluon.sql.sql_represent(self.record_id,'integer',None)
         fetched=self.dbset("%s=%s AND %s<>%s" % (fieldname,value_field,id_field,value_id)).select('count(*)')
         if fetched[0]['count(*)']==0: return (value,None)
         return (value,self.error_message)

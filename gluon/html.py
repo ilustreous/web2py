@@ -44,7 +44,9 @@ def URL(a=None,c=None,f=None,r=None,args=[],vars={}):
         function=r.function
     if a: application=a    
     if c: controller=c
-    if f: function=f if isinstance(f,str) else f.__name__ 
+    if f:
+         if isinstance(f,str): function=f
+         else: function=f.__name__
     if not (application and controller and function):
         raise SyntaxError, 'not enough information to build the url'
     other=''
@@ -227,10 +229,15 @@ class CODE(DIV):
     the counter is used for line numbering, counter can be None or a prompt string.
     """
     def xml(self):
-        language='PYTHON' if not self.attributes.has_key('language') else self.attributes['language']
-        link=None if not self.attributes.has_key('link') else self.attributes['link']
-        counter=1 if not self.attributes.has_key('counter') else self.attributes['counter']
-        styles={} if not self.attributes.has_key('styles') else self.attributes['styles']
+        if not self.attributes.has_key('language'): language='PYTHON'
+        else: language=self.attributes['language']
+        if not self.attributes.has_key('link'): link=None
+        else: link=self.attributes['link']
+
+        if not self.attributes.has_key('counter'): counter=1
+        else: counter=self.attributes['counter']
+        if not self.attributes.has_key('styles'): styles={}
+        else: styles=self.attributes['styles']
         return highlight(''.join(self.components),language=language,link=link,counter=counter,styles=styles,attributes=self.attributes)
 
 class LABEL(DIV): tag='label'

@@ -29,7 +29,8 @@ def _TEST():
                 name='%s/controllers/%s.py in %s.__doc__' % (request.folder, request.controller, key)
                 doctest.run_docstring_examples(eval(key),globals(),False,name=name)
                 report=sys.stdout.getvalue().strip()
-                pf='failed' if report else 'passed'
+                if report: pf='failed'
+                else: pf='passed'
                 html+='<h3 class="%s">Function %s [%s]</h3>'%(pf,key,pf)
                 if report: html+=CODE(report,language='web2py',link='/examples/global/vars/').xml()
                 html+='<br/>\n'

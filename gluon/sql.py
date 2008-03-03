@@ -438,20 +438,23 @@ class SQLTable(SQLStorage):
         for key in keys:
             if not sql_fields_old.has_key(key):
                 query='ALTER TABLE %s ADD COLUMN %s %s;' % \
-                      (self._tablename, key, sql_fields[key])              
-            elif self._db._dbname!='postgres': query=None
+                      (self._tablename, key, \
+                       sql_fields[key].replace(', ',', ADD '))              
+            elif self._db._dbname=='sqlite': query=None
             elif not sql_fields.has_key(key):
                 query='ALTER TABLE %s DROP COLUMN %s;' % \
                       (self._tablename, key)
-            elif sql_fields[key]!=sql_fields_old[key]:                 
+            elif sql_fields[key]!=sql_fields_old[key]:
+                # 2
                 t=self._tablename
-                tt=sql_fields[key]
+                tt=sql_fields[key].replace(', ',', ADD ')
                 query='ALTER TABLE %s ADD %s__tmp %s;\n' % (t,key,tt) +\
                       'UPDATE %s SET %s__tmp=%s;\n' % (t,key,key) +\
                       'ALTER TABLE %s DROP COLUMN %s;\n' % (t,key) +\
                       'ALTER TABLE %s ADD %s %s;\n' % (t,key,tt) +\
                       'UPDATE %s SET %s=%s__tmp;\n' % (t,key,key) +\
                       'ALTER TABLE %s DROP COLUMN %s__tmp;'%(t,key)
+                # 1 and 2 may have a problem with references in MySQL and Oracle, not sure
             else: query=None
             if query:
                 logfile.write('timestamp: %s\n' % \
@@ -505,7 +508,7 @@ class SQLTable(SQLStorage):
                 fs.append(fieldname)
                 vs.append(sql_represent(field.default,ft,fd))
             elif field.required is True:
-                raise SyntaxError, 'SQLTable: no field is required'
+                raise SyntaxError, 'SQLTable: missing required field'
         sql_f=', '.join(fs)
         sql_v=', '.join(vs)
         sql_t=self._tablename
@@ -586,7 +589,7 @@ class SQLField(SQLXorable):
     to be used as argument of SQLDB.define_table
 
     allowed field types:
-    string, boolean, integer, float, text, blob, 
+    string, boolean, integer, double, text, blob, 
     date, time, datetime, upload, password
 
     strings must have a length or 32 by default.

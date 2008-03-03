@@ -57,21 +57,13 @@ def download():
     return response.stream(open(filename,'rb'))
 
 def csv():
-    import gluon.contenttype, csv, cStringIO
+    import gluon.contenttype
     response.headers['Content-Type']=gluon.contenttype.contenttype('.csv')
     try:
         dbname=request.vars.dbname
         db=eval(dbname)
-        records=db(request.vars.query).select()
+        return str(db(request.vars.query).select())
     except: redirect(URL(r=request,f='index'))
-    s=cStringIO.StringIO()
-    writer = csv.writer(s)
-    writer.writerow(records.colnames)
-    c=range(len(records.colnames))
-    for i in range(len(records)):
-        writer.writerow([records.response[i][j] for j in c])
-    ### FILL HERE
-    return s.getvalue()
 
 def import_csv(table,file):
     import csv

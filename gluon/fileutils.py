@@ -7,6 +7,8 @@ License: GPL v2
 import storage
 import os
 import re
+import tarfile
+import sys
 
 __all__=['listdir', 'cleanpath', 'tar', 'untar', 'tar_compiled', 
          'get_session', 'check_credentials']
@@ -18,7 +20,6 @@ def listdir(path,expression='^.+$',drop=True,add_dirs=False):
     """
     if drop: n=len(path)
     else: n=0
-    import re, os
     regex=re.compile(expression)
     items=[]
     for root,dirs,files in os.walk(path):
@@ -34,17 +35,62 @@ def cleanpath(path):
     turns any expression/path into a valid filename. replaces / with _ and 
     removes special characters.
     """
-    import re
     items=path.split('.')
     if len(items)>1: path=re.sub('[^\w\.]+','_','_'.join(items[:-1])+'.'+''.join(items[-1:]))
     else: path=re.sub('[^\w\.]+','_',''.join(items[-1:]))
     return path
 
+def _extractall(filename, path='.', members=None):
+    if not hasattr(tarfile.TarFile, 'extractall'):
+        from tarfile import ExtractError
+ 
+        class TarFile(tarfile.TarFile):
+            def extractall(self, path=".", members=None):
+                """Extract all members from the archive to the current working
+             directory and set owner, modification time and permissions on
+             directories afterwards. `path' specifies a different directory
+             to extract to. `members' is optional and must be a subset of the
+             list returned by getmembers().
+                """
+                directories = []
+                if members is None:
+                    members = self
+                for tarinfo in members:
+                    if tarinfo.isdir():
+                        # Extract directory with a safe mode, so that
+                        # all files below can be extracted as well.
+                        try:
+                            os.makedirs(os.path.join(path, tarinfo.name), 0777)
+                        except EnvironmentError:
+                            pass
+                        directories.append(tarinfo)
+                    else:
+                        self.extract(tarinfo, path)
+                # Reverse sort directories.
+                directories.sort(lambda a, b: cmp(a.name, b.name))
+                directories.reverse()
+                # Set correct owner, mtime and filemode on directories.
+                for tarinfo in directories:
+                    path = os.path.join(path, tarinfo.name)
+                    try:
+                        self.chown(tarinfo, path)
+                        self.utime(tarinfo, path)
+                        self.chmod(tarinfo, path)
+                    except ExtractError, e:
+                        if self.errorlevel > 1:
+                            raise
+                        else:
+                            self._dbg(1, "tarfile: %s" % e)        
+        _cls = TarFile
+    else:
+        _cls = tarfile.TarFile
+    
+    return _cls(filename, 'r').extractall(path, members)
+
 def tar(file,dir,expression='^.+$'):
     """
     tars dir into file, only tars file that match expression
     """
-    import tarfile
     tar=tarfile.TarFile(file,'w')
     for file in listdir(dir,expression,add_dirs=True):
         tar.add(dir+file,file,False)
@@ -53,16 +99,13 @@ def untar(file, dir):
     """
     untar file into dir
     """
-    import tarfile
-    tar = tarfile.TarFile(file,'r')
-    tar.extractall(dir)
+    _extractall(file,dir)
 
 def tar_compiled(file,dir,expression='^.+$'):
     """
     used to tar a compiled application.
     the content of models, views, controllers is not stored in the tar file.
     """
-    import tarfile, sys
     tar=tarfile.TarFile(file,'w')
     for file in listdir(dir,expression,add_dirs=True):
         if file[:6]=='models': continue
@@ -96,7 +139,10 @@ def copystream(src,dest,size,chunk_size=10**5):
     this is here because I think there is a bug in shutil.copyfileobj
     """
     while size>0:
-        data=src.read(size if size<chunk_size else chunk_size)
+        if size<chunk_size:
+            data=src.read(size)
+        else:
+            data=src.read(chunk_size)
         length=len(data)
         if length>size: data,length=data[:size],size
         size-=length
@@ -105,4 +151,3 @@ def copystream(src,dest,size,chunk_size=10**5):
         if length<chunk_size: break
     dest.seek(0)
     return
-    

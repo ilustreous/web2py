@@ -1,6 +1,5 @@
 #!/bin/python2.5
 
-try: import gluon.import_all
-except: pass
+import gluon.import_all
 from gluon.widget import start
 start()

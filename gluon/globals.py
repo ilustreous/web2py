@@ -52,7 +52,8 @@ class Response(Storage):
     def render(self,*a,**b):
         if len(a)>1 or (len(a)==1 and not hasattr(a[0],'items')):
             raise SyntaxError        
-        self._vars=a[0] if len(a) else {}
+        if len(a): self._vars=a[0] 
+        else: self._vars={}
         for key,value in b.items(): self._vars[key]=value
         for key,value in self._vars.items(): self._view_environment[key]=value
         run_view_in(self._view_environment)
@@ -64,7 +65,8 @@ class Response(Storage):
         > return response.stream(file,100)
         the file content will be streamed at 100 bytes at the time
         """
-        filename=stream.name if hasattr(stream,'name') else None
+        if hasattr(stream,'name'): filename=stream.name
+        else: filename=None
         keys=[item.lower() for item in self.headers.keys()]
         if filename and not 'content-type' in keys:
              self.headers['Content-Type']=contenttype(filename)
