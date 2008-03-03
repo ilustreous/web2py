@@ -39,7 +39,8 @@ response.menu.append(('help',False,'/examples/default/index'))
 ### exposed functions
 ############################################################
 
-def apath(path=''): return os.path.join(request.folder,'..',path)
+def apath(path=''): 
+    return os.path.join(request.folder,'..',path).replace('\\','/')
 
 try:
     _config={}
