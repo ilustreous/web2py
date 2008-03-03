@@ -4,8 +4,14 @@ Developed by Massimo Di Pierro <mdipierro@cs.depaul.edu>
 License: GPL v2
 """
 
-import re, random, copy, sys, types, hashlib, datetime, time, cgi, hmac
+import re, random, copy, sys, types, datetime, time, cgi, hmac
 import gluon.sql 
+try: 
+    import hashlib
+    have_hashlib=True
+except:
+    import sha, md5
+    have_hashlib=False
 from storage import Storage
 
 __all__=['IS_ALPHANUMERIC', 'IS_DATE', 'IS_DATETIME', 'IS_EMAIL', 'IS_EXPR','IS_FLOAT_IN_RANGE', 'IS_INT_IN_RANGE', 'IS_IN_SET', 'IS_LENGTH', 'IS_LOWER', 'IS_MATCH', 'IS_NOT_EMPTY', 'IS_TIME', 'IS_URL', 'CLEANUP', 'CRYPT', 'IS_IN_DB', 'IS_NOT_IN_DB', 'IS_UPPER']
@@ -309,8 +315,10 @@ class CRYPT:
     """   
     def __init__(self,key=None):
         self.key=key
-    def __call__(self,value):
+    def __call__(self,value):        
         if self.key: 
-            return (hmac.new(self.key,value,hashlib.sha512).hexdigest(),None)
-        return (hashlib.md5(value).hexdigest(),None)
+            if have_hashlib: return (hmac.new(self.key,value,hashlib.sha512).hexdigest(),None)
+            else: return (hmac.new(self.key,value,sha).hexdigest(),None)
+        if have_hashlib: return (hashlib.md5(value).hexdigest(),None)
+        else: return (md5.new(value).hexdigest(),None)
 
