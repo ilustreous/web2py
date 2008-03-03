@@ -34,7 +34,7 @@ class lazyT:
         if self.t and self.t.has_key(m): return self.t[m] % self.s
         return self.m % self.s
     def xml(self):
-        return cgi.esacpe(str(self))
+        return cgi.escape(str(self))
 
 class translator:
     """ 
