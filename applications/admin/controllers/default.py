@@ -333,12 +333,8 @@ def create_file():
         else:
             redirect(request.vars.sender)
         filename=os.path.join(path,filename)
-        items=filename.split('/')
-        p=''
-        for item in items[:-1]:
-            p=os.path.join(p,item)
-            try: os.mkdir(p)
-            except: pass
+        dirpath=os.path.dirname(filename)
+        if not os.path.exists(dirpath): os.makedirs(dirpath)
         if os.access(filename,os.R_OK): raise SyntaxError
         open(filename,'w').write(text)
         session.flash='file "%s" created' % filename[len(path):]
