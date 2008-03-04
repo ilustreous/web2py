@@ -53,7 +53,12 @@ class HTTP:
               headers['Content-Type']='text/html'
         self.headers=headers
     def to(self,responder):
-        responder(self.status,[(k,str(v)) for k,v in self.headers.items()])
+        headers=[]
+        for k,v in self.headers.items():
+            if isinstance(v,list):
+               for item in v: headers.append((k,str(item)))
+            else: headers.append((k,str(v)))
+        responder(self.status,headers)
         if hasattr(self.body,'__iter__') and not isinstance(self.body,str):
             return self.body
         body=str(self.body)

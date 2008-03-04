@@ -182,15 +182,16 @@ def wsgibase(environ, responder):
             ###################################################
             # load cookies
             ###################################################
-            cookie = Cookie.SimpleCookie()
-            if request.env.http_cookie: cookie.load(request.env.http_cookie)
-            request.cookies=Storage(cookie)        
+            request.cookies=Cookie.SimpleCookie()
+            response.cookies=Cookie.SimpleCookie()
+            if request.env.http_cookie: 
+                request.cookies.load(request.env.http_cookie)
             ###################################################
             # try load session or create new session file
             ###################################################
             session_id_name='session_id_%s'%request.application
-            if cookie.has_key(session_id_name):
-                response.session_id=cookie[session_id_name].value
+            if request.cookies.has_key(session_id_name):
+                response.session_id=request.cookies[session_id_name].value
                 if regex_session_id.match(response.session_id):
                      session_filename=os.path.join(request.folder,'sessions/',response.session_id)
                 else: response.session_id=None            
@@ -208,6 +209,8 @@ def wsgibase(environ, responder):
                 session_filename=os.path.join(request.folder,'sessions/',response.session_id)
                 session_new=True
             response.cookies[session_id_name]=response.session_id
+            response.cookies[session_id_name]['path']="/"
+            response.session_id_name=session_id_name
             ###################################################
             # run controller
             ###################################################
@@ -222,10 +225,7 @@ def wsgibase(environ, responder):
             # save cookies is session (static files do not have a session)
             ###################################################
             if response.session_id:
-                cookie=Cookie.SimpleCookie()
-                for key,value in response.cookies.items(): cookie[key]=value
-                cookie[session_id_name]['path']='/'
-                http_response.headers['Set-Cookie']=str(cookie)[11:]
+                http_response.headers['Set-Cookie']=[str(response.cookies[i])[11:] for i in response.cookies.keys()]
                 if session_new:
                     session_file=open(session_filename,'wb')
                     portalocker.lock(session_file,portalocker.LOCK_EX)
