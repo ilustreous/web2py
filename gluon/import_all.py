@@ -1,692 +1,686 @@
 try: import aifc
-except Exception: pass
+except: pass
 
 try: import anydbm
-except Exception: pass
+except: pass
 
 try: import array
-except Exception: pass
+except: pass
 
 try: import asynchat
-except Exception: pass
+except: pass
 
 try: import asyncore
-except Exception: pass
+except: pass
 
 try: import atexit
-except Exception: pass
+except: pass
 
 try: import audioop
-except Exception: pass
+except: pass
 
 try: import base64
-except Exception: pass
+except: pass
 
 try: import BaseHTTPServer
-except Exception: pass
+except: pass
 
 try: import Bastion
-except Exception: pass
+except: pass
 
 try: import binascii
-except Exception: pass
+except: pass
 
 try: import binhex
-except Exception: pass
+except: pass
 
 try: import bisect
-except Exception: pass
+except: pass
 
 try: import bz2
-except Exception: pass
+except: pass
 
 try: import calendar
-except Exception: pass
+except: pass
 
 try: import cgi
-except Exception: pass
+except: pass
 
 try: import CGIHTTPServer
-except Exception: pass
+except: pass
 
 try: import cgitb
-except Exception: pass
+except: pass
 
 try: import chunk
-except Exception: pass
+except: pass
 
 try: import cmath
-except Exception: pass
+except: pass
 
 try: import cmd
-except Exception: pass
+except: pass
 
 try: import code
-except Exception: pass
+except: pass
 
 try: import codecs
-except Exception: pass
+except: pass
 
 try: import codeop
-except Exception: pass
+except: pass
 
 try: import collections
-except Exception: pass
+except: pass
 
 try: import colorsys
-except Exception: pass
+except: pass
 
 try: import compileall
-except Exception: pass
+except: pass
 
 try: import compiler
-except Exception: pass
+except: pass
 
 try: import compiler.ast
-except Exception: pass
+except: pass
 
 try: import compiler.visitor
-except Exception: pass
+except: pass
 
 try: import ConfigParser
-except Exception: pass
+except: pass
 
 try: import contextlib
-except Exception: pass
+except: pass
 
 try: import Cookie
-except Exception: pass
+except: pass
 
 try: import cookielib
-except Exception: pass
+except: pass
 
 try: import copy
-except Exception: pass
+except: pass
 
 try: import copy_reg
-except Exception: pass
+except: pass
 
 try: import cPickle
-except Exception: pass
+except: pass
 
 try: import cProfile
-except Exception: pass
+except: pass
 
 try: import cStringIO
-except Exception: pass
+except: pass
 
 try: import csv
-except Exception: pass
+except: pass
 
 try: import ctypes
-except Exception: pass
+except: pass
 
 try: import datetime
-except Exception: pass
+except: pass
 
 try: import decimal
-except Exception: pass
+except: pass
 
 try: import difflib
-except Exception: pass
+except: pass
 
 try: import dircache
-except Exception: pass
+except: pass
 
 try: import dis
-except Exception: pass
+except: pass
 
 try: import doctest
-except Exception: pass
+except: pass
 
 try: import DocXMLRPCServer
-except Exception: pass
+except: pass
 
 try: import dumbdbm
-except Exception: pass
+except: pass
 
 try: import dummy_thread
-except Exception: pass
+except: pass
 
 try: import dummy_threading
-except Exception: pass
+except: pass
 
 try: import email
-except Exception: pass
+except: pass
 
 try: import email.charset
-except Exception: pass
+except: pass
 
 try: import email.encoders
-except Exception: pass
+except: pass
 
 try: import email.errors
-except Exception: pass
+except: pass
 
 try: import email.generator
-except Exception: pass
+except: pass
 
 try: import email.header
-except Exception: pass
+except: pass
 
 try: import email.iterators
-except Exception: pass
+except: pass
 
 try: import email.message
-except Exception: pass
+except: pass
 
 try: import email.mime
-except Exception: pass
+except: pass
 
 try: import email.mime.audio
-except Exception: pass
+except: pass
 
 try: import email.mime.base
-except Exception: pass
+except: pass
 
 try: import email.mime.image
-except Exception: pass
+except: pass
 
 try: import email.mime.message
-except Exception: pass
+except: pass
 
 try: import email.mime.multipart
-except Exception: pass
+except: pass
 
 try: import email.mime.nonmultipart
-except Exception: pass
+except: pass
 
 try: import email.mime.text
-except Exception: pass
+except: pass
 
 try: import email.parser
-except Exception: pass
+except: pass
 
 try: import email.utils
-except Exception: pass
+except: pass
 
 try: import encodings.idna
-except Exception: pass
+except: pass
 
 try: import errno
-except Exception: pass
+except: pass
 
 try: import exceptions
-except Exception: pass
+except: pass
 
 try: import filecmp
-except Exception: pass
+except: pass
 
 try: import fileinput
-except Exception: pass
+except: pass
 
 try: import fnmatch
-except Exception: pass
+except: pass
 
 try: import formatter
-except Exception: pass
+except: pass
 
 try: import fpformat
-except Exception: pass
+except: pass
 
 try: import ftplib
-except Exception: pass
+except: pass
 
 try: import functools
-except Exception: pass
+except: pass
 
 try: import gc
-except Exception: pass
+except: pass
 
 try: import getopt
-except Exception: pass
+except: pass
 
 try: import getpass
-except Exception: pass
+except: pass
 
 try: import gettext
-except Exception: pass
+except: pass
 
 try: import glob
-except Exception: pass
+except: pass
 
 try: import gzip
-except Exception: pass
+except: pass
 
 try: import hashlib
-except Exception: pass
+except: pass
 
 try: import heapq
-except Exception: pass
+except: pass
 
 try: import hmac
-except Exception: pass
+except: pass
 
 try: import hotshot
-except Exception: pass
+except: pass
 
 try: import hotshot.stats
-except Exception: pass
+except: pass
 
 try: import htmlentitydefs
-except Exception: pass
+except: pass
 
 try: import htmllib
-except Exception: pass
+except: pass
 
 try: import HTMLParser
-except Exception: pass
+except: pass
 
 try: import httplib
-except Exception: pass
+except: pass
 
 try: import imageop
-except Exception: pass
+except: pass
 
 try: import imaplib
-except Exception: pass
+except: pass
 
 try: import imghdr
-except Exception: pass
+except: pass
 
 try: import imp
-except Exception: pass
+except: pass
 
 try: import inspect
-except Exception: pass
+except: pass
 
 try: import itertools
-except Exception: pass
+except: pass
 
 try: import keyword
-except Exception: pass
+except: pass
 
 try: import linecache
-except Exception: pass
+except: pass
 
 try: import locale
-except Exception: pass
+except: pass
 
 try: import logging
-except Exception: pass
+except: pass
 
 try: import macpath
-except Exception: pass
+except: pass
 
 try: import mailbox
-except Exception: pass
+except: pass
 
 try: import mailcap
-except Exception: pass
+except: pass
 
 try: import marshal
-except Exception: pass
+except: pass
 
 try: import math
-except Exception: pass
+except: pass
 
 try: import md5
-except Exception: pass
+except: pass
 
 try: import mhlib
-except Exception: pass
+except: pass
 
 try: import mimetools
-except Exception: pass
+except: pass
 
 try: import mimetypes
-except Exception: pass
+except: pass
 
 try: import MimeWriter
-except Exception: pass
+except: pass
 
 try: import mimify
-except Exception: pass
+except: pass
 
 try: import mmap
-except Exception: pass
+except: pass
 
 try: import modulefinder
-except Exception: pass
+except: pass
 
 try: import multifile
-except Exception: pass
+except: pass
 
 try: import mutex
-except Exception: pass
+except: pass
 
 try: import netrc
-except Exception: pass
+except: pass
 
 try: import new
-except Exception: pass
+except: pass
 
 try: import nntplib
-except Exception: pass
+except: pass
 
 try: import operator
-except Exception: pass
+except: pass
 
 try: import optparse
-except Exception: pass
+except: pass
 
 try: import os
-except Exception: pass
+except: pass
 
 try: import os.path
-except Exception: pass
+except: pass
 
 try: import parser
-except Exception: pass
+except: pass
 
 try: import pdb
-except Exception: pass
+except: pass
 
 try: import pickle
-except Exception: pass
+except: pass
 
 try: import pickletools
-except Exception: pass
+except: pass
 
 try: import pkgutil
-except Exception: pass
+except: pass
 
 try: import platform
-except Exception: pass
+except: pass
 
 try: import poplib
-except Exception: pass
+except: pass
 
 try: import pprint
-except Exception: pass
-
-try: import profile
-except Exception: pass
-
-try: import pstats
-except Exception: pass
+except: pass
 
 try: import py_compile
-except Exception: pass
+except: pass
 
 try: import pyclbr
-except Exception: pass
+except: pass
 
 try: import pydoc
-except Exception: pass
+except: pass
 
 try: import Queue
-except Exception: pass
+except: pass
 
 try: import quopri
-except Exception: pass
+except: pass
 
 try: import random
-except Exception: pass
+except: pass
 
 try: import re
-except Exception: pass
+except: pass
 
 try: import repr
-except Exception: pass
+except: pass
 
 try: import rexec
-except Exception: pass
+except: pass
 
 try: import rfc822
-except Exception: pass
+except: pass
 
 try: import rlcompleter
-except Exception: pass
+except: pass
 
 try: import robotparser
-except Exception: pass
+except: pass
 
 try: import runpy
-except Exception: pass
+except: pass
 
 try: import sched
-except Exception: pass
+except: pass
 
 try: import select
-except Exception: pass
+except: pass
 
 try: import sets
-except Exception: pass
+except: pass
 
 try: import sgmllib
-except Exception: pass
+except: pass
 
 try: import sha
-except Exception: pass
+except: pass
 
 try: import shelve
-except Exception: pass
+except: pass
 
 try: import shlex
-except Exception: pass
+except: pass
 
 try: import shutil
-except Exception: pass
+except: pass
 
 try: import signal
-except Exception: pass
+except: pass
 
 try: import SimpleHTTPServer
-except Exception: pass
+except: pass
 
 try: import SimpleXMLRPCServer
-except Exception: pass
+except: pass
 
 try: import site
-except Exception: pass
+except: pass
 
 try: import smtpd
-except Exception: pass
+except: pass
 
 try: import smtplib
-except Exception: pass
+except: pass
 
 try: import sndhdr
-except Exception: pass
+except: pass
 
 try: import socket
-except Exception: pass
+except: pass
 
 try: import SocketServer
-except Exception: pass
+except: pass
 
 try: import sqlite3
-except Exception: pass
+except: pass
 
 try: import stat
-except Exception: pass
+except: pass
 
 try: import statvfs
-except Exception: pass
+except: pass
 
 try: import string
-except Exception: pass
+except: pass
 
 try: import StringIO
-except Exception: pass
+except: pass
 
 try: import stringprep
-except Exception: pass
+except: pass
 
 try: import struct
-except Exception: pass
+except: pass
 
 try: import subprocess
-except Exception: pass
+except: pass
 
 try: import sunau
-except Exception: pass
+except: pass
 
 try: import symbol
-except Exception: pass
+except: pass
 
 try: import sys
-except Exception: pass
+except: pass
 
 try: import tabnanny
-except Exception: pass
+except: pass
 
 try: import tarfile
-except Exception: pass
+except: pass
 
 try: import telnetlib
-except Exception: pass
+except: pass
 
 try: import tempfile
-except Exception: pass
+except: pass
 
 try: import test
-except Exception: pass
+except: pass
 
 try: import test.test_support
-except Exception: pass
+except: pass
 
 try: import textwrap
-except Exception: pass
+except: pass
 
 try: import thread
-except Exception: pass
+except: pass
 
 try: import threading
-except Exception: pass
+except: pass
 
 try: import time
-except Exception: pass
+except: pass
 
 try: import timeit
-except Exception: pass
+except: pass
 
 try: import Tix
-except Exception: pass
+except: pass
 
 try: import Tkinter
-except Exception: pass
+except: pass
 
 try: import token
-except Exception: pass
+except: pass
 
 try: import tokenize
-except Exception: pass
+except: pass
 
 try: import trace
-except Exception: pass
+except: pass
 
 try: import traceback
-except Exception: pass
+except: pass
 
 try: import types
-except Exception: pass
+except: pass
 
 try: import unicodedata
-except Exception: pass
+except: pass
 
 try: import unittest
-except Exception: pass
+except: pass
 
 try: import urllib
-except Exception: pass
+except: pass
 
 try: import urllib2
-except Exception: pass
+except: pass
 
 try: import urlparse
-except Exception: pass
+except: pass
 
 try: import user
-except Exception: pass
+except: pass
 
 try: import UserDict
-except Exception: pass
+except: pass
 
 try: import UserList
-except Exception: pass
+except: pass
 
 try: import UserString
-except Exception: pass
+except: pass
 
 try: import uu
-except Exception: pass
+except: pass
 
 try: import uuid
-except Exception: pass
+except: pass
 
 try: import warnings
-except Exception: pass
+except: pass
 
 try: import wave
-except Exception: pass
+except: pass
 
 try: import weakref
-except Exception: pass
+except: pass
 
 try: import webbrowser
-except Exception: pass
+except: pass
 
 try: import whichdb
-except Exception: pass
+except: pass
 
 try: import wsgiref
-except Exception: pass
+except: pass
 
 try: import wsgiref.handlers
-except Exception: pass
+except: pass
 
 try: import wsgiref.headers
-except Exception: pass
+except: pass
 
 try: import wsgiref.simple_server
-except Exception: pass
+except: pass
 
 try: import wsgiref.util
-except Exception: pass
+except: pass
 
 try: import wsgiref.validate
-except Exception: pass
+except: pass
 
 try: import xdrlib
-except Exception: pass
+except: pass
 
 try: import xml.dom
-except Exception: pass
+except: pass
 
 try: import xml.dom.minidom
-except Exception: pass
+except: pass
 
 try: import xml.dom.pulldom
-except Exception: pass
+except: pass
 
 try: import xml.etree.ElementTree
-except Exception: pass
+except: pass
 
 try: import xml.parsers.expat
-except Exception: pass
+except: pass
 
 try: import xml.sax
-except Exception: pass
+except: pass
 
 try: import xml.sax.handler
-except Exception: pass
+except: pass
 
 try: import xml.sax.saxutils
-except Exception: pass
+except: pass
 
 try: import xml.sax.xmlreader
-except Exception: pass
+except: pass
 
 try: import xmlrpclib
-except Exception: pass
+except: pass
 
 try: import zipfile
-except Exception: pass
+except: pass
 
 try: import zipimport
-except Exception: pass
+except: pass
 
 try: import zlib
-except Exception: pass
+except: pass

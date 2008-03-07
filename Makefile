@@ -1,7 +1,7 @@
 clean:
 	rm httpserver.log | echo 'none'
-	rm parameters.py | echo 'none'
-	rm -r applications/*/compiled     | echo 'none'        	
+	rm parameters*.py | echo 'none'
+	rm -r applications/*/compiled     | echo 'none'	
 	find ./ -name '*~' -exec rm {} \; | echo 'none'
 	find ./ -name '#*' -exec rm {} \; | echo 'none'
 	find ./ -name '.*' -exec rm {} \; 
@@ -10,7 +10,7 @@ backup:
 	mv web2py.zip ../web2py.zip.old | echo 'none'
 	cd ..; zip -r web2py.zip web2py
 all:
-	echo 'Version 1.20 ('`date`')' > VERSION
+	#echo 'Version 1.23 ('`date`')' > VERSION
 	### build epydoc
 	rm -r applications/examples/static/epydoc/ | echo 'none'
 	epydoc --config epydoc.conf
@@ -47,7 +47,7 @@ all:
 	cd applications/examples/ ; tar cvf examples.tar *
 	mv applications/examples/examples.tar ./
 	### build web2py_src.zip
-	mv web2py_src.zip web2py_src_old.zip
+	mv web2py_src.zip web2py_src_old.zip | echo 'no old'
 	cd ..; zip -r web2py/web2py_src.zip web2py/gluon/*.py web2py/gluon/contrib/* web2py/*.py web2py/*.tar web2py/ABOUT  web2py/LICENSE web2py/README web2py/VERSION web2py/Makefile web2py/epydoc.css web2py/epydoc.conf
 app:
 	rm -r dist/web2py.app | echo 'ok'

@@ -5,7 +5,7 @@ License: GPL v2
 """
 
 import types, urllib, random, re, sys, os, shutil, cStringIO
-from html import FORM,INPUT,TEXTAREA,SELECT,OPTION,TABLE,TR,TD,TH,A,B,DIV,LABEL
+from html import FORM,INPUT,TEXTAREA,SELECT,OPTION,TABLE,TR,TD,TH,A,B,DIV,LABEL,ON
 from validators import IS_IN_SET, IS_NOT_IN_DB, CRYPT
 from sql import SQLStorage
 
@@ -84,7 +84,10 @@ class SQLFORM(FORM):
                  if field.requires.labels:
                     opts,k=[],0
                     for v in field.requires.theset:
-                        opts.append(OPTION(field.requires.labels[k],_value=v))
+                        if v==default or (not isinstance(default,(str,unicode)) and v==str(default)):
+                            opts.append(OPTION(field.requires.labels[k],_value=v,_selected=ON))
+                        else:
+                            opts.append(OPTION(field.requires.labels[k],_value=v))
                         k+=1
                  else: opts=field.requires.theset
                  inp=SELECT(*opts,**dict(_id=field_id,

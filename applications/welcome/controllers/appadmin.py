@@ -110,7 +110,7 @@ def select():
     except: 
         response.flash='invalid SQL FILTER'
         return dict(records='no records',nrecords=0,query=query,start=0)
-    linkto=URL(r=request,f='update/%s'% (dbname))
+    linkto=URL(r=request,f='update',args=[dbname])
     upload=URL(r=request,f='download')
     return dict(start=start,query=query,\
                 nrecords=len(records),\
@@ -131,8 +131,8 @@ def update():
         record=db(db[table].id==id).select()[0]
     except: redirect(URL(r=request,f='select/%s/%s'%(dbname,table)))
     form=SQLFORM(db[table],record,deletable=True,
-                 linkto=URL(r=request,f='select/'+dbname),
-                 upload=URL(r=request,f='download/'))
+                 linkto=URL(r=request,f='select',args=[dbname]),
+                 upload=URL(r=request,f='download'))
     if form.accepts(request.vars,session): 
         response.flash='done!'        
         redirect(URL(r=request,f='select/%s/%s'%(dbname,table)))
