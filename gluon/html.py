@@ -72,6 +72,8 @@ class XML:
         self.text=text
     def xml(self):
         return self.text
+    def __str__(self):
+        return self.xml()
 
 class DIV:
     """
@@ -143,6 +145,8 @@ class DIV:
         fa,co=self._xml()
         if self.tag[-1]=='/': return '<%s%s/>' % (self.tag[:-1],fa)
         return '<%s%s>%s</%s>' % (self.tag,fa,co,self.tag)
+    def __str__(self):
+        return self.xml()
 
 class HTML(DIV):
     tag='html'
