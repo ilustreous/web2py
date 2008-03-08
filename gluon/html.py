@@ -4,13 +4,13 @@ Developed by Massimo Di Pierro <mdipierro@cs.depaul.edu>
 License: GPL v2
 """
 
-import cgi, re, random, copy, sys, types, urllib, tokenize, keyword
+import cgi, re, random, copy, sys, types, urllib, tokenize, keyword, base64
 from storage import Storage
 from validators import *
 from highlight import highlight
 import sanitizer
 
-__all__=['A', 'B', 'BEAUTIFY', 'BODY', 'BR', 'CENTER', 'CODE', 'DIV', 'EM', 'EMBED', 'FIELDSET', 'FORM', 'H1', 'H2', 'H3', 'H4', 'H5', 'H6', 'HEAD', 'HR', 'HTML', 'IFRAME', 'IMG', 'INPUT', 'LABEL', 'LI', 'LINK', 'OL', 'UL', 'META', 'OBJECT', 'ON', 'OPTION', 'P', 'PRE', 'SCRIPT', 'SELECT', 'SPAN', 'STYLE', 'TABLE', 'TD', 'TEXTAREA', 'TH', 'TITLE', 'TR', 'TT', 'URL', 'XML', 'xmlescape']
+__all__=['A', 'B', 'BEAUTIFY', 'BODY', 'BR', 'CENTER', 'CODE', 'DIV', 'EM', 'EMBED', 'FIELDSET', 'FORM', 'H1', 'H2', 'H3', 'H4', 'H5', 'H6', 'HEAD', 'HR', 'HTML', 'IFRAME', 'IMG', 'INPUT', 'LABEL', 'LI', 'LINK', 'OL', 'UL', 'META', 'OBJECT', 'ON', 'OPTION', 'P', 'PRE', 'SCRIPT', 'SELECT', 'SPAN', 'STYLE', 'TABLE', 'TD', 'TEXTAREA', 'TH', 'TITLE', 'TR', 'TT', 'URL', 'XML', 'xmlescape', 'embed64']
 
 def xmlescape(data,quote=False):
     try: 
@@ -494,6 +494,12 @@ class BEAUTIFY(DIV):
             elif isinstance(c,unicode): components.append(c.encode('utf8'))
             else: components.append(repr(c))
         self.components=components
+
+def embed64(filename=None,file=None,data=None,extension='image/gif'):
+    if filename: file=open(filename,'rb')
+    if file: data=file.read()
+    data=base64.b64encode(data)
+    return 'data:%s;base64,%s'%(extension,data)
 
 def test():
     """
