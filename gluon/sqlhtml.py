@@ -61,7 +61,7 @@ class SQLFORM(FORM):
             if record: default=record[fieldname]
             else: default=field.default
             if default: default=field.formatter(default)
-            if labels!=None: 
+            if labels!=None and labels.has_key(fieldname):
                 label=labels[fieldname]
             else: 
                 label=fieldname.replace('_',' ').capitalize()+': '
