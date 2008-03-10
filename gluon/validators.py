@@ -14,7 +14,7 @@ except:
     have_hashlib=False
 from storage import Storage
 
-__all__=['IS_ALPHANUMERIC', 'IS_DATE', 'IS_DATETIME', 'IS_EMAIL', 'IS_EXPR','IS_FLOAT_IN_RANGE', 'IS_INT_IN_RANGE', 'IS_IN_SET', 'IS_LENGTH', 'IS_LOWER', 'IS_MATCH', 'IS_NOT_EMPTY', 'IS_TIME', 'IS_URL', 'CLEANUP', 'CRYPT', 'IS_IN_DB', 'IS_NOT_IN_DB', 'IS_UPPER']
+__all__=['IS_ALPHANUMERIC', 'IS_DATE', 'IS_DATETIME', 'IS_EMAIL', 'IS_EXPR','IS_FLOAT_IN_RANGE', 'IS_INT_IN_RANGE', 'IS_IN_SET', 'IS_LENGTH', 'IS_LOWER', 'IS_MATCH', 'IS_NOT_EMPTY', 'IS_TIME', 'IS_URL', 'CLEANUP', 'CRYPT', 'IS_IN_DB', 'IS_NOT_IN_DB', 'IS_UPPER', 'IS_NULL_OR']
 
 class IS_MATCH:
     """
@@ -289,6 +289,17 @@ class IS_LOWER:
 
 class IS_UPPER:
     def __call__(self,value): return (value.upper(),None)
+
+class IS_NULL_OR:
+    def __init__(self,other,null=None):
+        self.other,self.null=other,null
+    def __call__(self,value):
+        if not value: return (self.null,None)
+        return self.other(value)
+    def formatter(self,value):
+        if hasattr(self.other,'formatter'):
+            return self.other.formatter(value)
+        return value
 
 class CLEANUP:
     """

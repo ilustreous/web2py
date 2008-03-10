@@ -162,6 +162,7 @@ CONTENT_TYPE={'.ai':'application/postscript',
 '.xlw':'application/vnd.ms-excel',
 '.xml':'text/xml',
 '.xpm':'image/x-xpixmap',
+'.xsl':'application/xml',
 '.xwd':'image/x-xwindowdump',
 '.xyz':'chemical/x-pdb',
 '.zip':'application/zip'}
