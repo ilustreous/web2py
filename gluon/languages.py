@@ -31,8 +31,9 @@ class lazyT:
         self.t=self_t
     def __str__(self):
         m=self.m
-        if self.t and self.t.has_key(m): return self.t[m] % self.s
-        return self.m % self.s
+        if self.t and self.t.has_key(m): m=self.t[m]
+        if self.s: m % self.s
+        else: return m
     def xml(self):
         return cgi.escape(str(self))
 
