@@ -80,7 +80,7 @@ def findT(application_path,language='en-us'):
     """
     path=application_path
     try:
-        sentences=eval(open(os.path.join(path,'languages/','%s.py' % language),'r').read())
+        sentences=eval(open(os.path.join(path,'languages','%s.py' % language),'r').read())
     except:
         sentences={}
     mp=os.path.join(path,'models')
@@ -95,7 +95,7 @@ def findT(application_path,language='en-us'):
                 sentences[msg]=''
     keys=sentences.keys()
     keys.sort()
-    file=open(os.path.join(path,'languages/','%s.py' % language),'w')
+    file=open(os.path.join(path,'languages','%s.py' % language),'w')
     file.write('{\n')
     for key in keys:
         file.write("%s:%s,\n" % (repr(key),repr(str(sentences[key]))))
@@ -103,6 +103,6 @@ def findT(application_path,language='en-us'):
     file.close()
 
 def update_all_languages(application_path):
-    path=os.path.join(application_path,'languages')
+    path=os.path.join(application_path,'languages/')
     for language in  listdir(path,'.+'):
         findT(application_path,language[:-3])

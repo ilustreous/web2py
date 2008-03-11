@@ -254,13 +254,13 @@ class IS_DATE:
         self.error_message=error_message
     def __call__(self,value):
         try:
-            y, m, d, hh, mm, ss, t0, t1, t2=time.strptime(value,self.format)
+            y, m, d, hh, mm, ss, t0, t1, t2=time.strptime(value,str(self.format))
             value=datetime.date(y,m,d).isoformat()            
             return (value,None)
         except:
             return (value,self.error_message)
     def formatter(self,value):
-        return value.strftime(self.format)
+        return value.strftime(str(self.format))
 
 class IS_DATETIME:
     """
@@ -276,13 +276,13 @@ class IS_DATETIME:
         self.error_message=error_message        
     def __call__(self,value):
         try:
-            y, m, d, hh, mm, ss, t0, t1, t2=time.strptime(value,self.format)
+            y, m, d, hh, mm, ss, t0, t1, t2=time.strptime(value,str(self.format))
             value=datetime.datetime(y,m,d,hh,mm,ss).strftime(self.isodatetime)
             return (value,None)
         except:
             return (value,self.error_message)
     def formatter(self,value):
-        return value.strftime(self.format)
+        return value.strftime(str(self.format))
 
 class IS_LOWER:
     def __call__(self,value): return (value.lower(),None)
