@@ -14,6 +14,7 @@ from gluon.cache import Cache
 from gluon.globals import Request, Response, Session
 from gluon.sql import SQLDB, SQLField
 from gluon.sqlhtml import SQLFORM, SQLTABLE
+from gluon.fileutils import untar
 from optparse import OptionParser
 
 def env(app):
@@ -77,7 +78,14 @@ def execute_from_command_line(argv=None):
         parser.print_help()
         sys.exit(0)
 
-    run(args[0])
+    appname=args[0]
+    path=os.path.join('applications',appname)
+    if not os.access(path,os.F_OK):
+        if raw_input('application %s does not exit, create (y/n)?').lower() in ['y','yes']:
+            os.mkdir(path)
+            untar('welcome.tar',path)    
+        else: return
+    run(appname)
 
 if __name__ == '__main__':
     execute_from_command_line()
