@@ -35,6 +35,7 @@ import contrib.pyrtf
 import contrib.rss2
 import contrib.feedparser
 import contrib.markdown
+import contrib.memcache
 
 __all__=['wsgibase', 'save_password', 'appfactory', 'HttpServer']
 
