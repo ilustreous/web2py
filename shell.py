@@ -1,3 +1,10 @@
+#   Programmer: limodou
+#   E-mail:     limodou@gmail.com
+#
+#   Copyleft 2008 limodou
+#
+#   Distributed under the terms of the BSD license.
+
 import os, sys
 import gluon.html as html
 import gluon.validators as validators
@@ -8,8 +15,6 @@ from gluon.globals import Request, Response, Session
 from gluon.sql import SQLDB, SQLField
 from gluon.sqlhtml import SQLFORM, SQLTABLE
 from optparse import OptionParser
-
-#def T(message): return message
 
 def env(app):
     request=Request()
@@ -62,17 +67,10 @@ def get_usage():
     return usage
 
 def execute_from_command_line(argv=None):
-    # Use sys.argv if we've not passed in a custom argv
     if argv is None:
         argv = sys.argv
 
-    # Parse the command-line arguments. optparse handles the dirty work.
     parser = OptionParser(usage=get_usage())
-#    parser.add_option('--proxy',
-#        help='Proxy will be used. Default is using your env settings.')
-#    parser.add_option('-u', '--proxyuser', help='Proxy user name.')
-#    parser.add_option('-p', '--proxypassword', help='Proxy password.')
-
     options, args = parser.parse_args(argv[1:])
 
     if len(args) != 1:
