@@ -33,7 +33,7 @@ class SQLFORM(FORM):
             for example _class, _id, _style, _action,_method, etc.
 
     """
-    def __init__(self,table,record=None,deletable=False,linkto=None,upload=None,fields=None,labels=None,submit_button='Submit',showid=True,**attributes):
+    def __init__(self,table,record=None,deletable=False,linkto=None,upload=None,fields=None,labels=None,submit_button='Submit',delete_label='Check to delete:',showid=True,**attributes):
         """
         SQLFORM(db.table,
                record=None,
@@ -111,8 +111,7 @@ class SQLFORM(FORM):
                     xfields.append(TR(' ',A('%s.%s' % (rtable,rfield),
                            _href='%s/%s?query=%s'%(linkto,rtable,query))))
         if record and deletable:
-            label='Check to delete: '
-            xfields.append(TR(label,INPUT(_type='checkbox',
+            xfields.append(TR(delete_label,INPUT(_type='checkbox',
                           _name='delete_this_record')))            
         xfields.append(TR(' ',INPUT(_type='submit',_value=submit_button)))
         if record:

@@ -8,7 +8,7 @@
 import os, sys
 from optparse import OptionParser
 
-def env(app):
+def env(app, nomodel=False):
     import gluon.html as html
     import gluon.validators as validators
     from gluon.http import HTTP, redirect
@@ -40,41 +40,46 @@ def env(app):
     environment['SQLFORM']=SQLFORM
     environment['SQLTABLE']=SQLTABLE
     
-    model_path = os.path.join(request.folder,'models', '*.py')
-    from glob import glob
-    for f in glob(model_path):
-        fname, ext = os.path.splitext(f)
-        execfile(f, environment)
-        print 'Imported "%s" model file' % fname
+    if not nomodel:
+        model_path = os.path.join(request.folder,'models', '*.py')
+        from glob import glob
+        for f in glob(model_path):
+            fname, ext = os.path.splitext(f)
+            execfile(f, environment)
+            print 'Imported "%s" model file' % fname
     
     return environment
 
 def run(app, options):
-    _env = env(app)
+    _env = env(app, options.nomodel)
 
-    try:
-        if options.plain: raise Exception
-        import IPython
-        shell = IPython.Shell.IPShell(argv=[], user_ns=_env)
-        shell.mainloop()
-    except:
-        import code
+    if not options.plain:
         try:
-            import readline
-        except ImportError:
-            pass
-        else:
-            import rlcompleter
-            readline.set_completer(rlcompleter.Completer(_env).complete)
-            readline.parse_and_bind("tab:complete")
+            import IPython
+            shell = IPython.Shell.IPShell(argv=[], user_ns=_env)
+            shell.mainloop()
+            return
+        except:
+            print 'error: Import IPython error, please check you installed IPython'\
+                    ' correctly, and use default python shell.'
+            
+    import code
+    try:
+        import readline
+    except ImportError:
+        pass
+    else:
+        import rlcompleter
+        readline.set_completer(rlcompleter.Completer(_env).complete)
+        readline.parse_and_bind("tab:complete")
 
-        pythonrc = os.environ.get("PYTHONSTARTUP")
-        if pythonrc and os.path.isfile(pythonrc):
-            try:
-                execfile(pythonrc)
-            except NameError:
-                pass
-        code.interact(local=_env)
+    pythonrc = os.environ.get("PYTHONSTARTUP")
+    if pythonrc and os.path.isfile(pythonrc):
+        try:
+            execfile(pythonrc)
+        except NameError:
+            pass
+    code.interact(local=_env)
 
 def get_usage():
     usage = """
@@ -88,6 +93,7 @@ def execute_from_command_line(argv=None):
 
     parser = OptionParser(usage=get_usage())
     parser.add_option('-p', '--plain', action='store_true', help='Default python shell, not to use IPython.')
+    parser.add_option('-M', '--nomodel', action='store_true', help='Not auto load model files.')
     options, args = parser.parse_args(argv[1:])
 
     if len(args) != 1:
