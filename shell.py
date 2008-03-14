@@ -6,18 +6,18 @@
 #   Distributed under the terms of the BSD license.
 
 import os, sys
-import gluon.html as html
-import gluon.validators as validators
-from gluon.http import HTTP, redirect
-from gluon.languages import translator
-from gluon.cache import Cache
-from gluon.globals import Request, Response, Session
-from gluon.sql import SQLDB, SQLField
-from gluon.sqlhtml import SQLFORM, SQLTABLE
-from gluon.fileutils import untar
 from optparse import OptionParser
 
 def env(app):
+    import gluon.html as html
+    import gluon.validators as validators
+    from gluon.http import HTTP, redirect
+    from gluon.languages import translator
+    from gluon.cache import Cache
+    from gluon.globals import Request, Response, Session
+    from gluon.sql import SQLDB, SQLField
+    from gluon.sqlhtml import SQLFORM, SQLTABLE
+
     request=Request()
     response=Response()
     session=Session()
@@ -39,27 +39,42 @@ def env(app):
     environment['SQLField']=SQLField
     environment['SQLFORM']=SQLFORM
     environment['SQLTABLE']=SQLTABLE
+    
+    model_path = os.path.join(request.folder,'models', '*.py')
+    from glob import glob
+    for f in glob(model_path):
+        fname, ext = os.path.splitext(f)
+        execfile(f, environment)
+        print 'Imported "%s" model file' % fname
+    
     return environment
 
-def run(app):
-    import code
-    imported_objects = env(app)
-    try:
-        import readline
-    except ImportError:
-        pass
-    else:
-        import rlcompleter
-        readline.set_completer(rlcompleter.Completer(imported_objects).complete)
-        readline.parse_and_bind("tab:complete")
+def run(app, options):
+    _env = env(app)
 
-    pythonrc = os.environ.get("PYTHONSTARTUP")
-    if pythonrc and os.path.isfile(pythonrc):
+    try:
+        if options.plain: raise Exception
+        import IPython
+        shell = IPython.Shell.IPShell(argv=[], user_ns=_env)
+        shell.mainloop()
+    except:
+        import code
         try:
-            execfile(pythonrc)
-        except NameError:
+            import readline
+        except ImportError:
             pass
-    code.interact(local=imported_objects)
+        else:
+            import rlcompleter
+            readline.set_completer(rlcompleter.Completer(_env).complete)
+            readline.parse_and_bind("tab:complete")
+
+        pythonrc = os.environ.get("PYTHONSTARTUP")
+        if pythonrc and os.path.isfile(pythonrc):
+            try:
+                execfile(pythonrc)
+            except NameError:
+                pass
+        code.interact(local=_env)
 
 def get_usage():
     usage = """
@@ -72,20 +87,23 @@ def execute_from_command_line(argv=None):
         argv = sys.argv
 
     parser = OptionParser(usage=get_usage())
+    parser.add_option('-p', '--plain', action='store_true', help='Default python shell, not to use IPython.')
     options, args = parser.parse_args(argv[1:])
 
     if len(args) != 1:
         parser.print_help()
         sys.exit(0)
 
+    from gluon.fileutils import untar
+
     appname=args[0]
     path=os.path.join('applications',appname)
     if not os.access(path,os.F_OK):
-        if raw_input('application %s does not exit, create (y/n)?').lower() in ['y','yes']:
+        if raw_input('application %s does not exit, create (y/n)?' % appname).lower() in ['y','yes']:
             os.mkdir(path)
             untar('welcome.tar',path)    
         else: return
-    run(appname)
+    run(appname, options)
 
 if __name__ == '__main__':
     execute_from_command_line()
