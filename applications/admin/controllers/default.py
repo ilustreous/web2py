@@ -107,7 +107,7 @@ def pack():
     try: 
         app=request.args[0]
         filename=apath('../deposit/%s.tar' % app)
-        tar(filename,apath(app),'^[\w\.]+$')
+        tar(filename,apath(app),'^[\w\.\-]+$')
     except: redirect(URL(r=request,f='site'))
     response.headers['Content-Type']='application/x-tar'
     return open(filename,'rb').read()
@@ -117,7 +117,7 @@ def pack_compiled():
     try: 
         app=request.args[0]
         filename=apath('../deposit/%s.tar' % app)
-        tar_compiled(apath(app))
+        tar_compiled(apath(app),'[^[\w\.\-]+$')
     except: redirect(URL(r=request,f='site'))
     response.headers['Content-Type']='application/x-tar'
     return open(filename,'rb').read()
