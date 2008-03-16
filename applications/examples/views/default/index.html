@@ -51,7 +51,6 @@
 <a href="http://ma.gnolia.com/bookmarklet/add?url=http://mdp.cti.depaul.edu/examples&title=web2py" target="_blank">
 <img title="Ma.gnolia" alt="Ma.gnolia" src="/{{=request.application}}/static/bookmarks/magnolia.png" width="16" height="16" border="0" />
 </a>
-<br/>
 </div>
 <!-- End Slashdot It link -->
 
@@ -64,10 +63,11 @@ Current {{=open('VERSION','r').read().strip()}}. Please upgrade.<br/><br/></span
 <h3>
 web2py is an open source full-stack Enterprise Framework
 for agile development of secure database-driven web-based applications,
-written and programmable in Python. Created by <a href="http://www.cti.depaul.edu/people/facultyInfo.asp?id=343">Massimo Di Pierro</a>. &copy; 2007-2008.
+written and programmable in Python. Created by <a href="http://www.cti.depaul.edu/aboutcti/pages/facultyinfo.aspx?id=343">Massimo Di Pierro</a>. &copy; 2007-2008.
 </h3></td>
 <td align="center" valign="middle">
-<img src="http://mac.softpedia.com/images/spyward/softpedia_clean_award_f.gif" align="right"/>
+<img src="http://mac.softpedia.com/images/spyward/softpedia_clean_award_f.gif" align="left"/>
+
 </td></tr></table>
 <br/>
 
@@ -86,7 +86,10 @@ and <a href="/examples/static/epydoc/index.html">epydocs</a></li>
 <li><a href="http://www.cti.depaul.edu/programs/courses.asp?courseid=438&subject=CSC&section=courses">Online course</a></li>
 <li><a href="http://code.google.com/p/web2py">Browse the latest code</a></li>
 <li><a href="http://groups.google.com/group/web2py">Join us for questions</a></li>
+<li><a href="https://mdp.cti.depaul.edu/sqldesigner/default/sqldesigner">New! Try the interactive model builder</a></li>
+<li><a href="http://mdp.cti.depaul.edu/examples/static/web2py_comics.pdf">New! You like comics? read this.</a></li>
 </ul>
+
 </td><td align="center" valign="middle">
 <object type="application/x-shockwave-flash" width="400" height="250" data="http://www.vimeo.com/moogaloop.swf?clip_id=428474&amp;server=www.vimeo.com&amp;fullscreen=1&amp;show_title=1&amp;show_byline=1&amp;show_portrait=0&amp;color="><param name="quality" value="best" /><param name="allowfullscreen" value="true" /><param name="scale" value="showAll" /><param name="movie" value="http://www.vimeo.com/moogaloop.swf?clip_id=428474&amp;server=www.vimeo.com&amp;fullscreen=1&amp;show_title=1&amp;show_byline=1&amp;show_portrait=0&amp;color=" /></object>
 </td></tr></table>
@@ -100,7 +103,7 @@ and <a href="/examples/static/epydoc/index.html">epydocs</a></li>
 <li>It is portable. Runs on Windows, Mac, Linux, Unix and some <a href="http://mdp.cti.depaul.edu/examples/static/gluonce.jpg">cellphones</a>.</li>
 <li>No limitation on licensing of the applications you develop. web2py even allows you to bytecode compile them and distribute in closed-sorce format (as long they do not contain web2py source code, read the <a href="/{{=request.application}}/default/license">license</a>)
 <li>web2py prevents the most common types of vulnerabilities: Cross Site Scripting, Injection Flaws, and Malicious File Execution.</li>
-<li>web2py includes libraries to handle JSON, AJAX, RSS, ATOM, CSV, RTF, XML, XML-RPC, REST, and WIKI markup and can talk to SQLite, MySQL, PostgreSQL and Oracle databases.</li>
+<li>web2py includes libraries to handle JSON, AJAX, RSS, ATOM, CSV, RTF, XML, XML-RPC, REST, <a href="https://mdp.cti.depaul.edu/cas">CAS</a>, and WIKI markup and can talk to SQLite, MySQL, PostgreSQL and Oracle databases.</li>
 <li>web2py can handle upload and download of very large files.</li>
 <li>web2py also works with third party python libraries. For example, it can talk to Falsh via PyAMF. <a href="/{{=request.application}}/default/pyamf_howto">Here</a> is a tutorial.</li>
 <li>web2py guides the developer to follow well established software engineering patterns such as the Model-View-Controller and testing.</li>
@@ -124,7 +127,7 @@ def index():
     return dict(form=form)
 """.strip(),language='web2py',link='/examples/global/vars/')}}
 <br/>and a view (which describes the data presenation): <tt>images_examples/index.html</tt>:<br/><br/>
-{{=CODE(open(os.path.join(request.folder,'../examples/views/images_examples/index.html'),'r').read(),language='html')}}
+{{=CODE(open('applications/examples/views/images_examples/index.html','r').read(),language='html')}}
 <br/>What does it do?
 <ul>
 <li>Creates the database db in file 'images.db'</li>
@@ -135,7 +138,6 @@ def index():
 </ul>
 
 <h2>Our visitors</h2>
-
 <center>
 <a href="http://www3.clustrmaps.com/counter/maps.php?url=http://mdp.cti.depaul.edu" id="clustrMapsLink"><img src="http://www3.clustrmaps.com/counter/index2.php?url=http://mdp.cti.depaul.edu" style="border:0px;" alt="Locations of visitors to this page" title="Locations of visitors to this page" id="clustrMapsImg" onError="this.onError=null; this.src='http://www2.clustrmaps.com/images/clustrmaps-back-soon.jpg'; document.getElementById('clustrMapsLink').href='http://www2.clustrmaps.com'" /></a>
 </center>
