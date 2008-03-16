@@ -50,6 +50,9 @@ error_message_ticket='<html><body><h1>Internal error</h1>Ticket issued: <a href=
 
 working_folder=os.getcwd()
 
+def RFC1123_DATETIME(seconds):
+    return time.strftime("%a, %d %b %Y %H:%M:%S GMT", time.gmtime(seconds))
+
 def serve_controller(request,response,session):    
     """
     this function is used to generate a dynmaic page.
@@ -128,13 +131,20 @@ def wsgibase(environ, responder):
             ###################################################
             # serve if a static file
             ###################################################
+            
             if len(items)>2 and items[1]=='static':
                 static_file=os.path.join(request.env.web2py_path,'applications',items[0],'static','/'.join(items[2:]))
                 if not os.access(static_file,os.R_OK): 
                     raise HTTP(400,error_message,web2py_error='invalid application')
+                stat_file=os.stat(static_file)
+                mtime=RFC1123_DATETIME(stat_file[stat.ST_MTIME])
                 headers={'Content-Type':contenttype(static_file),
-                         'Content-Length':os.stat(static_file)[stat.ST_SIZE]}
-                raise HTTP(200,streamer(open(static_file,'rb')),**headers)
+                         'Content-Length':stat_file[stat.ST_SIZE],
+                         'Last-Modified':mtime}
+                if environ.get('HTTP_IF_MODIFIED_SINCE', '') == mtime:
+                    raise HTTP(304)
+                else:
+                    raise HTTP(200,streamer(open(static_file,'rb')),**headers)
             ###################################################
             # parse application, controller and function
             ###################################################
