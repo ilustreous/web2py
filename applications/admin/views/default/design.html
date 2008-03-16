@@ -38,7 +38,7 @@ def file_create_form(location):
 <br/><br/>
 {{if not models:}}There are no models{{else:}}[ 
 <a href="{{=URL(a=app,c='appadmin',f='index')}}">database administration</a>
-{{if os.access('applications/%s/databases/sql.log'%app,os.R_OK):}}| {{=A('sql.log',_href=URL(r=request,f='peek/%s/databases/sql.log'%app))}}{{pass}} ] {{pass}}
+{{if os.access(os.path.join(request.folder,'..',app,'databases','sql.log'),os.R_OK):}}| {{=A('sql.log',_href=URL(r=request,f='peek/%s/databases/sql.log'%app))}}{{pass}} ] {{pass}}
 <ul>
 {{for m in models:}}<li>{{=peekfile('models',m)}}
 [ {{=editfile('models',m)}} | <a href="/{{=request.application}}/default/delete/{{=app}}/models/{{=m}}?sender={{=request.function}}/{{=app}}">delete</a> ]

@@ -10,7 +10,7 @@ import re
 regex_tables=re.compile("""^[\w]+\.define_table\(\s*[\'\"](?P<name>[\w_]+)[\'\"]""",flags=re.M)
 
 # pattern to find exposed functions in controller
-regex_expose=re.compile('^def[ ]+(?P<name>[\w_]+)\(\)',flags=re.M)
+regex_expose=re.compile('^def[ ]+(?P<name>(?:[a-zA-Z0-9]\w*)|(?:_[a-zA-Z0-9]\w*))\(\)',flags=re.M)
 
 regex_include=re.compile('(?P<all>\{\{\s*include\s+[\'"](?P<name>[^\']*)[\'"]\s*\}\})')
 
