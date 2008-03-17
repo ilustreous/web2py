@@ -44,7 +44,7 @@ def apath(path=''):
 
 try:
     _config={}
-    port=int(request.env.http_host.split(':')[1])
+    port=int(request.env.server_port)
     restricted(open(apath('../parameters_%i.py'%port),'r').read(),_config)
     if not _config.has_key('password') or not _config['password']:
         raise HTTP(400)
