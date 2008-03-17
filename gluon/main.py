@@ -298,9 +298,9 @@ def appfactory(wsgiapp=wsgibase,logfilename='httpsever.log',web2py_path=working_
         time_in=time.time()
         ret=wsgiapp(environ,responder2)
         try:
-            if not logfilename: raise IOError
             line='%s, %s, %s, %s, %s, %s, %f\n' % (environ['REMOTE_ADDR'], datetime.datetime.today().strftime('%Y-%m-%d %H:%M:%S'), environ['REQUEST_METHOD'],environ['PATH_INFO'].replace(',','%2C'),environ['SERVER_PROTOCOL'],status_headers[0][:3],time.time()-time_in)
-            open(logfilename,'a').write(line)
+            if logfilename: open(logfilename,'a').write(line)
+            else: sys.stdout.write(line)
         except: pass
         return ret
     return app_with_logging
