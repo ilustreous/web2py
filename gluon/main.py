@@ -204,7 +204,7 @@ def wsgibase(environ, responder):
             if request.cookies.has_key(session_id_name):
                 response.session_id=request.cookies[session_id_name].value
                 if regex_session_id.match(response.session_id):
-                     session_filename=os.path.join(request.folder,'sessions/',response.session_id)
+                     session_filename=os.path.join(request.folder,'sessions',response.session_id)
                 else: response.session_id=None            
             if response.session_id:
                 try: 
@@ -217,7 +217,7 @@ def wsgibase(environ, responder):
                      response.session_id=None
             if not response.session_id:
                 response.session_id=request.env.remote_addr+'.'+str(int(time.time()))+'.'+str(random())[2:]
-                session_filename=os.path.join(request.folder,'sessions/',response.session_id)
+                session_filename=os.path.join(request.folder,'sessions',response.session_id)
                 session_new=True
             response.cookies[session_id_name]=response.session_id
             response.cookies[session_id_name]['path']="/"
