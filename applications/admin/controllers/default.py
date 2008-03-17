@@ -50,6 +50,20 @@ try:
         raise HTTP(400)
 except: raise HTTP(400)
 
+############################################################
+### session expiration
+############################################################
+
+EXPIRATION=10*60 # logout after 10 minutes of inactivity
+t0=time.time()
+if session.authorized:
+    if session.last_time and session.last_time<t0-EXPIRATION:
+        session.authorized=False
+    else: session.last_time=t0
+
+if not session.authorized and not request.function=='index': 
+    redirect(URL(r=request,f='index'))
+
 def index():
     """ admin controller function """
     if request.vars.password:
@@ -60,13 +74,11 @@ def index():
                 myversion=open(apath('../VERSION'),'r').read()
                 if version!=myversion: session.flash='A new version of web2py is available, you should upgrade at http://mdp.cti.depaul.edu/examples'
             except: pass
+            session.last_time=t0
             redirect(URL(r=request,f='site'))
         else: response.flash='invalid password'
     apps=[file for file in os.listdir(apath()) if file.find('.')<0]    
     return dict(apps=apps)
-
-if not session.authorized and not request.function=='index': 
-    redirect(URL(r=request,f='index'))
 
 def logout():
     """ admin controller function """
