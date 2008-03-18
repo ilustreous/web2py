@@ -4,7 +4,7 @@ Developed by Massimo Di Pierro <mdipierro@cs.depaul.edu>
 License: GPL v2
 """
 
-import re, random, copy, sys, types, datetime, time, cgi, hmac
+import os, re, random, copy, sys, types, datetime, time, cgi, hmac
 import gluon.sql 
 try: 
     import hashlib
@@ -68,7 +68,15 @@ class IS_LENGTH:
         self.error_message=error_message
     def __call__(self,value):
         if isinstance(value,cgi.FieldStorage):
-            if len(value.value)<=self.size: return (value,None) # for uploads
+            if value.file:
+                value.file.seek(0,os.SEEK_END)
+                length=value.file.tell()
+                value.file.seek(0,os.SEEK_SET)
+            else:
+                val=value.value
+                if val: length=len(val)
+                else: length=0
+            if length<=self.size: return (value,None) # for uploads
         elif isinstance(value,(str,unicode)): 
             if len(value)<=self.size: return (value,None)      
         elif len(str(value))<=self.size: return (value,None)      
