@@ -85,15 +85,17 @@ def presentation(root):
         return root
 
 class web2pyDialog:
-    def __init__(self,root):
+    def __init__(self,root,options):
         root.title('web2py server')
         self.root=Tkinter.Toplevel(root)
+        self.options=options
         self.menu=Tkinter.Menu(self.root)
-
         servermenu = Tkinter.Menu(self.menu,tearoff=0)
         httplog=os.path.join(os.getcwd(),'httpserver.log')
-        servermenu.add_command(label='View httpserver.log', command=lambda:try_start_browser(httplog))
-        servermenu.add_command(label='Quit (pid:%i)' % os.getpid(), command=self.quit)
+        servermenu.add_command(label='View httpserver.log', 
+           command=lambda:try_start_browser(httplog))
+        servermenu.add_command(label='Quit (pid:%i)' % os.getpid(),
+           command=self.quit)
         self.menu.add_cascade(label="Server", menu=servermenu)
 
         self.pagesmenu = Tkinter.Menu(self.menu,tearoff=0)  
@@ -162,7 +164,14 @@ class web2pyDialog:
         self.connect_pages()
         self.button_start.configure(state='disabled')
         try:
-            self.server=HttpServer(ip,port,password)        
+            options=self.options
+            self.server=HttpServer(ip,port,password,
+                pid_filename=options.pid_filename,
+                log_filename=options.log_filename,
+                ssl_certificate=options.ssl_certificate,
+                ssl_private_key=options.ssl_private_key,
+                server_name=options.server_name,
+                path=options.folder)
             thread.start_new_thread(self.server.start,())            
         except Exception, e:
             self.button_start.configure(state='normal')
@@ -264,7 +273,7 @@ def start():
     if root:
        root.focus_force()
        presentation(root)
-       master=web2pyDialog(root)
+       master=web2pyDialog(root,options)
        signal.signal(signal.SIGTERM,lambda a,b: master.quit())
        try: root.mainloop()
        except: master.quit()
