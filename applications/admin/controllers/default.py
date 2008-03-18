@@ -58,6 +58,7 @@ EXPIRATION=10*60 # logout after 10 minutes of inactivity
 t0=time.time()
 if session.authorized:
     if session.last_time and session.last_time<t0-EXPIRATION:
+        session.flash='session expired'
         session.authorized=False
     else: session.last_time=t0
 
