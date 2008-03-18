@@ -50,7 +50,7 @@ def env(app, nomodel=False):
     
     return environment
 
-def run(app, options):
+def shell_run(app, options):
     _env = env(app, options.nomodel)
 
     if not options.plain:
@@ -109,7 +109,7 @@ def execute_from_command_line(argv=None):
             os.mkdir(path)
             untar('welcome.tar',path)    
         else: return
-    run(appname, options)
+    shell_run(appname, options)
 
 if __name__ == '__main__':
     execute_from_command_line()
