@@ -751,10 +751,14 @@ class SQLSet:
         if attributes.has_key('groupby'): 
             sql_o+=' GROUP BY '+str(attributes['groupby'])
         if attributes.has_key('orderby'): 
-            sql_o=' ORDER BY '+str(attributes['orderby'])
-        if attributes.has_key('limitby') and self._db._dbname!='oracle': 
+            sql_o+=' ORDER BY '+str(attributes['orderby'])
+        if attributes.has_key('limitby'): 
             ### oracle does not support limitby
             lmin,lmax=attributes['limitby']
+            if self._db._dbname=='oracle':
+                if not attributes.has_key('orderby'): 
+                    sql_o+=' ORDER BY %s.id' % tablenames[0]
+                return "SELECT %s FROM (SELECT _tmp.*, ROWNUM _row FROM (SELECT %s FROM %s%s%s) _tmp WHERE ROWNUM<%i ) WHERE _row>=%i;" %(sql_f,sql_f,sql_t,sql_w,sql_o,lmax,lmin)
             sql_o+=' LIMIT %i OFFSET %i' % (lmax-lmin,lmin)
         return 'SELECT %s FROM %s%s%s;'%(sql_f,sql_t,sql_w,sql_o) 
     def select(self,*fields,**attributes):
@@ -774,10 +778,6 @@ class SQLSet:
              query=self._select(*fields,**attributes)       
              key=self._db._uri+'/'+query
              r=cache_model(key,lambda:response(query),time_expire)
-        if attributes.has_key('limitby') and self._db._dbname=='oracle': 
-            # oracle does not support limitby so we do it numerically
-            lmin,lmax=attributes['limitby']
-            r=r[lmin,lmax]
         return SQLRows(self._db,r,*self.colnames)      
     def _delete(self):
         if len(self._tables)!=1:
