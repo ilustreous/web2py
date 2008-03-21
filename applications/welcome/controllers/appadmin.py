@@ -62,6 +62,7 @@ def csv():
     try:
         dbname=request.vars.dbname
         db=eval(dbname)
+        response.headers['Content-disposition']="attachment; filename=%s_%s.csv" % (request.vars.dbname, request.vars.query.split('.',1)[0])
         return str(db(request.vars.query).select())
     except: redirect(URL(r=request,f='index'))
 
