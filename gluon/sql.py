@@ -757,7 +757,7 @@ class SQLSet:
             lmin,lmax=attributes['limitby']
             if self._db._dbname=='oracle':
                 if not attributes.has_key('orderby'): 
-                    sql_o+=' ORDER BY %s.id' % tablenames[0]
+                   sql_o+=' ORDER BY '+', '.join([t+'.id' for t in tablenames])
                 return "SELECT %s FROM (SELECT _tmp.*, ROWNUM _row FROM (SELECT %s FROM %s%s%s) _tmp WHERE ROWNUM<%i ) WHERE _row>=%i;" %(sql_f,sql_f,sql_t,sql_w,sql_o,lmax,lmin)
             sql_o+=' LIMIT %i OFFSET %i' % (lmax-lmin,lmin)
         return 'SELECT %s FROM %s%s%s;'%(sql_f,sql_t,sql_w,sql_o) 
