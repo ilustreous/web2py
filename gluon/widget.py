@@ -170,7 +170,11 @@ class web2pyDialog:
                 log_filename=options.log_filename,
                 ssl_certificate=options.ssl_certificate,
                 ssl_private_key=options.ssl_private_key,
+	        numthreads=options.numthreads,
                 server_name=options.server_name,
+                request_queue_size=options.request_queue_size, 
+                timeout=options.timeout, 
+                shutdown_timeout=options.shutdown_timeout,
                 path=options.folder)
             thread.start_new_thread(self.server.start,())            
         except Exception, e:
@@ -237,13 +241,24 @@ def console():
     parser.add_option('-l','--log_filename',default='httpserver.log',
                   dest='log_filename',
                   help='file where to log connections')
+    parser.add_option('-n','--numthreads',default='10',
+                  dest='numthreads',
+                  help='number of threads')
     parser.add_option('-s','--server_name',default=socket.gethostname(),
                   dest='server_name',
                   help='the server name for the web server')
+    parser.add_option('-q','--request_queue_size',default='5',
+                  dest='request_queue_size',
+                  help='max number of queued requests when server unavailable')
+    parser.add_option('-o','--timeout',default='10',
+                  dest='timeout',
+                  help='timeout for individual request')
+    parser.add_option('-z','--shutdown_timeout',default='5',
+                  dest='shutdown_timeout',
+                  help='timeout on shutdown of server')
     parser.add_option('-f','--folder',default=os.getcwd(),
                   dest='folder',
                   help='the folder where to run web2py')
-
     (options, args) = parser.parse_args()
     if not os.access('applications', os.F_OK): os.mkdir('applications')
     if not os.access('deposit', os.F_OK): os.mkdir('deposit')
@@ -291,7 +306,11 @@ def start():
                       log_filename=options.log_filename,
                       ssl_certificate=options.ssl_certificate,
                       ssl_private_key=options.ssl_private_key,
+                      numthreads=options.numthreads,
                       server_name=options.server_name,
+                      request_queue_size=options.request_queue_size,
+                      timeout=options.timeout,
+                      shutdown_timeout=options.shutdown_timeout,
                       path=options.folder)
     try: server.start()
     except KeyboardInterrupt: server.stop()

@@ -184,7 +184,15 @@ widget has [stop] button and graph
 logging is done by main by appfactory
 fixed a bug in sql belongs
 
-TODO:
-upload folder.
-index for any SQLField
+web2py 1.22-1.25
+fixed minor bugs, added IS_NULL_OR
 
+web2py 1.26
+added shell.py (thanks Limodou!)
+added memcache support
+
+web2py 1.27
+IS_NULL_OR now works will all fields
+admin creates paths to static files
+wsgiserver options are passed to HttpServer
+faking limitby for oracle to make appadmin work

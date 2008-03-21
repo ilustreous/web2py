@@ -2,7 +2,7 @@ import os, re
 
 def rewrite(wsgibase,URL):
     if not os.access('routes.py',os.R_OK):
-        return wsgibase,URL
+	return wsgibase,URL
     print '***************** ATTENTION *******************'
     print '* you are using web2py rewrite feature        *'
     print '* the use of this feature is discouraged      *'
@@ -11,7 +11,7 @@ def rewrite(wsgibase,URL):
     symbols={}
     exec(open('routes.py','r').read()) in symbols
     routes_in=[(re.compile(k),v) for k,v in symbols['routes_in']]
-    routes_out=[(re.compile(k),v) for k,v in symbols['routes_out']]    
+    routes_out=[(re.compile(k),v) for k,v in symbols['routes_out']]
     def filter_in(e):
         path=e['PATH_INFO']
         key=e['REMOTE_ADDR']+':'+path

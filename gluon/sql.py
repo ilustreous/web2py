@@ -507,8 +507,10 @@ class SQLTable(SQLStorage):
             if fields.has_key(fieldname):                
                 fs.append(fieldname)
                 value=fields[fieldname]
-                if field.type[:9] in ['integer','reference']: value=int(value)
-                if field.type=='double': value=float(value)
+                if value!=None and field.type[:9] in ['integer','reference']:
+                    value=int(value)
+                if value!=None and field.type=='double':
+                    value=float(value)
                 try: vs.append(sql_represent(value.id,ft,fd))
                 except: vs.append(sql_represent(value,ft,fd))
             elif field.default!=None:
@@ -750,7 +752,8 @@ class SQLSet:
             sql_o+=' GROUP BY '+str(attributes['groupby'])
         if attributes.has_key('orderby'): 
             sql_o=' ORDER BY '+str(attributes['orderby'])
-        if attributes.has_key('limitby'): 
+        if attributes.has_key('limitby') and self._db._dbname!='oracle': 
+            ### oracle does not support limitby
             lmin,lmax=attributes['limitby']
             sql_o+=' LIMIT %i OFFSET %i' % (lmax-lmin,lmin)
         return 'SELECT %s FROM %s%s%s;'%(sql_f,sql_t,sql_w,sql_o) 
@@ -771,6 +774,10 @@ class SQLSet:
              query=self._select(*fields,**attributes)       
              key=self._db._uri+'/'+query
              r=cache_model(key,lambda:response(query),time_expire)
+        if attributes.has_key('limitby') and self._db._dbname=='oracle': 
+            # oracle does not support limitby so we do it numerically
+            lmin,lmax=attributes['limitby']
+            r=r[lmin,lmax]
         return SQLRows(self._db,r,*self.colnames)      
     def _delete(self):
         if len(self._tables)!=1:

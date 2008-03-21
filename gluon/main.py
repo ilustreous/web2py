@@ -118,7 +118,8 @@ def wsgibase(environ, responder):
             ###################################################
             for key, value in environ.items():
                 request.env[key.lower().replace('.','_')]=value
-            if not request.env.web2py_path: request.env.web2py_path=working_folder
+            if not request.env.web2py_path:
+                request.env.web2py_path=working_folder
             ###################################################
             # valudate the path in url
             ###################################################
@@ -311,7 +312,11 @@ class HttpServer:
                  log_filename='httpserver.log',
                  ssl_certificate=None,
                  ssl_private_key=None,
+                 numthreads=10,
                  server_name=None,
+                 request_queue_size=5,
+                 timeout=10,
+                 shutdown_timeout=5,
                  path=working_folder):
         """
         starts the web server.
@@ -322,7 +327,10 @@ class HttpServer:
         print 'starting web server...'        
         self.server=wsgiserver.CherryPyWSGIServer((ip, port),
                     appfactory(wsgibase,log_filename,web2py_path=path),
- 	            server_name=server_name)
+                    numthreads=int(numthreads), server_name=server_name,
+                    request_queue_size=int(request_queue_size), 
+                    timeout=int(timeout),
+                    shutdown_timeout=int(shutdown_timeout))
         if not ssl_certificate or not ssl_private_key:
             print 'SSL is off'
         elif not wsgiserver.SSL:

@@ -187,9 +187,11 @@ class SQLFORM(FORM):
                 elif vars.has_key(fieldname): fields[fieldname]=vars[fieldname]
                 elif field.default==None: return False                
                 if field.type[:9] in ['integer', 'reference']:
-                    fields[fieldname]=int(fields[fieldname])
+                    if fields[fieldname]!=None:
+                        fields[fieldname]=int(fields[fieldname])
                 elif field.type=='double':
-                    fields[fieldname]=float(fields[fieldname])
+                    if fields[fieldname]!=None:
+                       fields[fieldname]=float(fields[fieldname])
             if vars.has_key('id'):                
                 if vars['id']!=self.record_id:
                     raise SyntaxError, "user is tampering with form"

@@ -359,18 +359,14 @@ def upload_file():
     """ admin controller function """
     try:
         path=apath(request.vars.location)
-        filename=re.sub('[^\w./]+','_',request.vars.filename)
+        filename=re.sub('[^\w\./]+','_',request.vars.filename)
         if path[-8:]=='/models/' and not filename[-3:]=='.py': filename+='.py'
         if path[-13:]=='/controllers/' and not filename[-3:]=='.py': filename+='.py'
         if path[-7:]=='/views/' and not filename[-5:]=='.html': filename+='.html'
         if path[-11:]=='/languages/' and not filename[-3:]=='.py': filename+='.py'
         filename=os.path.join(path,filename)
-        items=filename.split('/')
-        p=''
-        for item in items[:-1]:
-            p=os.path.join(p,item)
-            try: os.mkdir(p)
-            except: pass
+        dirpath=os.path.dirname(filename)
+        if not os.path.exists(dirpath): os.makedirs(dirpath)
         open(filename,'w').write(request.vars.file.file.read())
         session.flash='file "%s" uploaded' %  filename[len(path):]
     except: 
