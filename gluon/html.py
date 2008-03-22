@@ -57,7 +57,7 @@ def URL(a=None,c=None,f=None,r=None,args=[],vars={}):
 
 ON=None
 
-class XML:
+class XML(object):
     """
     example:
    
@@ -75,7 +75,7 @@ class XML:
     def __str__(self):
         return self.xml()
 
-class DIV:
+class DIV(object):
     """
     example:
     

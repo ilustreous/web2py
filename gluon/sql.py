@@ -163,7 +163,7 @@ def sql_represent(object,fieldtype,dbname):
 
 def cleanup(text):
     if re.compile('[^0-9a-zA-Z_]').findall(text):
-        raise Exception, 'only [0-9a-zA-Z_] allowed in table and field names'
+        raise SyntaxError, 'only [0-9a-zA-Z_] allowed in table and field names'
     return text
 
 def sqlite3_web2py_extract(lookup, s):
@@ -188,11 +188,11 @@ class SQLStorage(dict):
 class SQLCallableList(list):
     def __call__(self): return copy.copy(self)
 
-class static_method:
-    """
-    now we can declare static methods in python!
-    """
-    def __init__(self, anycallable): self.__call__ = anycallable    
+#class static_method:
+#    """
+#    now we can declare static methods in python!
+#    """
+#    def __init__(self, anycallable): self.__call__ = anycallable    
 
 class SQLDB(SQLStorage):
     """
@@ -208,13 +208,13 @@ class SQLDB(SQLStorage):
     ### this allows gluon to comunite a folder for this thread
     _folders={}   
     _instances={}
-    @static_method
+    @staticmethod
     def _set_thread_folder(folder):
         sql_locker.acquire()
         SQLDB._folders[thread.get_ident()]=folder        
         sql_locker.release()
     ### this allows gluon to commit/rollback all dbs in this thread
-    @static_method
+    @staticmethod
     def close_all_instances(action): 
         #THIS IS NOT THREAD SAFE
         """ to close cleanly databases in a multithreaded environment """
@@ -325,7 +325,7 @@ class SQLDB(SQLStorage):
         sql_locker.acquire()
         try:            
             query = t._create(migrate=args['migrate'])
-        except Exception, e:
+        except BaseException, e:
             sql_locker.release()
             raise e
         sql_locker.release()
@@ -341,7 +341,7 @@ class SQLDB(SQLStorage):
         self._execute(query)
         return self._cursor.fetchall()
 
-class SQLALL:
+class SQLALL(object):
     def __init__(self,table): 
         self.table=table
     def __str__(self): 
@@ -552,12 +552,12 @@ class SQLTable(SQLStorage):
         for line in reader:
             if not colnames:
                 colnames=[x[x.find('.')+1:] for x in line]
-                c=[i for i in range(len(line)) if colnames[i]!='id']
+                c=[i for i in xrange(len(line)) if colnames[i]!='id']
             else:
                 items=[(colnames[i],line[i]) for i in c]                
                 self.insert(**dict(items))
 
-class SQLXorable:
+class SQLXorable(object):
     def __init__(self,name,type='string',db=None):
         self.name,self.type,self._db=name,type,db
     def __str__(self): 
@@ -661,7 +661,7 @@ class SQLField(SQLXorable):
         return SQLXorable(s,'integer',self._db)
     def __str__(self): return '%s.%s' % (self._tablename,self.name)
 
-class SQLQuery:
+class SQLQuery(object):
     """
     a query object necessary to define a set.
     t can be stored or can be passed to SQLDB.__call__() to obtain a SQLSet
@@ -708,7 +708,7 @@ def parse_tablenames(text):
     for item in items: tables[item]=True
     return tables.keys()        
 
-class SQLSet:
+class SQLSet(object):
     """
     sn SQLSet represents a set of records in the database,
     the records are identified by the where=SQLQuery(...) object.
@@ -809,7 +809,7 @@ def update_record(t,s,a):
     s.update(**a)
     for key,value in a.items(): t[str(key)]=value
 
-class SQLRows:
+class SQLRows(object):
     ### this class still needs some work to care for ID/OID
     """
     A wrapper for the retun value of a select. It basically represents a table.
@@ -827,7 +827,7 @@ class SQLRows:
         if len(self.response[0])!=len(self.colnames):
             raise SyntaxError, 'SQLRows: internal error'
         row=SQLStorage()       
-        for j in range(len(self.colnames)):            
+        for j in xrange(len(self.colnames)):            
             value=self.response[i][j]
             if isinstance(value,unicode): value=value.encode('utf-8')
             packed=self.colnames[j].split('.')
@@ -877,7 +877,7 @@ class SQLRows:
         """
         iterator over records
         """
-        for i in range(len(self)):
+        for i in xrange(len(self)):
             yield self[i]
     def __str__(self):
         """
@@ -886,10 +886,10 @@ class SQLRows:
         s=cStringIO.StringIO()
         writer = csv.writer(s)
         writer.writerow(self.colnames)
-        c=range(len(self.colnames))
-        for i in range(len(self)):
-            row=[self.response[i][j] for j in c]
-            for k in range(len(row)):
+        c=len(self.colnames)
+        for i in xrange(len(self)):
+            row=[self.response[i][j] for j in xrange(c)]
+            for k in xrange(c):
                 if isinstance(row[k],unicode): row[k]=row[k].encode('utf-8')
             writer.writerow(row)
         return s.getvalue()

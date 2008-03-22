@@ -9,7 +9,7 @@ import cgi
 
 __all__=['highlight']
 
-class Highlighter:
+class Highlighter(object):
     """
     Do syntax highlighting.
     """
@@ -198,7 +198,7 @@ def highlight(code,language,link='/exmaples/globals/vars/',counter=1,styles={},a
     lines=code.split('\n')
     if counter is None: numbers='<br/>'*len(lines)
     elif isinstance(counter,str): numbers=cgi.escape(counter)+'<br/>'*len(lines)
-    else: numbers='<br/>'.join([str(i+counter)+'.' for i in range(len(lines))])
+    else: numbers='<br/>'.join([str(i+counter)+'.' for i in xrange(len(lines))])
     code='<br/>'.join(lines)
     items=attributes.items()
     fa=' '.join([key[1:].lower() for key,value in items if key[:1]=='_' and value==None]+['%s="%s"' % (key[1:].lower(),str(value).replace('"',"'")) for key,value in attributes.items() if key[:1]=='_' and value])

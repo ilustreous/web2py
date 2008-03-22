@@ -14,7 +14,7 @@ ProgramName="web2py Enterprise Web Framework"
 ProgramAuthor='Created by Massimo Di Pierro, Copyright 2007-2008'
 ProgramVersion=open('VERSION','r').read().strip()
 
-class IO:
+class IO(object):
     def __init__(self):
         self.buffer=cStringIO.StringIO()
     def write(self,data):
@@ -59,7 +59,7 @@ def presentation(root):
         canvas=Tkinter.Canvas(dialog, background='white', width=400, height=300)
         canvas.pack()      
         root.update()  
-        for counter in range(5):            
+        for counter in xrange(5):            
             if counter is 0:
                 canvas.create_text(200,50, text='Welcome to ...',
                                         font=('Helvetica',12),
@@ -84,7 +84,7 @@ def presentation(root):
             time.sleep(1.5)
         return root
 
-class web2pyDialog:
+class web2pyDialog(object):
     def __init__(self,root,options):
         root.title('web2py server')
         self.root=Tkinter.Toplevel(root)
@@ -177,7 +177,7 @@ class web2pyDialog:
                 shutdown_timeout=options.shutdown_timeout,
                 path=options.folder)
             thread.start_new_thread(self.server.start,())            
-        except Exception, e:
+        except BaseException, e:
             self.button_start.configure(state='normal')
             return self.error(str(e))
         self.button_stop.configure(state='normal')
@@ -203,16 +203,16 @@ class web2pyDialog:
             file.seek(self.t0)
             data=file.read(t1-self.t0)
             self.p0=self.p0[1:]+[10+90.0/math.sqrt(1+data.count('\n'))]
-            for i in range(len(self.p0)-1):
+            for i in xrange(len(self.p0)-1):
                 c=self.canvas.coords(self.q0[i])
                 self.canvas.coords(self.q0[i],
                                    (c[0],self.p0[i],c[2],self.p0[i+1]))
             self.t0=t1
-        except Exception, e:
+        except BaseException, e:
             self.t0=time.time()
             self.t0=t1
             self.p0=[100]*300
-            self.q0=[self.canvas.create_line(i,100,i+1,100,fill='green') for i in range(len(self.p0)-1)]
+            self.q0=[self.canvas.create_line(i,100,i+1,100,fill='green') for i in xrange(len(self.p0)-1)]
         self.canvas.after(1000, self.update_canvas ) 
 
 def console():

@@ -8,7 +8,7 @@ import time, portalocker, shelve, thread, cPickle, dbhash, os
 
 __all__=['Cache']
 
-class CacheInRam:
+class CacheInRam(object):
     locker=thread.allocate_lock()
     storage={}
     def __init__(self,request):
@@ -26,13 +26,13 @@ class CacheInRam:
             try:
                 value=f()
                 self.storage[key]=(time.time(),value)
-            except Exception, e:
+            except BaseException, e:
                 self.locker.release()
                 raise e
         self.locker.release()
         return value
 
-class CacheOnDisk:
+class CacheOnDisk(object):
     def __init__(self,request):
 	self.request=request
         self.locker=open(os.path.join(request.folder,'cache/cache.lock'),'a')
@@ -52,13 +52,13 @@ class CacheOnDisk:
                 value=f()
                 storage[key]=(time.time(),value)
                 storage.sync()
-            except Exception, e:
+            except BaseException, e:
                 portalocker.unlock(self.locker)       
                 raise e
         portalocker.unlock(self.locker)
         return value
 
-class Cache:
+class Cache(object):
     def __init__(self,request):
         self.ram=CacheInRam(request)
         self.disk=CacheOnDisk(request)

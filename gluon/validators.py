@@ -16,7 +16,7 @@ from storage import Storage
 
 __all__=['IS_ALPHANUMERIC', 'IS_DATE', 'IS_DATETIME', 'IS_EMAIL', 'IS_EXPR','IS_FLOAT_IN_RANGE', 'IS_INT_IN_RANGE', 'IS_IN_SET', 'IS_LENGTH', 'IS_LOWER', 'IS_MATCH', 'IS_NOT_EMPTY', 'IS_TIME', 'IS_URL', 'CLEANUP', 'CRYPT', 'IS_IN_DB', 'IS_NOT_IN_DB', 'IS_UPPER', 'IS_NULL_OR']
 
-class IS_MATCH:
+class IS_MATCH(object):
     """
     example:
 
@@ -35,7 +35,7 @@ class IS_MATCH:
         if match: return (match.group(),None)
         return (value,self.error_message)
 
-class IS_EXPR:
+class IS_EXPR(object):
     """
     example:
 
@@ -55,7 +55,7 @@ class IS_EXPR:
         if environment['__ret__']: return (value,None)        
         return (value,self.error_message)
 
-class IS_LENGTH:
+class IS_LENGTH(object):
     """
     example:
 
@@ -82,7 +82,7 @@ class IS_LENGTH:
         elif len(str(value))<=self.size: return (value,None)      
         return (value,self.error_message)
 
-class IS_IN_SET:
+class IS_IN_SET(object):
     """
     example:
 
@@ -120,7 +120,7 @@ def IS_IN_DB(dbset,field,label=None,error_message='value not in database!'):
     labels=[label % dict(r) for r in records]
     return IS_IN_SET(theset,labels,error_message)
 
-class IS_NOT_IN_DB:
+class IS_NOT_IN_DB(object):
     """
     example:
 
@@ -143,7 +143,7 @@ class IS_NOT_IN_DB:
         if fetched[0]['count(*)']==0: return (value,None)
         return (value,self.error_message)
 
-class IS_INT_IN_RANGE:
+class IS_INT_IN_RANGE(object):
     """
     example:
 
@@ -162,7 +162,7 @@ class IS_INT_IN_RANGE:
         except ValueError: pass
         return (value,self.error_message)
 
-class IS_FLOAT_IN_RANGE:
+class IS_FLOAT_IN_RANGE(object):
     """
     example:
 
@@ -179,7 +179,7 @@ class IS_FLOAT_IN_RANGE:
         except ValueError: pass
         return (value,self.error_message)
 
-class IS_NOT_EMPTY:
+class IS_NOT_EMPTY(object):
     """
     example:
 
@@ -218,7 +218,7 @@ class IS_URL(IS_MATCH):
     def __init__(self,error_message='invalid url!'):
         IS_MATCH.__init__(self,'^http\://(\w+.)*(\w+)$',error_message)
 
-class IS_TIME:
+class IS_TIME(object):
     """
     example:
 
@@ -249,7 +249,7 @@ class IS_TIME:
         except ValueError: pass
         return (ivalue,self.error_message)
 
-class IS_DATE:
+class IS_DATE(object):
     """
     example:
 
@@ -270,7 +270,7 @@ class IS_DATE:
     def formatter(self,value):
         return value.strftime(str(self.format))
 
-class IS_DATETIME:
+class IS_DATETIME(object):
     """
     example:
 
@@ -292,13 +292,13 @@ class IS_DATETIME:
     def formatter(self,value):
         return value.strftime(str(self.format))
 
-class IS_LOWER:
+class IS_LOWER(object):
     def __call__(self,value): return (value.lower(),None)
 
-class IS_UPPER:
+class IS_UPPER(object):
     def __call__(self,value): return (value.upper(),None)
 
-class IS_NULL_OR:
+class IS_NULL_OR(object):
     def __init__(self,other,null=None):
         self.other,self.null=other,null
     def __call__(self,value):
@@ -309,7 +309,7 @@ class IS_NULL_OR:
             return self.other.formatter(value)
         return value
 
-class CLEANUP:
+class CLEANUP(object):
     """
     example:
 
@@ -324,7 +324,7 @@ class CLEANUP:
             if ord(c) in [10,13]+range(32,127): v+=c
         return (v,None)
 
-class CRYPT:
+class CRYPT(object):
     """
     example:
 

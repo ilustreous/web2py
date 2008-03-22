@@ -21,7 +21,7 @@ regex_translate=re.compile(PY_STRING_LITERAL_RE,re.DOTALL)
 # patter for a valid accept_language
 regex_language=re.compile('[a-zA-Z]{2}(\-[a-zA-Z]{2})?(\-[a-zA-Z]+)?')
 
-class lazyT:
+class lazyT(object):
     """ 
     never to be called explicitly, returned by translator.__call__ 
     """
@@ -37,7 +37,7 @@ class lazyT:
     def xml(self):
         return cgi.escape(str(self))
 
-class translator:
+class translator(object):
     """ 
     this class is intantiated once in gluon/main.py as the T object 
 
@@ -92,7 +92,7 @@ def findT(application_path,language='en-us'):
         for item in items:
             msg=eval(item)
             if msg and not sentences.has_key(msg):
-                sentences[msg]=''
+                sentences[msg]='*** %s' % msg
     keys=sentences.keys()
     keys.sort()
     file=open(os.path.join(path,'languages','%s.py' % language),'w')

@@ -253,10 +253,11 @@ def wsgibase(environ, responder):
             ###################################################                
             SQLDB.close_all_instances(SQLDB.rollback)
             ticket=e.log(request)
+            #print e.traceback
             if session_file: portalocker.unlock(session_file)
             return HTTP(200,error_message_ticket % (ticket,ticket),\
                web2py_error='ticket %s'%ticket).to(responder)
-    except Exception, exception:
+    except BaseException, exception:
         ###################################################
         # on application error, rollback database
         ###################################################        
@@ -270,6 +271,7 @@ def wsgibase(environ, responder):
             print '*'*10,'intenral error traceback','*'*10
             print e.traceback
             print '*'*49
+        #print e.traceback
         if session_file: portalocker.unlock(session_file)
         return HTTP(200,error_message_ticket % (ticket,ticket),
                 web2py_error='ticket %s'%ticket).to(responder)
@@ -306,7 +308,7 @@ def appfactory(wsgiapp=wsgibase,logfilename='httpsever.log',web2py_path=working_
         return ret
     return app_with_logging
 
-class HttpServer:
+class HttpServer(object):
     def __init__(self,ip='127.0.0.1',port=8000,password='',
                  pid_filename='httpserver.pid',
                  log_filename='httpserver.log',
