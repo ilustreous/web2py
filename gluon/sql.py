@@ -357,7 +357,7 @@ class SQLDB(SQLStorage):
         self._execute(query)
         return self._cursor.fetchall()
 
-class SQLALL:
+class SQLALL(object):
     def __init__(self,table): 
         self.table=table
     def __str__(self): 
@@ -573,7 +573,7 @@ class SQLTable(SQLStorage):
                 items=[(colnames[i],line[i]) for i in c]                
                 self.insert(**dict(items))
 
-class SQLXorable:
+class SQLXorable(object):
     def __init__(self,name,type='string',db=None):
         self.name,self.type,self._db=name,type,db
     def __str__(self): 
@@ -590,18 +590,16 @@ class SQLXorable:
     def __gt__(self,value): return SQLQuery(self,'>',value)
     def __ge__(self,value): return SQLQuery(self,'>=',value)
     def like(self,value): return SQLQuery(self,'like',value)
-    def belongs(self,other): 
-        if isinstance(other,str):
-            return SQLQuery(str(self)+' IN (%s)'%other[:-1],None,None)
-        elif hasattr(other,'__iter__'):
-            r=','.join([sql_represent(item,self.type,self._db) for item in other])
-            return SQLQuery(str(self)+' IN (%s)'%r,None,None)
-        else: raise SyntaxError, 'do not know what to do'
+    def belongs(self,value): return SQLQuery(self,'belongs',value)
     # for use in both SQLQuery and sortby
-    def __add__(self,other): return SQLXorable(str(self)+'+'+str(other),'float',None)
-    def __sub__(self,other): return SQLXorable(str(self)+'-'+str(other),'float',None)
-    def __mul__(self,other): return SQLXorable(str(self)+'*'+str(other),'float',None)
-    def __div__(self,other): return SQLXorable(str(self)+'/'+str(other),'float',None)
+    def __add__(self,other): 
+        return SQLXorable('%s+%s'%(self,other),'float',None)
+    def __sub__(self,other):
+        return SQLXorable('%s-%s'%(self,other),'float',None)
+    def __mul__(self,other):
+        return SQLXorable('%s*%s'%(self,other),'float',None)
+    def __div__(self,other):
+        return SQLXorable('%s/%s'%(self,other),'float',None)
 
 class SQLField(SQLXorable):
     """
@@ -677,7 +675,7 @@ class SQLField(SQLXorable):
         return SQLXorable(s,'integer',self._db)
     def __str__(self): return '%s.%s' % (self._tablename,self.name)
 
-class SQLQuery:
+class SQLQuery(object):
     """
     a query object necessary to define a set.
     t can be stored or can be passed to SQLDB.__call__() to obtain a SQLSet
@@ -687,34 +685,31 @@ class SQLQuery:
     set=db(query)
     records=set.select()
     """
-    def __init__(self,left,op=None,right=None):
-        self.left,self.op,self.right=left,op,right
-    def __and__(self,other): return SQLQuery(self,'&',other)
-    def __or__(self,other): return SQLQuery(self,'|',other)
-    def __invert__(self): return SQLQuery(None,'~',self)
-    def __str__(self):
-        if self.op is None and self.right is None: return self.left
-        if self.op=='~': return 'NOT %s' % str(self.right)
-        if self.right is None:
-            if self.op=='==': 
-                return '%s %s' % (str(self.left),
-                                  self.left._db._translator['is null'])
-            if self.op=='!=':
-                return '%s %s' % (str(self.left),
-                                  self.left._db._translator['is not null'])
-        if type(self.right)==types.InstanceType:
-            lr=(str(self.left),str(self.right))
+    _t={'==':'=','!=':'<>','<':'<','>':'>','<=':'<=','>=':'>=','like':' LIKE ','belongs':' IN '}
+    def __init__(self,left,op=None,right=None):        
+        if op is None and right is None: self.sql=left
+        elif right is None:
+            if op=='==': 
+                self.sql='%s %s' % (left,left._db._translator['is null'])
+            elif op=='!=':
+                self.sql='%s %s' % (left,left._db._translator['is not null'])
+            else: raise SyntaxError, 'do not know what to do'
+        elif op=='belongs':
+            if isinstance(right,str):
+                self.sql='%s%s(%s)'%(left,self._t[op],right[:-1])
+            elif hasattr(right,'__iter__'):
+                r=','.join([sql_represent(i,left.type,left._db) for i in right])
+                self.sql='%s%s(%s)'%(left,self._t[op],r)
+            else: raise SyntaxError, 'do not know what to do'
+        elif right.__class__==SQLField:
+            self.sql='%s%s%s' % (left,self._t[op],right)
         else:
-            lr=(str(self.left),sql_represent(self.right,self.left.type,self.left._db._dbname))
-        if self.op=='&': return '(%s AND %s)' % lr
-        if self.op=='|': return '(%s OR %s)' % lr
-        if self.op=='==': return '%s=%s' % lr
-        if self.op=='!=': return '%s<>%s' % lr
-        if self.op=='<': return '%s<%s' % lr
-        if self.op=='<=': return '%s<=%s' % lr
-        if self.op=='>': return '%s>%s' % lr
-        if self.op=='>=': return '%s>=%s' % lr
-        if self.op=='like': return '%s LIKE %s' % lr
+            right=sql_represent(right,left.type,left._db._dbname)
+            self.sql='%s%s%s' % (left,self._t[op],right)
+    def __and__(self,other): return SQLQuery('(%s AND %s)'%(self,other))
+    def __or__(self,other): return SQLQuery('(%s OR %s)'%(self,other))
+    def __invert__(self): return SQLQuery('(NOT %s)'%self)
+    def __str__(self): return self.sql
 
 regex_tables=re.compile('(?P<table>[a-zA-Z]\w*)\.')
 
@@ -724,7 +719,7 @@ def parse_tablenames(text):
     for item in items: tables[item]=True
     return tables.keys()        
 
-class SQLSet:
+class SQLSet(object):
     """
     sn SQLSet represents a set of records in the database,
     the records are identified by the where=SQLQuery(...) object.
@@ -825,7 +820,7 @@ def update_record(t,s,a):
     s.update(**a)
     for key,value in a.items(): t[str(key)]=value
 
-class SQLRows:
+class SQLRows(object):
     ### this class still needs some work to care for ID/OID
     """
     A wrapper for the retun value of a select. It basically represents a table.
