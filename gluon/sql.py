@@ -207,7 +207,7 @@ class SQLDB(SQLStorage):
     """
     ### this allows gluon to comunite a folder for this thread
     _folders={}   
-    _instances={}
+    _instances={}    
     @staticmethod
     def _set_thread_folder(folder):
         sql_locker.acquire()
@@ -229,6 +229,28 @@ class SQLDB(SQLStorage):
                 action(instance)
                 instance._connection.close()        
             del SQLDB._instances[pid]
+        sql_locker.release()
+        return
+    @staticmethod
+    def distributed_transaction_commit():
+        id=thread.get_ident()
+        sql_locker.acquire()
+        has_instances=SQLDB._instances.has_key(id) 
+        if has_instances: instances=SQLDB._instances[id]
+        sql_locker.release()
+        if not has_instances: return
+        for db in instances:
+            if not db._dbname=='postgres':
+                raise SyntaxError, "only supported by postgresql"
+        key=socket.gethostname()+str(id)
+        try:
+            for db in instances: db.executesql("PREPARE TRANSACTION '%s';"%key)
+        except:
+            for db in instances: db.executesql("ROLLBACK PREPARED '%s';"%key)
+        else:
+            for db in instances: db.executesql("COMMIT PREPARED '%s';" %key)
+        sql_locker.acquire()
+        del SQLDB._instances[id]    
         sql_locker.release()
         return
     def __init__(self,uri='sqlite://dummy.db'):
@@ -341,7 +363,7 @@ class SQLDB(SQLStorage):
         self._execute(query)
         return self._cursor.fetchall()
 
-class SQLALL(object):
+class SQLALL:
     def __init__(self,table): 
         self.table=table
     def __str__(self): 
@@ -557,7 +579,7 @@ class SQLTable(SQLStorage):
                 items=[(colnames[i],line[i]) for i in c]                
                 self.insert(**dict(items))
 
-class SQLXorable(object):
+class SQLXorable:
     def __init__(self,name,type='string',db=None):
         self.name,self.type,self._db=name,type,db
     def __str__(self): 
@@ -661,7 +683,7 @@ class SQLField(SQLXorable):
         return SQLXorable(s,'integer',self._db)
     def __str__(self): return '%s.%s' % (self._tablename,self.name)
 
-class SQLQuery(object):
+class SQLQuery:
     """
     a query object necessary to define a set.
     t can be stored or can be passed to SQLDB.__call__() to obtain a SQLSet
@@ -708,7 +730,7 @@ def parse_tablenames(text):
     for item in items: tables[item]=True
     return tables.keys()        
 
-class SQLSet(object):
+class SQLSet:
     """
     sn SQLSet represents a set of records in the database,
     the records are identified by the where=SQLQuery(...) object.
@@ -809,7 +831,7 @@ def update_record(t,s,a):
     s.update(**a)
     for key,value in a.items(): t[str(key)]=value
 
-class SQLRows(object):
+class SQLRows:
     ### this class still needs some work to care for ID/OID
     """
     A wrapper for the retun value of a select. It basically represents a table.

@@ -21,7 +21,7 @@
 
 <p><b>In web2py</b><br/>
 {{=CODE("""def contacts():
-    return HTML(BODY(H1('Records'),db().select(db.contacts.ALL))).xml()""",language='python',link='/examples/global/vars/')}}<br/>
+    return HTML(BODY(H1('Records'),db().select(db.contacts.ALL)))""",language='python',link='/examples/global/vars/')}}<br/>
 HTML, BODY, H1, etc. are helpers that build HTML tags. SQLTABLE is a special helper that can render as HTML TABLE any set of records.
 </p>
 
