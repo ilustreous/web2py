@@ -247,12 +247,14 @@ class SQLDB(SQLStorage):
             for db in instances: db.executesql("PREPARE TRANSACTION '%s';"%key)
         except:
             for db in instances: db.executesql("ROLLBACK PREPARED '%s';"%key)
+            success=False
         else:
             for db in instances: db.executesql("COMMIT PREPARED '%s';" %key)
+            success=True
         sql_locker.acquire()
         del SQLDB._instances[id]    
         sql_locker.release()
-        return
+        return success
     def __init__(self,uri='sqlite://dummy.db'):
         self._uri=uri
         self['_lastsql']=''
