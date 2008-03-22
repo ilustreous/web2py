@@ -232,13 +232,9 @@ class SQLDB(SQLStorage):
         sql_locker.release()
         return
     @staticmethod
-    def distributed_transaction_commit():
+    def distributed_transaction_commit(*instances):
         id=thread.get_ident()
-        sql_locker.acquire()
-        has_instances=SQLDB._instances.has_key(id) 
-        if has_instances: instances=SQLDB._instances[id]
-        sql_locker.release()
-        if not has_instances: return
+        if not instances: return
         for db in instances:
             if not db._dbname=='postgres':
                 raise SyntaxError, "only supported by postgresql"
@@ -247,14 +243,10 @@ class SQLDB(SQLStorage):
             for db in instances: db.executesql("PREPARE TRANSACTION '%s';"%key)
         except:
             for db in instances: db.executesql("ROLLBACK PREPARED '%s';"%key)
-            success=False
+            raise Exception, 'Failure to commit distributed transaction'
         else:
             for db in instances: db.executesql("COMMIT PREPARED '%s';" %key)
-            success=True
-        sql_locker.acquire()
-        del SQLDB._instances[id]    
-        sql_locker.release()
-        return success
+        return
     def __init__(self,uri='sqlite://dummy.db'):
         self._uri=uri
         self['_lastsql']=''
