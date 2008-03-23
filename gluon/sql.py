@@ -6,7 +6,7 @@ License: GPL v2
 
 __all__=['SQLDB','SQLField'] 
 
-import re, sys, os, types, cPickle, datetime, thread, cStringIO, csv, copy
+import re, sys, os, types, cPickle, datetime, thread, cStringIO, csv, copy, socket
 
 try:
     import hashlib
@@ -240,12 +240,12 @@ class SQLDB(SQLStorage):
                 raise SyntaxError, "only supported by postgresql"
         key=socket.gethostname()+str(id)
         try:
-            for db in instances: db.executesql("PREPARE TRANSACTION '%s';"%key)
+            for db in instances: db._execute("PREPARE TRANSACTION '%s';"%key)
         except:
-            for db in instances: db.executesql("ROLLBACK PREPARED '%s';"%key)
+            for db in instances: db._execute("ROLLBACK PREPARED '%s';"%key)
             raise Exception, 'Failure to commit distributed transaction'
         else:
-            for db in instances: db.executesql("COMMIT PREPARED '%s';" %key)
+            for db in instances: db._execute("COMMIT PREPARED '%s';" %key)
         return
     def __init__(self,uri='sqlite://dummy.db'):
         self._uri=uri
@@ -760,15 +760,15 @@ class SQLSet(object):
         else: sql_w=''
         sql_o=''
         if attributes.has_key('groupby'): 
-            sql_o+=' GROUP BY '+str(attributes['groupby'])
+            sql_o+=' GROUP BY %s'% attributes['groupby']
         if attributes.has_key('orderby'): 
-            sql_o+=' ORDER BY '+str(attributes['orderby'])
+            sql_o+=' ORDER BY %s'% attributes['orderby']
         if attributes.has_key('limitby'): 
             ### oracle does not support limitby
             lmin,lmax=attributes['limitby']
             if self._db._dbname=='oracle':
                 if not attributes.has_key('orderby'): 
-                   sql_o+=' ORDER BY '+', '.join([t+'.id' for t in tablenames])
+                   sql_o+=' ORDER BY %s'%', '.join([t+'.id' for t in tablenames])
                 return "SELECT %s FROM (SELECT _tmp.*, ROWNUM _row FROM (SELECT %s FROM %s%s%s) _tmp WHERE ROWNUM<%i ) WHERE _row>=%i;" %(sql_f,sql_f,sql_t,sql_w,sql_o,lmax,lmin)
             sql_o+=' LIMIT %i OFFSET %i' % (lmax-lmin,lmin)
         return 'SELECT %s FROM %s%s%s;'%(sql_f,sql_t,sql_w,sql_o) 
@@ -1011,7 +1011,9 @@ def test_all():
     >>> people=db().select(db.person.name,orderby=db.person.name)
     >>> order=db.person.name|~db.person.birth
     >>> people=db().select(db.person.name,orderby=order)
-    >>> people=db().select(db.person.name,orderby=order,groupby=db.person.name)
+    
+    >>> people=db().select(db.person.name,orderby=db.person.name,groupby=db.person.name)
+    
     >>> people=db().select(db.person.name,orderby=order,limitby=(0,100))
 
     Example of one 2 many relation
@@ -1076,6 +1078,8 @@ def test_all():
     'author.name,paper.title\\r\\nMassimo,QCD\\r\\n'
 
     Delete all leftover tables
+
+    # >>> SQLDB.distributed_transaction_commit(db)
 
     >>> db.authorship.drop()
     >>> db.author.drop()
