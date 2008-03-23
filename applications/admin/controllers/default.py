@@ -17,8 +17,11 @@ import time,os,sys,re,urllib,socket
 
 http_host = request.env.http_host.split(':')[0]
 remote_addr = request.env.remote_addr
-if remote_addr not in (http_host, socket.gethostbyname(remote_addr)):
-    raise HTTP(400)
+if remote_addr not in (http_host, socket.gethostname()):
+    raise HTTP(200,'Admin is disabled because unsecure channel')
+if request.env.http_x_forwarded_for or \
+   request.env.wsgi_url_scheme in ['https','HTTPS']:
+    response.cookies[response.session_id_name]['secure']=True
 
 ############################################################
 ### generate menu
@@ -47,8 +50,8 @@ try:
     port=int(request.env.server_port)
     restricted(open(apath('../parameters_%i.py'%port),'r').read(),_config)
     if not _config.has_key('password') or not _config['password']:
-        raise HTTP(400)
-except: raise HTTP(400)
+        raise HTTP(200,'admin disabled because no admin password')
+except: raise HTTP(200,'admin disbaled because unable to access password file')
 
 ############################################################
 ### session expiration
