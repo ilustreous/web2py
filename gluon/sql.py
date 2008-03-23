@@ -233,19 +233,24 @@ class SQLDB(SQLStorage):
         return
     @staticmethod
     def distributed_transaction_commit(*instances):
-        id=thread.get_ident()
         if not instances: return
-        for db in instances:
+        instances=enumerate(instances)
+        keys=[]
+        thread_key='%s.%i' % (socket.gethostname(),thread.get_ident())
+        for i,db in instances:
+            keys.append('%s.%i'%(thread_key,i))
             if not db._dbname=='postgres':
                 raise SyntaxError, "only supported by postgresql"
-        key=socket.gethostname()+str(id)
         try:
-            for db in instances: db._execute("PREPARE TRANSACTION '%s';"%key)
+            for i,db in instances:
+                db._execute("PREPARE TRANSACTION '%s';" % keys[i])
         except:
-            for db in instances: db._execute("ROLLBACK PREPARED '%s';"%key)
-            raise Exception, 'Failure to commit distributed transaction'
+            for i,db in instances:
+                db._execute("ROLLBACK PREPARED '%s';" % keys[i])
+            raise Exception, 'failure to commit distributed transaction'
         else:
-            for db in instances: db._execute("COMMIT PREPARED '%s';" %key)
+            for i,db in instances:
+                db._execute("COMMIT PREPARED '%s';"  % keys[i])
         return
     def __init__(self,uri='sqlite://dummy.db'):
         self._uri=uri
