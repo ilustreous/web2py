@@ -4,7 +4,7 @@ Developed by Massimo Di Pierro <mdipierro@cs.depaul.edu>
 License: GPL v2
 """
 
-import types, urllib, random, re, sys, os, shutil, cStringIO
+import urllib, random, re, sys, os, shutil, cStringIO
 from html import FORM,INPUT,TEXTAREA,SELECT,OPTION,TABLE,TR,TD,TH,A,B,DIV,LABEL,ON
 from validators import IS_IN_SET, IS_NOT_IN_DB, CRYPT
 from sql import SQLStorage
@@ -161,7 +161,7 @@ class SQLFORM(FORM):
                     continue # do not update if password was not changed
                 elif field.type=='upload':
                     f=vars[fieldname]
-                    if type(f)!=types.StringType:
+                    if not isinstance(f,(str,unicode)):
                         try: e=re.compile('\.\w+$').findall(f.filename.strip())[0]
                         except IndexError: e='.txt'
                         source_file=f.file

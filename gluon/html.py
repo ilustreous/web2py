@@ -340,14 +340,13 @@ class INPUT(DIV):
         elif self.attributes.has_key('value') and \
            self.attributes['value']!=None: value=self.attributes['value']
         else: value=''
-        if type(value)==types.StringType: self.attributes['value']=value
+        if isinstance(value,(str,unicode)): self.attributes['value']=value
         self.postprocessing()
         if isinstance(value,cgi.FieldStorage): self.attributes['value']=value
         else: self.attributes['value']=str(value)
         if self.attributes.has_key('requires'):
             requires=self.attributes['requires']
-            if type(requires)!=types.ListType and \
-               type(requires)!=types.TupleType: requires=[requires]
+            if not isinstance(requires,(list,tupe)): requires=[requires]
             for validator in requires:                
                 value,errors=validator(value)
                 self.vars[name]=value
