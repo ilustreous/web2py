@@ -346,7 +346,7 @@ class INPUT(DIV):
         else: self.attributes['value']=str(value)
         if self.attributes.has_key('requires'):
             requires=self.attributes['requires']
-            if not isinstance(requires,(list,tupe)): requires=[requires]
+            if not isinstance(requires,(list,tuple)): requires=[requires]
             for validator in requires:                
                 value,errors=validator(value)
                 self.vars[name]=value
