@@ -93,7 +93,7 @@ def site():
     """ admin controller function """
     if request.vars.filename and not request.vars.has_key('file'):
         try:
-            appname=cleanpath(request.vars.filename)
+            appname=cleanpath(request.vars.filename).replace('.','_')
             path=apath(appname)
             os.mkdir(path)
             untar('welcome.tar',path)
@@ -104,7 +104,7 @@ def site():
         response.flash='you must specify a name for the uploaded application'
     elif request.vars.filename and request.vars.has_key('file'):
         try:
-            appname=cleanpath(request.vars.filename)
+            appname=cleanpath(request.vars.filename).replace('.','_')
             tarname=apath('../deposit/%s.tar' % appname)
             open(tarname,'wb').write(request.vars.file.file.read())
             path=apath(appname)
