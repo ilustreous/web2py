@@ -196,3 +196,7 @@ IS_NULL_OR now works will all fields
 admin creates paths to static files
 wsgiserver options are passed to HttpServer
 faking limitby for oracle to make appadmin work
+all objects inherit from object
+fixed bug in app names with .
+fixed bug in created RestrictedError object on windows
+shell is now in gluon and accessible via web2py.py
