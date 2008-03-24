@@ -23,7 +23,8 @@ class RestrictedError:
         self.layer=layer
         self.code=code
         self.output=output
-        self.traceback=traceback.format_exc()
+        if layer: self.traceback=traceback.format_exc()
+        else: self.traceback='(no error)'
         self.environment=environment
 
     def log(self,request):
