@@ -35,6 +35,7 @@ print ProgramVersion
 from gluon.main import HttpServer, save_password
 from gluon.fileutils import tar, untar
 from optparse import *
+from gluon.shell import run
 import time, webbrowser, thread, re, cStringIO, os, stat, socket, signal, math
 
 def try_start_browser(url):
@@ -259,6 +260,17 @@ def console():
     parser.add_option('-f','--folder',default=os.getcwd(),
                   dest='folder',
                   help='the folder where to run web2py')
+    parser.add_option('-S', '--shell',
+                  dest='shell', metavar='APPNAME',
+                  help='run web2py in interactive shell or IPython(if installed) with specified appname')
+    parser.add_option('-P', '--plain', action='store_true', default=False,
+                  dest='plain', 
+                  help='only use plain python shell, should be used with --shell option')
+    parser.add_option('-M', '--import_models', action='store_true', default=False,
+                  dest='import_models', 
+                  help='auto import model files, default is False, should be used with --shell option')
+    parser.add_option('-R', '--run', dest='run', metavar='PYTHON_FILE', default='',
+                  help='run PYTHON_FILE in web2py environment, should be used with --shell option')
     (options, args) = parser.parse_args()
     if not os.access('applications', os.F_OK): os.mkdir('applications')
     if not os.access('deposit', os.F_OK): os.mkdir('deposit')
@@ -281,6 +293,10 @@ def console():
 
 def start():
     options=console()
+    if options.shell:
+        run(options.shell, plain=options.plain, import_models=options.import_models,
+            startfile=options.run)
+        return
     root=None
     if options.password=='<ask>' and havetk:
        try: root=Tkinter.Tk()
