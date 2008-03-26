@@ -8,7 +8,7 @@
 import os, sys
 from optparse import OptionParser
 
-def env(app, dir='', import_models=False):
+def env(app, import_models=False, dir=''):
     import gluon.html as html
     import gluon.validators as validators
     from gluon.http import HTTP, redirect
