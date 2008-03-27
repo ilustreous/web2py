@@ -1,5 +1,20 @@
 {{extend 'layout.html'}}
 {{import os}}
+<style><!--
+.post {
+  font-size: 11pt;
+  color: #444444;
+  padding: 10px;
+  //height: 31px;
+  background: #EAF0DE url(/{{=request.application}}/static/turn.jpg) no-repeat right bottom;
+}
+.post2 {
+  font-size: 11pt;
+  color: #444444;
+  padding: 10px;
+  background: #EAF0DE url(/{{=request.application}}/static/turn.jpg) no-repeat right bottom;
+}
+//--></style>
 
 <!-- Start Slashdot It link -->
 
@@ -56,77 +71,85 @@
 
 <h1>web2py<sup style="font-size:0.5em;">TM</sup> Enterprise Web Framework</h1>
 
-<table width="100%" border="0" cellspacing="0" cellpaddning="0">
+<table width="100%" border="0" cellspacing="20" cellpaddning="0">
 <tr><td align="left" valign="top">
-<span style="color: red">Formerly known as "Gluon" and always backward compatible!<br/>
-Current {{=open('VERSION','r').read().strip()}}. Please upgrade.<br/><br/></span>
+<div class="post2">
 <h3>
-web2py is an open source full-stack Enterprise Framework
+Free and open source full-stack enterprise framework
 for agile development of secure database-driven web-based applications,
-written and programmable in Python. Created by <a href="http://www.cti.depaul.edu/aboutcti/pages/facultyinfo.aspx?id=343">Massimo Di Pierro</a>. &copy; 2007-2008.
-</h3></td>
-<td align="center" valign="middle">
-<img src="http://mac.softpedia.com/images/spyward/softpedia_clean_award_f.gif" align="left"/>
+written and programmable in <a href="http://www.python.org">Python</a>.</h3>
+<br/>
+Created by <a href="http://www.cti.depaul.edu/aboutcti/pages/facultyinfo.aspx?id=343">Massimo Di Pierro</a>. &copy; 2007-2008.
+<br/>
+Always backward compatible. Currently {{=open('VERSION','r').read().strip()}}. Please <a href="/{{=request.application}}/default/download">upgrade</a>.
+</div>
 
-</td></tr></table>
 <br/>
 
-<table width="100%" border="0" cellspacing="0" cellpaddning="0">
-<tr><td align="left" valign="top">
-<h2>Learning opportunitites</h2>
+<div class="post2">
+Our users say: <i>"Easy as pie", "Serious performance", "Very intuitive", "Great documentation", "The best web framework ever"</i>
+</div>
 <br/>
+
+<div class="post2">
+
+Start by reading our <a href="http://mdp.cti.depaul.edu/examples/static/cookbook.pdf">Cookbook tutorial</a> then proceed to our <a href="http://mdp.cti.depaul.edu/examples/static/compiled_docs_beta.pdf">draft manual</a>
+
+<br/>
+
+Further readings: 
+<a href="/{{=request.application}}/default/examples">Lots of examples</a> | 
+<a href="/{{=request.application}}/default/api">Complete API</a> |
+<a href="/{{=request.application}}/default/orm">ORM examples</a> |
+<a href="/{{=request.application}}/static/epydoc/index.html">epydocs</a>
+<br/>
+For starting with model design try <a href="https://mdp.cti.depaul.edu/sqldesigner/default/sqldesigner">the interactive model builder</a>
+<br/>
+If you need more you can <a href="http://www.cti.depaul.edu/programs/courses.asp?courseid=438&subject=CSC&section=courses">take an online course</a>.
+
+<br/>
+
+It is free to <a href="http://groups.google.com/group/web2py">join us for questions and suggestions</a> or ask our <a href="http://mdp.cti.depaul.edu/AlterEgo">AlterEgo</a>
+
+<br/>
+Need to setup a Wiki? A Blog? An online store? You can get lots of free ready to use apps <a href="http://mdp.cti.depaul.edu/appliances">here</a>
+</div>
+
+<br/>
+
+
+<div class="post2">
 <ul>
-<li><a href="http://mdp.cti.depaul.edu/examples/default/download">Download web2py</a></li>
-<li><a href="http://mdp.cti.depaul.edu/examples/static/cookbook.pdf">Cookbook tutorial</a> (<a href="http://mdp.cti.depaul.edu/appliances/default/download/app.source.130193843596.tar">cookbook app</a>)</li>
-<li><a href="/examples/default/examples">Lots of examples</a></li>
-<li><a href="http://mdp.cti.depaul.edu/examples/static/compiled_docs_beta.pdf">Collection of Docs in PDF format (beta)</a></li>
-<li><a href="/examples/default/api">Interactive documentation</a>
-and <a href="/examples/static/epydoc/index.html">epydocs</a></li>
-<li><a href="http://mdp.cti.depaul.edu/appliances">Appliances repository (lots of free apps)</a></li>
-<li><a href="http://www.cti.depaul.edu/programs/courses.asp?courseid=438&subject=CSC&section=courses">Online course</a></li>
-<li><a href="http://code.google.com/p/web2py">Browse the latest code</a></li>
-<li><a href="http://groups.google.com/group/web2py">Join us for questions</a></li>
-<li><a href="https://mdp.cti.depaul.edu/sqldesigner/default/sqldesigner">New! Try the interactive model builder</a></li>
-<li><a href="http://mdp.cti.depaul.edu/examples/static/web2py_comics.pdf">New! You like comics? read this.</a></li>
+<li>No installation, no configuration, no dependencies. All in one package. You can run it off a USB drive</li>
+<li>Runs on Windows, OSX, Unix/Linux, and Windows CE phones.</li>
+<li>Allows development, debugging, testing, deployment, maintenance and administration, including database administration, via the provided web interface.</li>
+<li>Enforces good Software Engineer practices, like the Model-View-Controller design, validation and self-submission of forms.</li>
+<li>Strong on security. Prevents the most common types of vulnerabilities: Cross Site Scripting, Injection Flaws, and Malicious File Execution.</li>
+<li>Talks HTML, XML, RSS, ATOM, AJAX, JSON, RTF, CSV, WIKI, XML-RPC, REST, Flash, etc.</li>
+<li>Dynamically and transparently generates SQL queries for you for SQLite, MySQL, PostgreSQL and Oracle. Even creates and alters tables for you when required. Performs automatic transactions.</li>
+<li>Allow you to create apps easily, byte-code compile them, and distribute them in open or closed source under any license you like.</li>
+<li>Faster then the competition, designed for small as well as large projects, includes the ability to upload/download/stream large files, internationalization support, distributed transactions, ...</li>
 </ul>
+</div>
 
-</td><td align="center" valign="middle">
-<object type="application/x-shockwave-flash" width="400" height="250" data="http://www.vimeo.com/moogaloop.swf?clip_id=428474&amp;server=www.vimeo.com&amp;fullscreen=1&amp;show_title=1&amp;show_byline=1&amp;show_portrait=0&amp;color="><param name="quality" value="best" /><param name="allowfullscreen" value="true" /><param name="scale" value="showAll" /><param name="movie" value="http://www.vimeo.com/moogaloop.swf?clip_id=428474&amp;server=www.vimeo.com&amp;fullscreen=1&amp;show_title=1&amp;show_byline=1&amp;show_portrait=0&amp;color=" /></object>
-</td></tr></table>
-<br/><br/>
+<br/>
 
-<h2>Why web2py?</h2><br/>
-
-<ul>
-<li>No installation, No configuration, No console scripting, No dependencies. It even runs off a USB drive.</li>
-<li>Everything is done through the provided web interface (including development, debugging, testing, maintenantce, deployment, internationalization, and database administration)</li>
-<li>It is portable. Runs on Windows, Mac, Linux, Unix and some <a href="http://mdp.cti.depaul.edu/examples/static/gluonce.jpg">cellphones</a>.</li>
-<li>No limitation on licensing of the applications you develop. web2py even allows you to bytecode compile them and distribute in closed-sorce format (as long they do not contain web2py source code, read the <a href="/{{=request.application}}/default/license">license</a>)
-<li>web2py prevents the most common types of vulnerabilities: Cross Site Scripting, Injection Flaws, and Malicious File Execution.</li>
-<li>web2py includes libraries to handle JSON, AJAX, RSS, ATOM, CSV, RTF, XML, XML-RPC, REST, <a href="https://mdp.cti.depaul.edu/cas">CAS</a>, and WIKI markup and can talk to SQLite, MySQL, PostgreSQL and Oracle databases.</li>
-<li>web2py can handle upload and download of very large files.</li>
-<li>web2py also works with third party python libraries. For example, it can talk to Falsh via PyAMF. <a href="/{{=request.application}}/default/pyamf_howto">Here</a> is a tutorial.</li>
-<li>web2py guides the developer to follow well established software engineering patterns such as the Model-View-Controller and testing.</li>
-<li>web2py is really easy to use. To develop with web2py you only need to know <a href="http://www.python.org">Python</a> (<a href="http://www.poromenos.org/tutorials/python">the easiest of programing languages</a>) and HTML ({{=A('compare web2py with PHP',_href=URL(r=request,f='web2py_vs_php'))}}).</li>
-<li>web2py includes a web interafce to doctests (the python testing library) which tests functions in your application and generates real-time reports.</li>
-<li>web2py has an <a href="http://mdp.cti.depaul.edu/appliances/">appliances repository</a> where new free and ready to use apps are added daily.</li>
-</ul>
-
+<div class="post2">
 <h2>A taste of web2py</h2><br/>
 
-Consider the following complete application which consists a model (which describes the data representation): <tt>db.py</tt><br/><br/>
+Consider the following complete application which consists a <b>model</b> (which describes the data representation): <tt>db.py</tt><br/><br/>
 {{=CODE("""
 db=SQLDB('sqlite://images.db')
 db.define_table('image',SQLField('file','upload'))
 """.strip(),language='web2py',link='/examples/global/vars/')}}
-<br/>a controller (which describes the application logic and workflow): <tt>images_examples.py</tt><br/><br/>
+<br/>a <b>controller</b> (which describes the application logic and workflow): <tt>images_examples.py</tt><br/><br/>
 {{=CODE("""
 def index():
     form=SQLFORM(db.image)
     if form.accepts(request.vars,session): response.flash='image uploaded'
     return dict(form=form)
 """.strip(),language='web2py',link='/examples/global/vars/')}}
-<br/>and a view (which describes the data presenation): <tt>images_examples/index.html</tt>:<br/><br/>
+<br/>and a <b>view</b> (which describes the data presentation): <tt>images_examples/index.html</tt>:<br/><br/>
 {{=CODE(open('applications/examples/views/images_examples/index.html','r').read(),language='html')}}
 <br/>What does it do?
 <ul>
@@ -136,8 +159,30 @@ def index():
 <li>Creates a web page called index with upload form for db.image. Try it <a href="/{{=request.application}}/images_examples/index">here</a></li>
 <li>On upload the file is renamed in a secure way, saved, and the name of the file is stored in a new field db.image record.</li>
 </ul>
+</div>
 
-<h2>Our visitors</h2>
-<center>
-<a href="http://www3.clustrmaps.com/counter/maps.php?url=http://mdp.cti.depaul.edu" id="clustrMapsLink"><img src="http://www3.clustrmaps.com/counter/index2.php?url=http://mdp.cti.depaul.edu" style="border:0px;" alt="Locations of visitors to this page" title="Locations of visitors to this page" id="clustrMapsImg" onError="this.onError=null; this.src='http://www2.clustrmaps.com/images/clustrmaps-back-soon.jpg'; document.getElementById('clustrMapsLink').href='http://www2.clustrmaps.com'" /></a>
-</center>
+</td>
+<td align="center" valign="middle">
+
+<div class="post"><center>
+<object type="application/x-shockwave-flash" width="200" height="125" data="http://www.vimeo.com/moogaloop.swf?clip_id=428474&amp;server=www.vimeo.com&amp;fullscreen=1&amp;show_title=1&amp;show_byline=1&amp;show_portrait=0&amp;color="><param name="quality" value="best" /><param name="allowfullscreen" value="true" /><param name="scale" value="showAll" /><param name="movie" value="http://www.vimeo.com/moogaloop.swf?clip_id=428474&amp;server=www.vimeo.com&amp;fullscreen=1&amp;show_title=1&amp;show_byline=1&amp;show_portrait=0&amp;color=" /></object>
+<br/><a href="http://www.youtube.com/watch?v=VBjja6N6IYk">short video</a> | <a href="http://www.vimeo.com/428474">long video</a>
+</center></div>
+<br/>
+<div class="post"><center>
+<img src="http://mac.softpedia.com/images/spyward/softpedia_clean_award_f.gif" align="center"/><br/>
+<a href="http://mdp.cti.depaul.edu/examples/default/download">&gt;&gt;&gt; download &lt;&lt;&lt;</a>
+</center></div>
+<br/>
+<div class="post"><center>
+<a href="http://mdp.ci.depaul.edu/examples/static/web2py_comics.pdf"><img src="/{{=request.application}}/static/web2py_comics.jpg"/></a><br/>
+<a href="http://mdp.ci.depaul.edu/examples/static/web2py_comics.pdf">comics and screenshots</a>
+</center></div>
+<br/>
+
+<div class="post"><center>
+<a href="http://www3.clustrmaps.com/counter/maps.php?url=http://mdp.cti.depaul.edu" id="clustrMapsLink"><img src="http://www3.clustrmaps.com/counter/index2.php?url=http://mdp.cti.depaul.edu" style="border:0px;" alt="Locations of visitors to this page" title="Locations of visitors to this page" id="clustrMapsImg" onError="this.onError=null; this.src='http://www2.clustrmaps.com/images/clustrmaps-back-soon.jpg'; document.getElementById('clustrMapsLink').href='http://www2.clustrmaps.com'" /><br/>
+Visitors since Feb 15, 2008</a>
+</center></div>
+
+</td></tr></table>
