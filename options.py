@@ -1,0 +1,14 @@
+import socket, os
+ip = '127.0.0.1'
+port = 8000
+password = 'admin'
+pid_filename = 'httpserver.pid'
+log_filename = 'httpserver.log'
+ssl_certificate = ''
+ssl_private_key = ''
+numthreads = 10
+server_name = socket.gethostname()
+request_queue_size = 5
+timeout = 10
+shutdown_timeout = 5
+path = os.getcwd()

@@ -36,6 +36,10 @@ from gluon.main import HttpServer, save_password
 from gluon.fileutils import tar, untar
 from optparse import *
 from gluon.shell import run
+try:
+    from gluon.winservice import web2py_windows_service_handler
+except: pass
+
 import time, webbrowser, thread, re, cStringIO, os, stat, socket, signal, math
 
 def try_start_browser(url):
@@ -271,6 +275,8 @@ def console():
                   help='auto import model files, default is False, should be used with --shell option')
     parser.add_option('-R', '--run', dest='run', metavar='PYTHON_FILE', default='',
                   help='run PYTHON_FILE in web2py environment, should be used with --shell option')
+    parser.add_option('-W', '--winservice', action='store_true', dest='winservice', default=False,
+                  help='-W install|start|stop as windows service')
     (options, args) = parser.parse_args()
     if not os.access('applications', os.F_OK): os.mkdir('applications')
     if not os.access('deposit', os.F_OK): os.mkdir('deposit')
@@ -293,9 +299,13 @@ def console():
 
 def start():
     options=console()
+    if options.winservice:
+        if os.name=='nt': web2py_windows_service_handler()
+        else: print 'Error: windows services not supported on this platform'
+        return
     if options.shell:
-        run(options.shell, plain=options.plain, import_models=options.import_models,
-            startfile=options.run)
+        run(options.shell, plain=options.plain,
+            import_models=options.import_models, startfile=options.run)
         return
     root=None
     if options.password=='<ask>' and havetk:

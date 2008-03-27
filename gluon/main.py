@@ -257,7 +257,7 @@ def wsgibase(environ, responder):
             if session_file: portalocker.unlock(session_file)
             return HTTP(200,error_message_ticket % (ticket,ticket),\
                web2py_error='ticket %s'%ticket).to(responder)
-    except BaseException, exception:
+    except Exception, exception:
         ###################################################
         # on application error, rollback database
         ###################################################        

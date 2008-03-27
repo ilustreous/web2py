@@ -60,6 +60,6 @@ def restricted(code,environment={},layer='Unkown'):
         if type(code)==types.CodeType: ccode=code
         else: ccode=compile(code,layer,'exec')             
         exec ccode in environment
-    except BaseException, exception:
+    except Exception, exception:
         raise RestrictedError(layer,code,'',environment)
 
