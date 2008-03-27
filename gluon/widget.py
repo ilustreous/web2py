@@ -182,7 +182,7 @@ class web2pyDialog(object):
                 shutdown_timeout=options.shutdown_timeout,
                 path=options.folder)
             thread.start_new_thread(self.server.start,())            
-        except BaseException, e:
+        except Exception, e:
             self.button_start.configure(state='normal')
             return self.error(str(e))
         self.button_stop.configure(state='normal')
@@ -275,8 +275,10 @@ def console():
                   help='auto import model files, default is False, should be used with --shell option')
     parser.add_option('-R', '--run', dest='run', metavar='PYTHON_FILE', default='',
                   help='run PYTHON_FILE in web2py environment, should be used with --shell option')
-    parser.add_option('-W', '--winservice', action='store_true', dest='winservice', default=False,
+    parser.add_option('-W', '--winservice', dest='winservice', default='',
                   help='-W install|start|stop as windows service')
+    parser.add_option('-L', '--config', dest='config', default='',
+                  help='Config file')
     (options, args) = parser.parse_args()
     if not os.access('applications', os.F_OK): os.mkdir('applications')
     if not os.access('deposit', os.F_OK): os.mkdir('deposit')
@@ -295,18 +297,31 @@ def console():
         print 'default applications are now installed'    
     else:
         print 'default applications appear to be installed already'
-    return options
+    return options, args
 
 def start():
-    options=console()
+    ### get command line arguments
+    options,args=console()
+    ### if -W install/start/stop web2py as service
     if options.winservice:
-        if os.name=='nt': web2py_windows_service_handler()
-        else: print 'Error: windows services not supported on this platform'
+        if os.name=='nt': 
+            web2py_windows_service_handler(['', options.winservice], options.config)
+        else: 
+            print 'Error: windows services not supported on this platform'
+            sys.exit(1)
         return
+    ### if -S start interactive shell
     if options.shell:
         run(options.shell, plain=options.plain,
             import_models=options.import_models, startfile=options.run)
         return
+    ### if -L load options from options.config file
+    try:
+        options = __import__(options.config, [], [], '')
+    except Exception:
+        print "Cannot import config file [%s]" % options.config
+        sys.exit(1)
+    ### if no passwors provided and havetk start Tk interface
     root=None
     if options.password=='<ask>' and havetk:
        try: root=Tkinter.Tk()
@@ -319,10 +334,12 @@ def start():
        try: root.mainloop()
        except: master.quit()
        sys.exit()
+    ### if no tk and no password, ask for a password
     if not root and options.password=='<ask>':
        options.password=raw_input('choose a password:')
     if not options.password: 
-       print 'no password, no admin interface'
+       print 'no password, no admin interface'     
+    ### start server
     ip,port=options.ip,int(options.port)
     print 'please visit:'
     print '\thttp://%s:%s/welcome' % (ip,port)
