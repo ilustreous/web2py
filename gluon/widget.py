@@ -316,11 +316,12 @@ def start():
             import_models=options.import_models, startfile=options.run)
         return
     ### if -L load options from options.config file
-    try:
-        options = __import__(options.config, [], [], '')
-    except Exception:
-        print "Cannot import config file [%s]" % options.config
-        sys.exit(1)
+    if options.config:
+        try:
+            options = __import__(options.config, [], [], '')
+        except Exception:
+            print "Cannot import config file [%s]" % options.config
+            sys.exit(1)
     ### if no passwors provided and havetk start Tk interface
     root=None
     if options.password=='<ask>' and havetk:
