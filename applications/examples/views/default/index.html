@@ -150,7 +150,9 @@ def index():
     return dict(form=form)
 """.strip(),language='web2py',link='/examples/global/vars/')}}
 <br/>and a <b>view</b> (which describes the data presentation): <tt>images_examples/index.html</tt>:<br/><br/>
-{{=CODE(open('applications/examples/views/images_examples/index.html','r').read(),language='html')}}
+{{=CODE("{"+"{extend 'layout.html'}"+"""}
+<h1>Upload page</h1>
+{"""+"{=form}"+"}",language='html')}}
 <br/>What does it do?
 <ul>
 <li>Creates the database db in file 'images.db'</li>
