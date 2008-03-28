@@ -100,6 +100,7 @@ for c in controllers: controller_functions+=[c[:-3]+'/%s.html'%x for x in functi
 <div id="static_inner"><i>these files are served without processing, your images go here</i>
 <br/><br/>
 {{if not statics:}}There are no static files{{pass}}
+<ul>
 {{
 path=[]
 for file in statics+['']:
@@ -111,7 +112,7 @@ for file in statics+['']:
         if i>=len(path):
             path.append(file_path[i])
             thispath='static/'+'/'.join(path)
-}}{{='/'.join(file_path[:i]+[''])}}<a onclick="collapse('{{=thispath}}');">{{=file_path[i]}}/</a><br/><div id="{{=thispath}}">{{
+}}<li>{{='/'.join(file_path[:i]+[''])}}<a onclick="collapse('{{=thispath}}');">{{=file_path[i]}}/</a></li><div id="{{=thispath}}">{{
         elif i>=len(file_path) or path[i]!=file_path[i]:
             file_path=file_path[:i]
             for j in range(len(path)-1,i-1,-1):
@@ -122,10 +123,11 @@ for file in statics+['']:
         i=i+1
         pass
     if filename:
-}}{{='/'.join(file_path+[''])}}<a href="/{{=app}}/static/{{=file}}">{{=filename}}</a> [ {{=editfile('static',file)}} | <a href="/{{=request.application}}/default/delete/{{=app}}/static/{{=file}}?sender={{=request.function}}/{{=app}}">delete</a> ]<br/>{{
+}}<li>{{='/'.join(file_path[:i]+[''])}}<a href="/{{=app}}/static/{{=file}}">{{=filename}}</a> [ {{=editfile('static',file)}} | <a href="/{{=request.application}}/default/delete/{{=app}}/static/{{=file}}?sender={{=request.function}}/{{=app}}">delete</a> ]</li>{{
         pass
     pass
 }}
 {{pass}}
-{{=file_upload_form('%s/static/' % app)}}
+<li>{{=file_upload_form('%s/static/' % app)}}</li>
+</ul>
 </div>
