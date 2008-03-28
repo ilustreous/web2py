@@ -717,9 +717,21 @@ class SQLQuery(object):
     def __str__(self): return self.sql
 
 regex_tables=re.compile('(?P<table>[a-zA-Z]\w*)\.')
+regex_quotes=re.compile("'[^']*'")
 
 def parse_tablenames(text):
-    items=regex_tables.findall(re.sub("'[^']*'",'',text))
+    text=regex_quotes.sub('',text)
+    while 1:
+        i=text.find('IN (SELECT ')
+        if i==-1: break
+        k,j,n=1,i+11,len(text)
+        while k and j<n:
+           c=text[j]
+           if c=='(': k+=1
+           elif c==')': k-=1
+           j+=1
+        text=text[:i]+text[j+1:]
+    items=regex_tables.findall(text)
     tables={}
     for item in items: tables[item]=True
     return tables.keys()        
