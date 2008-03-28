@@ -588,14 +588,14 @@ class SQLXorable(object):
     def __invert__(self):
         return SQLXorable(str(self)+' DESC',None,None)
     # for use in SQLQuery
-    def __eq__(self,value): return SQLQuery(self,'==',value)
-    def __ne__(self,value): return SQLQuery(self,'!=',value)
+    def __eq__(self,value): return SQLQuery(self,'=',value)
+    def __ne__(self,value): return SQLQuery(self,'<>',value)
     def __lt__(self,value): return SQLQuery(self,'<',value)
     def __le__(self,value): return SQLQuery(self,'<=',value)
     def __gt__(self,value): return SQLQuery(self,'>',value)
     def __ge__(self,value): return SQLQuery(self,'>=',value)
-    def like(self,value): return SQLQuery(self,'like',value)
-    def belongs(self,value): return SQLQuery(self,'belongs',value)
+    def like(self,value): return SQLQuery(self,' LIKE ',value)
+    def belongs(self,value): return SQLQuery(self,' IN ',value)
     # for use in both SQLQuery and sortby
     def __add__(self,other): 
         return SQLXorable('%s+%s'%(self,other),'float',None)
@@ -690,27 +690,26 @@ class SQLQuery(object):
     set=db(query)
     records=set.select()
     """
-    _t={'==':'=','!=':'<>','<':'<','>':'>','<=':'<=','>=':'>=','like':' LIKE ','belongs':' IN '}
     def __init__(self,left,op=None,right=None):        
         if op is None and right is None: self.sql=left
         elif right is None:
-            if op=='==': 
+            if op=='=': 
                 self.sql='%s %s' % (left,left._db._translator['is null'])
-            elif op=='!=':
+            elif op=='<>':
                 self.sql='%s %s' % (left,left._db._translator['is not null'])
             else: raise SyntaxError, 'do not know what to do'
-        elif op=='belongs':
+        elif op==' IN ':
             if isinstance(right,str):
-                self.sql='%s%s(%s)'%(left,self._t[op],right[:-1])
+                self.sql='%s%s(%s)'%(left,op,right[:-1])
             elif hasattr(right,'__iter__'):
                 r=','.join([sql_represent(i,left.type,left._db) for i in right])
-                self.sql='%s%s(%s)'%(left,self._t[op],r)
+                self.sql='%s%s(%s)'%(left,op,r)
             else: raise SyntaxError, 'do not know what to do'
-        elif right.__class__==SQLField:
-            self.sql='%s%s%s' % (left,self._t[op],right)
+        elif isinstance(right,(SQLField,SQLXorable)):
+            self.sql='%s%s%s' % (left,op,right)
         else:
             right=sql_represent(right,left.type,left._db._dbname)
-            self.sql='%s%s%s' % (left,self._t[op],right)
+            self.sql='%s%s%s' % (left,op,right)
     def __and__(self,other): return SQLQuery('(%s AND %s)'%(self,other))
     def __or__(self,other): return SQLQuery('(%s OR %s)'%(self,other))
     def __invert__(self): return SQLQuery('(NOT %s)'%self)
