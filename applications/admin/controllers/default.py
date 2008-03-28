@@ -227,7 +227,9 @@ def edit():
     filename='/'.join(request.args)    
     if filename[-3:]=='.py': filetype='python'
     elif filename[-5:]=='.html': filetype='html'
-    else: filetype=''
+    elif filename[-4:]=='.css': filetype='css'
+    elif filename[-3:]=='.js': filetype='js'
+    else: filetype='text'
     ### check if file is not there 
     data=open(apath(filename),'r').read()
     try:

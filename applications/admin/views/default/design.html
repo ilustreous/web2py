@@ -102,7 +102,9 @@ for c in controllers: controller_functions+=[c[:-3]+'/%s.html'%x for x in functi
 {{if not statics:}}There are no static files{{pass}}
 <ul>
 {{for file in statics:}}
-<li><a href="/{{=app}}/static/{{=file}}">{{=file}}</a> [ <a href="/{{=request.application}}/default/delete/{{=app}}/static/{{=file}}?sender={{=request.function}}/{{=app}}">delete</a> ]</li>
+<li><a href="/{{=app}}/static/{{=file}}">{{=file}}</a> [ 
+{{=editfile('static',file)}} |
+<a href="/{{=request.application}}/default/delete/{{=app}}/static/{{=file}}?sender={{=request.function}}/{{=app}}">delete</a> ]</li>
 {{pass}}
 <li>{{=file_upload_form('%s/static/' % app)}}</li>
 </ul>
