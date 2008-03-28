@@ -10,7 +10,7 @@ from validators import *
 from highlight import highlight
 import sanitizer
 
-__all__=['A', 'B', 'BEAUTIFY', 'BODY', 'BR', 'CENTER', 'CODE', 'DIV', 'EM', 'EMBED', 'FIELDSET', 'FORM', 'H1', 'H2', 'H3', 'H4', 'H5', 'H6', 'HEAD', 'HR', 'HTML', 'IFRAME', 'IMG', 'INPUT', 'LABEL', 'LI', 'LINK', 'OL', 'UL', 'META', 'OBJECT', 'ON', 'OPTION', 'P', 'PRE', 'SCRIPT', 'SELECT', 'SPAN', 'STYLE', 'TABLE', 'TD', 'TEXTAREA', 'TH', 'TITLE', 'TR', 'TT', 'URL', 'XML', 'xmlescape', 'embed64']
+__all__=['A', 'B', 'BEAUTIFY', 'BODY', 'BR', 'CENTER', 'CODE', 'DIV', 'EM', 'EMBED', 'FIELDSET', 'FORM', 'H1', 'H2', 'H3', 'H4', 'H5', 'H6', 'HEAD', 'HR', 'HTML', 'IFRAME', 'IMG', 'INPUT', 'LABEL', 'LI', 'LINK', 'OL', 'UL', 'META', 'OBJECT', 'ON', 'OPTION', 'P', 'PRE', 'SCRIPT', 'SELECT', 'SPAN', 'STYLE', 'TABLE', 'TAG', 'TD', 'TEXTAREA', 'TH', 'TITLE', 'TR', 'TT', 'URL', 'XML', 'xmlescape', 'embed64']
 
 def xmlescape(data,quote=False):
     try: 
@@ -147,6 +147,18 @@ class DIV(object):
         return '<%s%s>%s</%s>' % (self.tag,fa,co,self.tag)
     def __str__(self):
         return self.xml()
+
+class __TAG__(object):
+    """
+    TAG factory example:
+    >>> print TAG.first(TAG.second('test'),_key=3)
+    <first key="3"><second>test</second></first>
+    """
+    def __getattr__(self,name):
+        if name[-1]=='_': name=name[:-1]+'/'
+        class __tag__(DIV): tag=name
+        return lambda *a,**b: __tag__(*a,**b)
+TAG=__TAG__()
 
 class HTML(DIV):
     tag='html'
