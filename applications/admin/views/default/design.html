@@ -111,8 +111,8 @@ for file in statics+['']:
     while i<max(len(path),len(file_path)):
         if i>=len(path):
             path.append(file_path[i])
-            thispath='static/'+'/'.join(path)
-}}<li>{{='/'.join(file_path[:i]+[''])}}<a onclick="collapse('{{=thispath}}');">{{=file_path[i]}}/</a></li><div id="{{=thispath}}" style="display: none;">{{
+            thispath='static__'+'__'.join(path)
+}}<li>{{='/'.join(file_path[:i]+[''])}}<a href="javascript:collapse('{{=thispath}}');">{{=file_path[i]}}/</a></li><div id="{{=thispath}}" style="display: none;">{{
         elif i>=len(file_path) or path[i]!=file_path[i]:
             file_path=file_path[:i]
             for j in range(len(path)-1,i-1,-1):

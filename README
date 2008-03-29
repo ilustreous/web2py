@@ -200,3 +200,8 @@ all objects inherit from object
 fixed bug in app names with .
 fixed bug in created RestrictedError object on windows
 shell is now in gluon and accessible via web2py.py
+
+web2py 1.28
+fixed bug with belongs, faster sql.py
+included jquery.js
+minor aestetical fixes
