@@ -72,7 +72,7 @@ def run(appname, plain=False, import_models=False, startfile=None):
                 execfile(pythonrc)
             except NameError:
                 pass
-        execfile(startfile, {}, _env)
+        execfile(startfile, _env)
     else:
         if not plain:
             try:
