@@ -68,8 +68,8 @@ def serve_controller(request,response,session):
     # build evnironment for controller and view
     ###################################################
     environment={}
-    for key in html.__all__: environment[key]=eval('html.%s' % key)      
-    for key in validators.__all__: environment[key]=eval('validators.%s' % key)
+    for key in html.__all__: environment[key]=getattr(html,key)
+    for key in validators.__all__: environment[key]=getattr(validators,key)
     environment['T']=translator(request)        
     environment['HTTP']=HTTP
     environment['redirect']=redirect

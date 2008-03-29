@@ -28,8 +28,8 @@ def env(app, import_models=False, dir=''):
         request.folder = dir
         
     environment={}
-    for key in html.__all__: environment[key]=eval('html.%s' % key)
-    for key in validators.__all__: environment[key]=eval('validators.%s' % key)
+    for key in html.__all__: environment[key]=getattr(html,key)
+    for key in validators.__all__: environment[key]=getattr(validators,key)
     environment['T']=translator(request)
     environment['HTTP']=HTTP
     environment['redirect']=redirect
