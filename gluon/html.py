@@ -154,6 +154,8 @@ class __TAG__(object):
     >>> print TAG.first(TAG.second('test'),_key=3)
     <first key="3"><second>test</second></first>
     """
+    def __getitem__(self,name):
+        return self.__getattr__(name)
     def __getattr__(self,name):
         if name[-1]=='_': name=name[:-1]+'/'
         class __tag__(DIV): tag=name
