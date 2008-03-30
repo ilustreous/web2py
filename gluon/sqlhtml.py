@@ -67,10 +67,10 @@ class SQLFORM(FORM):
                 label=fieldname.replace('_',' ').capitalize()+': '
             label=LABEL(label,_for=fieldname,_id='%s:label'%field_id)
             if field.type=='blob' or field.type=='text':
-                inp=TEXTAREA(_type='text',_id=field_id,
+                inp=TEXTAREA(_type='text',_id=field_id,_class=field.type,
                     _name=fieldname,value=default, requires=field.requires)
             elif field.type=='upload':
-                inp=INPUT(_type='file',_id=field_id,
+                inp=INPUT(_type='file',_id=field_id,_class=field.type,
                           _name=fieldname, requires=field.requires)
                 if upload and default:
                     inp=DIV(inp,'[',A('file',_href=upload+'/'+default),'|',
@@ -78,7 +78,7 @@ class SQLFORM(FORM):
             elif field.type=='boolean':
                 if default==True: default='ON'
                 else: default=''
-                inp=INPUT(_type='checkbox',_id=field_id,
+                inp=INPUT(_type='checkbox',_id=field_id,_class=field.type,
                     _name=fieldname,value=default, requires=field.requires)
             elif isinstance(field.requires,IS_IN_SET):
                  if field.requires.labels:
@@ -90,17 +90,17 @@ class SQLFORM(FORM):
                             opts.append(OPTION(field.requires.labels[k],_value=v))
                         k+=1
                  else: opts=field.requires.theset
-                 inp=SELECT(*opts,**dict(_id=field_id,
+                 inp=SELECT(*opts,**dict(_id=field_id,_class=field.type,
                      _name=fieldname,value=default,requires=field.requires))
             elif field.type=='password':
                  if self.record: v='********'
                  else: v=''
                  inp=INPUT(_type='password', _id=field_id,
-                      _name=fieldname,_value=v,
+                      _name=fieldname,_value=v,_class=field.type,
                       requires=field.requires)
             else:
                  if default==None: default=''
-                 inp=INPUT(_type='text', _id=field_id,
+                 inp=INPUT(_type='text', _id=field_id,_class=field.type,
                       _name=fieldname,value=str(default),
                       requires=field.requires)
             xfields.append(TR(TD(label),TD(inp)))
@@ -109,9 +109,11 @@ class SQLFORM(FORM):
                 for rtable,rfield in table._referenced_by:
                     query=urllib.quote(str(table._db[rtable][rfield]==record.id))
                     xfields.append(TR(' ',A('%s.%s' % (rtable,rfield),
+                           _class='reference',
                            _href='%s/%s?query=%s'%(linkto,rtable,query))))
         if record and deletable:
             xfields.append(TR(delete_label,INPUT(_type='checkbox',
+                          _class='delete',
                           _name='delete_this_record')))            
         xfields.append(TR(' ',INPUT(_type='submit',_value=submit_button)))
         if record:
