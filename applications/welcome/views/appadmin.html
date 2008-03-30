@@ -17,6 +17,7 @@ $(document).ready(function(){
 {{else:}}
   {{if len(request.args)>=1:}}
     database {{=A(request.args[0],_href=URL(r=request,f='index/'))}}
+    {{try:}}{{query}}{{except:}}{{query=None}}{{pass}}
     {{if not query:}}table {{=A(request.args[1],_href=URL(r=request,f='select/%s/%s'% tuple(request.args[:2])))}} {{=request.function}} {{else:}} generic select/update/delete{{pass}}
     {{if len(request.args)==3:}}
       record id {{=A(request.args[2],_href=URL(r=request,f='update/%s/%s/%s'% tuple(request.args[:3])))}}

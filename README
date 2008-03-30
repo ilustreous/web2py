@@ -205,3 +205,4 @@ web2py 1.28
 fixed bug with belongs, faster sql.py
 included jquery.js
 minor aestetical fixes
+sortable.js is gone

@@ -775,15 +775,15 @@ class SQLSet(object):
         if self.sql_w: sql_w=' WHERE '+self.sql_w
         else: sql_w=''
         sql_o=''
-        if attributes.has_key('groupby'): 
+        if attributes.has_key('groupby') and attributes['groupby']: 
             sql_o+=' GROUP BY %s'% attributes['groupby']
-        if attributes.has_key('orderby'): 
+        if attributes.has_key('orderby') and attributes['orderby']: 
             sql_o+=' ORDER BY %s'% attributes['orderby']
-        if attributes.has_key('limitby'): 
+        if attributes.has_key('limitby') and attributes['limitby']: 
             ### oracle does not support limitby
             lmin,lmax=attributes['limitby']
             if self._db._dbname=='oracle':
-                if not attributes.has_key('orderby'): 
+                if not attributes.has_key('orderby') or not attributes['orderby']:
                    sql_o+=' ORDER BY %s'%', '.join([t+'.id' for t in tablenames])
                 return "SELECT %s FROM (SELECT _tmp.*, ROWNUM _row FROM (SELECT %s FROM %s%s%s) _tmp WHERE ROWNUM<%i ) WHERE _row>=%i;" %(sql_f,sql_f,sql_t,sql_w,sql_o,lmax,lmin)
             sql_o+=' LIMIT %i OFFSET %i' % (lmax-lmin,lmin)

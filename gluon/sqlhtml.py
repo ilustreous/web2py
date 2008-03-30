@@ -212,13 +212,17 @@ class SQLTABLE(TABLE):
     uplaod: URL to download uploaded files
     optional names attributes for passed to the <table> tag
     """
-    def __init__(self,sqlrows,linkto=None,upload=None,**attributes):
+    def __init__(self,sqlrows,linkto=None,upload=None,orderby=None,**attributes):
         TABLE.__init__(self,**attributes)
         self.components=[]
         self.attributes=attributes
         self.sqlrows=sqlrows        
         components,row=self.components,[]
-        for colname in sqlrows.colnames: row.append(TH('[%s]'%colname))
+        if not orderby:
+           for colname in sqlrows.colnames: row.append(TH('%s'%colname))
+        else:
+           for colname in sqlrows.colnames:
+               row.append(TH(A('%s'%colname,_href='?orderby='+colname)))
         components.append(THEAD(TR(*row)))
         tbody=[]
         for record in sqlrows:

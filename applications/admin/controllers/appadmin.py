@@ -82,11 +82,32 @@ def select():
     try:
         dbname=request.args[0]
         db=eval(dbname)
-        if not request.vars.query:
+        if request.vars.query:
+            query=request.vars.query
+            orderby=None
+            start=0
+        elif request.vars.orderby:
+            query=session.appadmin_last_query
+            orderby=request.vars.orderby
+            if orderby==session.appadmin_last_orderby:
+                if orderby[-5:]==' DESC': oderby=orderby[:-5]
+                else: orderby=orderby+' DESC'
+            start=0
+        elif request.vars.start!=None:
+            query=session.appadmin_last_query
+            orderby=session.appadmin_last_orderby
+            start=int(request.vars.start)
+        else:
             table=request.args[1]
-            query='%s.id>0' % table        
-        else: query=request.vars.query
-    except: redirect(URL(r=request,f='index'))
+            query='%s.id>0' % table    
+            orderby=None
+            start=0
+        session.appadmin_last_query=query
+        session.appadmin_last_orderby=orderby
+        limitby=(start,start+100)
+    except:
+        session.flash='invalid request'
+        redirect(URL(r=request,f='index'))
     if request.vars.csvfile!=None:        
         try:
             import_csv(db[table],request.vars.csvfile.file)
@@ -103,19 +124,16 @@ def select():
             exec('db(query).update('+request.vars.update_string+')') in env
             response.flash='records updated'
         except: response.flash='invalid SQL FILTER or UPDATE STRING'
-    if request.vars.start: start=int(request.vars.start)
-    else: start=0
-    limitby=(start,start+100)
     try:
-        records=db(query).select(limitby=limitby)
+        records=db(query).select(limitby=limitby,orderby=orderby)
     except: 
         response.flash='invalid SQL FILTER'
         return dict(records='no records',nrecords=0,query=query,start=0)
     linkto=URL(r=request,f='update',args=[dbname])
     upload=URL(r=request,f='download')
-    return dict(start=start,query=query,\
+    return dict(start=start,query=query,orderby=orderby, \
                 nrecords=len(records),\
-                records=SQLTABLE(records,linkto,upload,_class='sortable'))
+                records=SQLTABLE(records,linkto,upload,orderby=True,_class='sortable'))
 
 ###########################################################
 ### edit delete one record
