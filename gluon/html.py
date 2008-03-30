@@ -137,7 +137,7 @@ class DIV(object):
             if hasattr(c,'rec_accepts'): c.rec_accepts(vars)            
     def _xml(self):
         items=self.attributes.items()
-        fa=' '.join([key[1:].lower() for key,value in items if key[:1]=='_' and value==None]+['%s="%s"' % (key[1:].lower(),xmlescape(value,True)) for key,value in self.attributes.items() if key[:1]=='_' and value])
+        fa=' '.join([key[1:].lower() for key,value in items if key[:1]=='_' and value==None]+['%s="%s"' % (key[1:].lower(),xmlescape(value,True)) for key,value in items if key[:1]=='_' and value!=None])
         if fa: fa=' '+fa
         co=''.join([xmlescape(component) for component in self.components])
         return fa,co
