@@ -1,5 +1,4 @@
 {{extend 'layout.html'}}
-<script src="/{{=request.application}}/static/sorttable.js"></script>
 <script><!--
 $(document).ready(function(){
   $("table.sortable tbody tr").mouseover( function() {
@@ -18,7 +17,7 @@ $(document).ready(function(){
 {{else:}}
   {{if len(request.args)>=1:}}
     database {{=A(request.args[0],_href=URL(r=request,f='index/'))}}
-    {{if not request.vars.query:}}table {{=A(request.args[1],_href=URL(r=request,f='select/%s/%s'% tuple(request.args[:2])))}} {{=request.function}} {{else:}} generic select/update/delete{{pass}}
+    {{if not query:}}table {{=A(request.args[1],_href=URL(r=request,f='select/%s/%s'% tuple(request.args[:2])))}} {{=request.function}} {{else:}} generic select/update/delete{{pass}}
     {{if len(request.args)==3:}}
       record id {{=A(request.args[2],_href=URL(r=request,f='update/%s/%s/%s'% tuple(request.args[:3])))}}
     {{pass}}
@@ -57,9 +56,9 @@ $(document).ready(function(){
     {{pass}}
     </table>
     </form>
-    <br/>    <br/>
-    {{if start>0:}}[ {{=A('previous 100 records',_href=URL(r=request,f='select/%s?query=%s&start=%s'%('/'.join(request.args),query,start-100)))}} ]{{pass}}
-    {{if nrecords==100:}}[ {{=A('next 100 records',_href=URL(r=request,f='select/%s?query=%s&start=%s'%('/'.join(request.args),query,start+100)))}} ]{{pass}}
+    <br/>
+    {{if start>0:}}[ {{=A('previous 100 records',_href=URL(r=request,f='select/%s?start=%s'%('/'.join(request.args),start-100)))}} ]{{pass}}
+    {{if nrecords==100:}}[ {{=A('next 100 records',_href=URL(r=request,f='select/%s?start=%s'%('/'.join(request.args),start+100)))}} ]{{pass}}
 <div style="overflow: auto;" width="80%">
     {{=records}}
 </div>
