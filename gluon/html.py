@@ -10,7 +10,7 @@ from validators import *
 from highlight import highlight
 import sanitizer
 
-__all__=['A', 'B', 'BEAUTIFY', 'BODY', 'BR', 'CENTER', 'CODE', 'DIV', 'EM', 'EMBED', 'FIELDSET', 'FORM', 'H1', 'H2', 'H3', 'H4', 'H5', 'H6', 'HEAD', 'HR', 'HTML', 'IFRAME', 'IMG', 'INPUT', 'LABEL', 'LI', 'LINK', 'OL', 'UL', 'META', 'OBJECT', 'ON', 'OPTION', 'P', 'PRE', 'SCRIPT', 'SELECT', 'SPAN', 'STYLE', 'TABLE', 'TAG', 'TD', 'TEXTAREA', 'TH', 'TITLE', 'TR', 'TT', 'URL', 'XML', 'xmlescape', 'embed64']
+__all__=['A', 'B', 'BEAUTIFY', 'BODY', 'BR', 'CENTER', 'CODE', 'DIV', 'EM', 'EMBED', 'FIELDSET', 'FORM', 'H1', 'H2', 'H3', 'H4', 'H5', 'H6', 'HEAD', 'HR', 'HTML', 'IFRAME', 'IMG', 'INPUT', 'LABEL', 'LI', 'LINK', 'OL', 'UL', 'META', 'OBJECT', 'ON', 'OPTION', 'P', 'PRE', 'SCRIPT', 'SELECT', 'SPAN', 'STYLE', 'TABLE', 'TAG', 'TD', 'TEXTAREA', 'TH', 'THEAD', 'TBODY', 'TFOOT', 'TITLE', 'TR', 'TT', 'URL', 'XML', 'xmlescape', 'embed64']
 
 def xmlescape(data,quote=False):
     try: 
@@ -290,12 +290,18 @@ class TR(DIV):
                 components.append(TD(c))
         self.components=components
 
+class THEAD(DIV): tag='thead'
+
+class TBODY(DIV): tag='tbody'
+
+class TFOOT(DIV): tag='tfoot'
+
 class TABLE(DIV): 
     tag='table'
     def postprocessing(self):
         components=[]
         for c in self.components:
-            if isinstance(c,TR):
+            if isinstance(c,(TR,TBODY,THEAD,TFOOT)):
                 components.append(c)
             else:
                 components.append(TR(*c))

@@ -5,7 +5,7 @@ License: GPL v2
 """
 
 import urllib, random, re, sys, os, shutil, cStringIO
-from html import FORM,INPUT,TEXTAREA,SELECT,OPTION,TABLE,TR,TD,TH,A,B,DIV,LABEL,ON
+from html import FORM,INPUT,TEXTAREA,SELECT,OPTION,TABLE,TR,TD,TH,A,B,DIV,LABEL,ON,TAG,THEAD,TBODY
 from validators import IS_IN_SET, IS_NOT_IN_DB, CRYPT
 from sql import SQLStorage
 
@@ -217,9 +217,10 @@ class SQLTABLE(TABLE):
         self.components=[]
         self.attributes=attributes
         self.sqlrows=sqlrows        
-        rows,row=self.components,[]
+        components,row=self.components,[]
         for colname in sqlrows.colnames: row.append(TH('[%s]'%colname))
-        rows.append(TR(*row))
+        components.append(THEAD(TR(*row)))
+        tbody=[]
         for record in sqlrows:
             row=[]
             for colname in sqlrows.colnames:
@@ -243,6 +244,6 @@ class SQLTABLE(TABLE):
                         row.append(TD(A(r,_href='%s/%s/%s' % \
                                        (linkto,field.type[10:],r))))
                 else: row.append(TD(r))
-            rows.append(TR(*row))
-
+            tbody.append(TR(*row))
+        components.append(TBODY(*tbody))
         
