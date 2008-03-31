@@ -13,29 +13,17 @@ import sys
 __all__=['listdir', 'cleanpath', 'tar', 'untar', 'tar_compiled', 
          'get_session', 'check_credentials']
 
-def listdir(path,expression='^.+$',drop=True,add_dirs=False,filters=['.svn']):
+def listdir(path,expression='^.+$',drop=True,add_dirs=False):
     """
     like os.listdir() but you can specify a regex patter to filter filed.
     if add_dirs==True the returned items will have the full path.
     """
-    def isskip(dir):
-        dir=dir.replace('\\', '/').split('/')[0]
-        flag=False
-        for f in filters:
-            if dir==f:
-                flag=True
-                break
-        return flag
-    #path=path.replace('\\', '/')
-    #if not path.endswith('/'): path=path+'/'
     if drop: n=len(path)
     else: n=0
     regex=re.compile(expression)
     items=[]
     for root,dirs,files in os.walk(path):
-        dir=root[n:]
-        if isskip(dir): continue
-        if add_dirs: items.append(dir)
+        if add_dirs: items.append(root[n:])
         for file in files:
            if regex.match(file):
               items.append(os.path.join(root,file)[n:])

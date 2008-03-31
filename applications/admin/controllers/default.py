@@ -66,10 +66,15 @@ if session.authorized:
     else: session.last_time=t0
 
 if not session.authorized and not request.function=='index': 
-    redirect(URL(r=request,f='index'))
+    if request.env.query_string: query_string='?'+request.env.query_string
+    else: query_string=''
+    url=request.env.path_info+query_string
+    redirect(URL(r=request,f='index',vars=dict(send=url)))
 
 def index():
     """ admin controller function """
+    send=request.vars.send
+    if not send: send=URL(r=request,f='site')
     if request.vars.password:
         if _config['password']==CRYPT()(request.vars.password)[0]:
             session.authorized=True
@@ -79,10 +84,10 @@ def index():
                 if version!=myversion: session.flash='A new version of web2py is available, you should upgrade at http://mdp.cti.depaul.edu/examples'
             except: pass
             session.last_time=t0
-            redirect(URL(r=request,f='site'))
+            redirect(send)
         else: response.flash='invalid password'
     apps=[file for file in os.listdir(apath()) if file.find('.')<0]    
-    return dict(apps=apps)
+    return dict(apps=apps,send=send)
 
 def logout():
     """ admin controller function """
