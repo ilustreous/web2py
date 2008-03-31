@@ -26,9 +26,8 @@ def listdir(path,expression='^.+$',drop=True,add_dirs=False,filters=['.svn']):
                 flag=True
                 break
         return flag
-    path=path.replace('\\', '/')
-    if not path.endswith('/'):
-        path=path+'/'
+    #path=path.replace('\\', '/')
+    #if not path.endswith('/'): path=path+'/'
     if drop: n=len(path)
     else: n=0
     regex=re.compile(expression)
