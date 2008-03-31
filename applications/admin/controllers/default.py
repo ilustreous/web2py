@@ -81,7 +81,7 @@ def index():
             try:        
                 version=urllib.urlopen('http://mdp.cti.depaul.edu/examples/default/version').read()
                 myversion=open(apath('../VERSION'),'r').read()
-                if version!=myversion: session.flash='A new version of web2py is available, you should upgrade at http://mdp.cti.depaul.edu/examples'
+                if version>myversion: session.flash='A new version of web2py is available, you should upgrade at http://mdp.cti.depaul.edu/examples'
             except: pass
             session.last_time=t0
             redirect(send)
