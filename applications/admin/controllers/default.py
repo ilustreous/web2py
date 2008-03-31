@@ -348,6 +348,8 @@ def create_file():
             if not filename[-5:]=='.html': filename+='.html'
             if len(filename)==5: raise SyntaxError
             text="{{extend 'layout.html'}}\n<h1>This is the %s template</h1>\n{{=BEAUTIFY(response._vars)}}" % filename
+        elif path[-8:]=='/static/':
+            text=""
         else:
             redirect(request.vars.sender)
         filename=os.path.join(path,filename)
