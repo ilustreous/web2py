@@ -41,10 +41,13 @@ def insert():
     try:
         dbname=request.args[0]
         db=eval(dbname)
-        table=request.args[1]
-        form=SQLFORM(db[table])
-    except: redirect(URL(r=request,f='index'))
-    if form.accepts(request.vars,session): response.flash='new record inserted'
+        table=db[request.args[1]]
+    except:
+        session.flash='invalid request'
+        redirect(URL(r=request,f='index'))
+    form=SQLFORM(table)
+    if form.accepts(request.vars,session):
+        response.flash='new record inserted'
     return dict(form=form)
 
 ###########################################################
@@ -64,7 +67,9 @@ def csv():
         db=eval(dbname)
         response.headers['Content-disposition']="attachment; filename=%s_%s.csv" % (request.vars.dbname, request.vars.query.split('.',1)[0])
         return str(db(request.vars.query).select())
-    except: redirect(URL(r=request,f='index'))
+    except:
+        session.flash='unable to retrieve data'
+        redirect(URL(r=request,f='index'))
 
 def import_csv(table,file):
     import csv
@@ -112,18 +117,21 @@ def select():
         try:
             import_csv(db[table],request.vars.csvfile.file)
             response.flash='data uploaded'
-        except: response.flash='unable to parse csv file'
+        except: 
+            response.flash='unable to parse csv file'
     if request.vars.delete_all and request.vars.delete_all_sure=='yes':
         try:
             db(query).delete()
             response.flash='records deleted'
-        except: response.flash='invalid SQL FILTER'
+        except:
+            response.flash='invalid SQL FILTER'
     elif request.vars.update_string:
         try:
             env=dict(db=db,query=query)
             exec('db(query).update('+request.vars.update_string+')') in env
             response.flash='records updated'
-        except: response.flash='invalid SQL FILTER or UPDATE STRING'
+        except:
+            response.flash='invalid SQL FILTER or UPDATE STRING'
     try:
         records=db(query).select(limitby=limitby,orderby=orderby)
     except: 
@@ -144,11 +152,15 @@ def update():
         dbname=request.args[0]
         db=eval(dbname)
         table=request.args[1]
-    except: redirect(URL(r=request,f='index'))
+    except:
+        response.flash='invalid request'
+        redirect(URL(r=request,f='index'))
     try:
         id=int(request.args[2])
         record=db(db[table].id==id).select()[0]
-    except: redirect(URL(r=request,f='select/%s/%s'%(dbname,table)))
+    except:
+        session.flash='record does not exist'
+        redirect(URL(r=request,f='select/%s/%s'%(dbname,table)))
     form=SQLFORM(db[table],record,deletable=True,
                  linkto=URL(r=request,f='select',args=[dbname]),
                  upload=URL(r=request,f='download'))

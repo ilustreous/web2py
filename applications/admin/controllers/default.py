@@ -323,7 +323,7 @@ def design():
         if items: extend[c]=items[0][1]
         items=regex_include.findall(data)
         include[c]=[i[1] for i in items]
-    statics=listdir(apath('%s/static/' % app))
+    statics=listdir(apath('%s/static/' % app),'[^\.#].*')
     statics.sort()
     languages=listdir(apath('%s/languages/' % app), '[\w-]*\.py')
     return dict(app=app,models=models,defines=defines,controllers=controllers,functions=functions,views=views,extend=extend,include=include,statics=statics,languages=languages)
