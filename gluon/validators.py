@@ -14,7 +14,7 @@ except:
     have_hashlib=False
 from storage import Storage
 
-__all__=['IS_ALPHANUMERIC', 'IS_DATE', 'IS_DATETIME', 'IS_EMAIL', 'IS_EXPR','IS_FLOAT_IN_RANGE', 'IS_INT_IN_RANGE', 'IS_IN_SET', 'IS_LENGTH', 'IS_LOWER', 'IS_MATCH', 'IS_NOT_EMPTY', 'IS_TIME', 'IS_URL', 'CLEANUP', 'CRYPT', 'IS_IN_DB', 'IS_NOT_IN_DB', 'IS_UPPER', 'IS_NULL_OR']
+__all__=['IS_ALPHANUMERIC', 'IS_DATE', 'IS_DATETIME', 'IS_EMAIL', 'IS_EXPR','IS_FLOAT_IN_RANGE', 'IS_INT_IN_RANGE', 'IS_IN_SET', 'IS_LENGTH', 'IS_LIST_OF', 'IS_LOWER', 'IS_MATCH', 'IS_NOT_EMPTY', 'IS_TIME', 'IS_URL', 'CLEANUP', 'CRYPT', 'IS_IN_DB', 'IS_NOT_IN_DB', 'IS_UPPER', 'IS_NULL_OR']
 
 class IS_MATCH(object):
     """
@@ -291,6 +291,19 @@ class IS_DATETIME(object):
             return (value,self.error_message)
     def formatter(self,value):
         return value.strftime(str(self.format))
+
+class IS_LIST_OF(object):
+    def __init__(self,other):
+        self.other=other
+    def __call__(self,value):
+        ivalue=value
+        if not isinstance(value,list): ivalue=[ivalue]
+        new_value=[]
+        for item in ivalue:
+            v,e=self.other(item)
+            if e: return (value,e)
+            else: new_value.append(v)
+        return (new_value,None)
 
 class IS_LOWER(object):
     def __call__(self,value): return (value.lower(),None)
