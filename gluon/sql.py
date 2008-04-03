@@ -64,7 +64,8 @@ SQL_DIALECTS={'sqlite':{'boolean':'CHAR(1)',
                       'upper':'UPPER(%(field)s)',
                       'is null':'IS NULL',
                       'is not null':'IS NOT NULL',
-                      'extract':"web2py_extract('%(name)s',%(field)s)"},
+                      'extract':"web2py_extract('%(name)s',%(field)s)",
+                      'left join':'LEFT JOIN'},
             'mysql':{'boolean':'CHAR(1)',
                       'string':'VARCHAR(%(length)s)',
                       'text':'TEXT',
@@ -82,7 +83,8 @@ SQL_DIALECTS={'sqlite':{'boolean':'CHAR(1)',
                       'upper':'UPPER(%(field)s)',
                       'is null':'IS NULL',
                       'is not null':'IS NOT NULL',
-                      'extract':'EXTRACT(%(name)s FROM %(field)s)'},
+                      'extract':'EXTRACT(%(name)s FROM %(field)s)',
+                      'left join':'LEFT JOIN'},
             'postgres':{'boolean':'CHAR(1)',
                       'string':'VARCHAR(%(length)s)',
                       'text':'TEXT',
@@ -100,7 +102,8 @@ SQL_DIALECTS={'sqlite':{'boolean':'CHAR(1)',
                       'upper':'UPPER(%(field)s)',
                       'is null':'IS NULL',
                       'is not null':'IS NOT NULL',
-                      'extract':'EXTRACT(%(name)s FROM %(field)s)'},
+                      'extract':'EXTRACT(%(name)s FROM %(field)s)',
+                      'left join':'LEFT JOIN'},
             'oracle':{'boolean':'CHAR(1)',
                       'string':'VARCHAR2(%(length)s)',
                       'text':'CLOB',
@@ -118,7 +121,8 @@ SQL_DIALECTS={'sqlite':{'boolean':'CHAR(1)',
                       'upper':'UPPER(%(field)s)',
                       'is null':'IS NULL',
                       'is not null':'IS NOT NULL',
-                      'extract':'EXTRACT(%(name)s FROM %(field)s)'}
+                      'extract':'EXTRACT(%(name)s FROM %(field)s)',
+                      'left join':'LEFT OUTER JOIN'}
               }
 
 def sqlhtml_validators(field_type,length):
@@ -577,6 +581,8 @@ class SQLTable(SQLStorage):
             else:
                 items=[(colnames[i],line[i]) for i in c]                
                 self.insert(**dict(items))
+    def __str__(self):
+        return self._tablename
 
 class SQLXorable(object):
     def __init__(self,name,type='string',db=None):
@@ -762,19 +768,27 @@ class SQLSet(object):
         return SQLSet(self._db,SQLQuery(self.sql_w)&where)
     def _select(self,*fields,**attributes):
         valid_attributes=['orderby','groupby','limitby','required',
-                          'default','requires']
+                          'default','requires','left']
         if [key for key in attributes.keys() if not key in valid_attributes]:
             raise SyntaxError, 'invalid select attribute'
         ### if not fields specified take them all from the requested tables
         if not fields: fields=[self._db[table].ALL for table in self._tables]
         sql_f=', '.join([str(f) for f in fields])
-        tablenames=parse_tablenames(self.sql_w+' '+sql_f)        
+        tablenames=parse_tablenames(self.sql_w+' '+sql_f)
         if len(tablenames)<1: raise SyntaxError, 'SQLSet: no tables selected'
-        sql_t=', '.join(tablenames)
         self.colnames=[c.strip() for c in sql_f.split(', ')]
         if self.sql_w: sql_w=' WHERE '+self.sql_w
         else: sql_w=''
         sql_o=''
+        if attributes.has_key('left') and attributes['left']: 
+            join=attributes['left']
+            if not isinstance(join,(tuple,list)): join=[join]
+            join=[str(t) for t in join]
+            excluded=[t for t in tablenames if not t in join]
+            command=self._db._translator['left join']           
+            sql_t='%s %s %s' %(', '.join(excluded),command,', '.join(join))
+        else:
+            sql_t=', '.join(tablenames)
         if attributes.has_key('groupby') and attributes['groupby']: 
             sql_o+=' GROUP BY %s'% attributes['groupby']
         if attributes.has_key('orderby') and attributes['orderby']: 
@@ -1045,6 +1059,9 @@ def test_all():
     A simple JOIN
 
     >>> len(db(db.dog.owner==db.person.id).select())
+    1
+
+    >>> len(db(db.dog.owner==db.person.id).select(left=db.dog))
     1
 
     Drop tables
