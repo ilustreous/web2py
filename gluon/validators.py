@@ -77,9 +77,9 @@ class IS_LENGTH(object):
                 if val: length=len(val)
                 else: length=0
             if length<=self.size: return (value,None) # for uploads
-        elif isinstance(value,(str,unicode)): 
+        elif isinstance(value,(str,unicode,list)): 
             if len(value)<=self.size: return (value,None)      
-        elif len(str(value))<=self.size: return (value,None)      
+        elif len(str(value))<=self.size: return (value,None)
         return (value,self.error_message)
 
 class IS_IN_SET(object):
