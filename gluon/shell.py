@@ -21,6 +21,7 @@ def env(app, import_models=False, dir=''):
     request=Request()
     response=Response()
     session=Session()
+    request.application = app
     
     if not dir:
         request.folder = os.path.join('applications', app)
