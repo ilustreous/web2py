@@ -188,7 +188,8 @@ class IS_NOT_EMPTY(object):
     def __init__(self,error_message='cannot be empty!'):
         self.error_message=error_message
     def __call__(self,value):
-        if value==None or value=='': return (value,self.error_message)
+        if value==None or value=='' or value==[]: 
+            return (value,self.error_message)
         return (value,None)
 
 class IS_ALPHANUMERIC(IS_MATCH): 
