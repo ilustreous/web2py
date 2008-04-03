@@ -181,16 +181,18 @@ def wsgibase(environ, responder):
                 except TypeError: keys=[]
                 for key in keys: 
                     dpk=dpost[key]
-                    if type(dpk)==types.ListType:
-                        request.post_vars[key]=request.vars[key]=[x.value for x in dpk]        
-                    elif not dpk.filename: #or type(dpk.file)==type(cStringIO.StringIO()):
-                        request.post_vars[key]=request.vars[key]=dpk.value
-                    else:
-                        request.post_vars[key]=request.vars[key]=dpk        
+                    if isinstance(dpk,list): value=[x.value for x in dpk]
+                    elif not dpk.filename: value=dpk.value
+                    else: value=dpk
+                    request.post_vars[key]=request.vars[key]=value
             if request.env.request_method in ['GET', 'BOTH']:
                 dget=cgi.FieldStorage(environ=environ,keep_blank_values=1)
                 for key in dget.keys():
-                    request.get_vars[key]=request.vars[key]=dget[key].value        
+                    dgk=dget[key]
+                    if isinstance(dgk,list): value=[x.value for x in dgk]
+                    else: value=dgk.value
+                    request.get_vars[key]=request.vars[key]=value
+
             ###################################################
             # load cookies
             ###################################################
