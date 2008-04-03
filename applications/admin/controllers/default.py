@@ -17,7 +17,7 @@ import time,os,sys,re,urllib,socket
 
 http_host = request.env.http_host.split(':')[0]
 remote_addr = request.env.remote_addr
-if remote_addr not in (http_host, socket.gethostname()):
+if remote_addr not in (http_host,socket.gethostname(),socket.gethostbyname(http_host)):
     raise HTTP(200,'Admin is disabled because unsecure channel')
 if request.env.http_x_forwarded_for or \
    request.env.wsgi_url_scheme in ['https','HTTPS']:
