@@ -65,7 +65,7 @@ class SQLFORM(FORM):
                 label=labels[fieldname]
             else: 
                 label=fieldname.replace('_',' ').capitalize()+': '
-            label=LABEL(label,_for=fieldname,_id='%s:label'%field_id)
+            label=LABEL(label,_for=fieldname,_id='%s__label'%field_id)
             if field.type=='blob' or field.type=='text':
                 inp=TEXTAREA(_type='text',_id=field_id,_class=field.type,
                     _name=fieldname,value=default, requires=field.requires)
@@ -103,7 +103,7 @@ class SQLFORM(FORM):
                  inp=INPUT(_type='text', _id=field_id,_class=field.type,
                       _name=fieldname,value=str(default),
                       requires=field.requires)
-            xfields.append(TR(TD(label),TD(inp)))
+            xfields.append(TR(TD(label),TD(inp),_id=field_id+'__row'))
         if record and linkto:
             if linkto:
                 for rtable,rfield in table._referenced_by:
