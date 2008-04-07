@@ -1,5 +1,7 @@
 import os, re
 
+regex_at=re.compile('\$\w+')
+
 def rewrite(wsgibase,URL):
     if not os.access('routes.py',os.R_OK):
 	return wsgibase,URL
@@ -10,8 +12,24 @@ def rewrite(wsgibase,URL):
     print '***********************************************'
     symbols={}
     exec(open('routes.py','r').read()) in symbols
-    routes_in=[(re.compile(k),v) for k,v in symbols['routes_in']]
-    routes_out=[(re.compile(k),v) for k,v in symbols['routes_out']]
+    routes_in=[]
+    if symbols.has_key('routes_in'):
+        for k,v in symbols['routes_in']:
+            if k.find(':')<0: k='.*:%s' % k
+            for item in regex_at.findall(k):
+                k=k.replace(item,'(?P<%s>\\w+)'%item[1:])
+            for item in regex_at.findall(v):
+                v=v.replace(item,'\\g<%s>'%item[1:])
+            routes_in.append((re.compile(k),v))
+    routes_out=[]
+    if symbols.has_key('routes_out'):
+        for k,v in symbols['routes_out']:
+            for item in regex_at.findall(k):
+                k=k.replace(item,'(?P<%s>\\w+)'%item[1:])
+            for item in regex_at.findall(v):
+                v=v.replace(item,'\\g<%s>'%item[1:])
+            print k,v 
+            routes_out.append((re.compile(k),v))
     def filter_in(e):
         path=e['PATH_INFO']
         key=e['REMOTE_ADDR']+':'+path
