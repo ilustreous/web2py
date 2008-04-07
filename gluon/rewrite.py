@@ -1,6 +1,6 @@
 import os, re
 
-regex_at=re.compile('\$\w+')
+regex_at=re.compile('(?<!\\\\)\$\w+')
 
 def rewrite(wsgibase,URL):
     if not os.access('routes.py',os.R_OK):
