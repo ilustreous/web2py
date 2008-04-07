@@ -120,11 +120,11 @@ class SQLFORM(FORM):
             self.components=[TABLE(*xfields),
                         INPUT(_type='hidden',_name='id',_value=record['id'])]
         else: self.components=[TABLE(*xfields)]
-    def accepts(self,vars,session=None,formname=None,keepvalues=False):
+    def accepts(self,vars,session=None,formname='%(tablename)s',keepvalues=False):
         """
         same as FORM.accepts but also does insert, update or delete in SQLDB
         """
-        if not formname: formname=str(self.table)
+        if formname: formname=formname % dict(tablename=self.table._tablename)
         raw_vars=dict(vars.items())
         if vars.has_key('delete_this_record') and \
            vars['delete_this_record']=='on' and \
