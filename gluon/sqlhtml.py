@@ -115,7 +115,7 @@ class SQLFORM(FORM):
             xfields.append(TR(delete_label,INPUT(_type='checkbox',
                           _class='delete',
                           _name='delete_this_record')))            
-        xfields.append(TR(' ',INPUT(_type='submit',_value=submit_button)))
+        xfields.append(TR(' ',INPUT(_type='submit',_class='submit_button',_value=submit_button)))
         if record:
             self.components=[TABLE(*xfields),
                         INPUT(_type='hidden',_name='id',_value=record['id'])]
