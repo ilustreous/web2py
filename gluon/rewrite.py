@@ -5,11 +5,7 @@ regex_at=re.compile('\$\w+')
 def rewrite(wsgibase,URL):
     if not os.access('routes.py',os.R_OK):
 	return wsgibase,URL
-    print '***************** ATTENTION *******************'
-    print '* you are using web2py rewrite feature        *'
-    print '* the use of this feature is discouraged      *'
-    print '* unless you really know what you are doing   *'
-    print '***********************************************'
+    print '*'*40+'\nATTENTION: YOU ARE USING URL REWRITING!!\n'+'*'*40
     symbols={}
     exec(open('routes.py','r').read()) in symbols
     routes_in=[]
@@ -28,7 +24,6 @@ def rewrite(wsgibase,URL):
                 k=k.replace(item,'(?P<%s>\\w+)'%item[1:])
             for item in regex_at.findall(v):
                 v=v.replace(item,'\\g<%s>'%item[1:])
-            print k,v 
             routes_out.append((re.compile(k),v))
     def filter_in(e):
         path=e['PATH_INFO']
