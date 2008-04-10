@@ -398,7 +398,7 @@ class SQLTable(SQLStorage):
             field._db=self._db
         self.ALL=SQLALL(self)
     def __str__(self):
-        return '<table %s>' % (self._tablename)
+        return self._tablename
     def _create(self,migrate=True):
         fields=[]
         sql_fields={}
