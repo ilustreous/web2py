@@ -106,4 +106,4 @@ class XssCleaner(HTMLParser):
         return xssescape(tg.strip())
 
 def sanitize(text,permitted_tags = ['a','b','blockquote','br/','i', 'li', 'ol','ul', 'p', 'cite','code','pre','img/'],allowed_attributes={'a':['href','title'],'img':['src','alt'],'blockquote':['type']}):
-    return XssCleaner(permitted_tags=permitted_tagsa,allowed_attributes=allowed_attributes).strip(text)
+    return XssCleaner(permitted_tags=permitted_tags,allowed_attributes=allowed_attributes).strip(text)
