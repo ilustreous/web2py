@@ -11,7 +11,9 @@ def rewrite(wsgibase,URL):
     routes_in=[]
     if symbols.has_key('routes_in'):
         for k,v in symbols['routes_in']:
-            if k.find(':')<0: k='.*:%s' % k
+            if not k[0]=='^': k='^%s'%k
+            if not k[-1]=='$': k='%s$'%k
+            if k.find(':')<0: k='^.*:%s' % k[1:]
             for item in regex_at.findall(k):
                 k=k.replace(item,'(?P<%s>\\w+)'%item[1:])
             for item in regex_at.findall(v):
@@ -20,6 +22,8 @@ def rewrite(wsgibase,URL):
     routes_out=[]
     if symbols.has_key('routes_out'):
         for k,v in symbols['routes_out']:
+            if not k[0]=='^': k='^%s'%k
+            if not k[-1]=='$': k='%s$'%k
             for item in regex_at.findall(k):
                 k=k.replace(item,'(?P<%s>\\w+)'%item[1:])
             for item in regex_at.findall(v):
