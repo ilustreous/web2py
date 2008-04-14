@@ -18,7 +18,7 @@ def rewrite(wsgibase,URL):
                 k=k.replace(item,'(?P<%s>\\w+)'%item[1:])
             for item in regex_at.findall(v):
                 v=v.replace(item,'\\g<%s>'%item[1:])
-            routes_in.append((re.compile(k),v))
+            routes_in.append((re.compile(k,re.DOTALL),v))
     routes_out=[]
     if symbols.has_key('routes_out'):
         for k,v in symbols['routes_out']:
@@ -28,7 +28,7 @@ def rewrite(wsgibase,URL):
                 k=k.replace(item,'(?P<%s>\\w+)'%item[1:])
             for item in regex_at.findall(v):
                 v=v.replace(item,'\\g<%s>'%item[1:])
-            routes_out.append((re.compile(k),v))
+            routes_out.append((re.compile(k,re.DOTALL),v))
     def filter_in(e):
         path=e['PATH_INFO']
         key=e['REMOTE_ADDR']+':'+path
