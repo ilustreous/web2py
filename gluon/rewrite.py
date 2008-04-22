@@ -1,11 +1,10 @@
-import os, re
+import os, re, logging
 
 regex_at=re.compile('(?<!\\\\)\$\w+')
 
 def rewrite(wsgibase,URL):
-    if not os.access('routes.py',os.R_OK):
-	return wsgibase,URL
-    print '*'*40+'\nATTENTION: YOU ARE USING URL REWRITING!!\n'+'*'*40
+    if not os.path.exists('routes.py'): return wsgibase,URL
+    logging.warning('URL rewrite is on. configuration in route.py')
     symbols={}
     exec(open('routes.py','r').read()) in symbols
     routes_in=[]

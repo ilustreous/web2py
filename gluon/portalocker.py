@@ -37,59 +37,59 @@ Author: Jonathan Feinberg <jdf@pobox.com>
 Version: $Id: portalocker.py,v 1.3 2001/05/29 18:47:55 Administrator Exp $
 """
 
-import os
+import os, logging
 
 if os.name == 'nt':
-        import win32con
-        import win32file
-        import pywintypes
-        LOCK_EX = win32con.LOCKFILE_EXCLUSIVE_LOCK
-        LOCK_SH = 0 # the default
-        LOCK_NB = win32con.LOCKFILE_FAIL_IMMEDIATELY
-        # is there any reason not to reuse the following structure?
-        __overlapped = pywintypes.OVERLAPPED()
+    import win32con
+    import win32file
+    import pywintypes
+    LOCK_EX = win32con.LOCKFILE_EXCLUSIVE_LOCK
+    LOCK_SH = 0 # the default
+    LOCK_NB = win32con.LOCKFILE_FAIL_IMMEDIATELY
+    # is there any reason not to reuse the following structure?
+    __overlapped = pywintypes.OVERLAPPED()
+    def lock(file, flags):
+        hfile = win32file._get_osfhandle(file.fileno())
+        win32file.LockFileEx(hfile, flags, 0, 0x7fff0000, __overlapped)
+
+    def unlock(file):
+        hfile = win32file._get_osfhandle(file.fileno())
+        win32file.UnlockFileEx(hfile, 0, 0x7fff0000, __overlapped)
 elif os.name == 'posix':
-        import fcntl
+    try: import fcntl
+    except:
+         os.name="unkown"
+         logging.warning("no file locking")
+         LOCK_EX = None
+         LOCK_SH = None
+         LOCK_NB = None
+         def lock(file, flags): pass
+         def unlock(file): pass
+    else:
         LOCK_EX = fcntl.LOCK_EX
         LOCK_SH = fcntl.LOCK_SH
         LOCK_NB = fcntl.LOCK_NB
+        def lock(file, flags): fcntl.flock(file.fileno(), flags)
+        def unlock(file): fcntl.flock(file.fileno(), fcntl.LOCK_UN)
 else:
-        print 'warning, this device does not support file locking'
-        LOCK_EX = None
-        LOCK_SH = None
-        LOCK_NB = None
-
-if os.name == 'nt':
-        def lock(file, flags):
-                hfile = win32file._get_osfhandle(file.fileno())
-                win32file.LockFileEx(hfile, flags, 0, 0x7fff0000, __overlapped)
-
-        def unlock(file):
-                hfile = win32file._get_osfhandle(file.fileno())
-                win32file.UnlockFileEx(hfile, 0, 0x7fff0000, __overlapped)
-
-elif os.name =='posix':
-        def lock(file, flags):
-                fcntl.flock(file.fileno(), flags)
-
-        def unlock(file):
-                fcntl.flock(file.fileno(), fcntl.LOCK_UN)
-
-else:
-        def lock(file, flags): pass
-        def unlock(file): pass
+    logging.warning("no file locking")
+    LOCK_EX = None
+    LOCK_SH = None
+    LOCK_NB = None
+    def lock(file, flags): pass
+    def unlock(file): pass
 
 if __name__ == '__main__':
-        from time import time, strftime, localtime
-        import sys
+    from time import time, strftime, localtime
+    import sys
 
-        log = open('log.txt', "a+")
-        lock(log, LOCK_EX)
+    log = open('log.txt', "a+")
+    lock(log, LOCK_EX)
 
-        timestamp = strftime("%m/%d/%Y %H:%M:%S\n", localtime(time()))
-        log.write( timestamp )
+    timestamp = strftime("%m/%d/%Y %H:%M:%S\n", localtime(time()))
+    log.write( timestamp )
 
-        print "Wrote lines. Hit enter to release lock."
-        dummy = sys.stdin.readline()
+    print "Wrote lines. Hit enter to release lock."
+    dummy = sys.stdin.readline()
 
-        log.close()
+    log.close()

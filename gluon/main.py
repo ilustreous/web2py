@@ -7,7 +7,7 @@ License: GPL v2
 import cgi, cStringIO, Cookie, cPickle, os
 import re, copy, sys, types, time, thread
 import datetime, signal, socket, stat
-import tempfile
+import tempfile, logging
 #from wsgiref.simple_server import make_server, demo_app
 from random import random
 from storage import Storage, load_storage, save_storage
@@ -27,7 +27,8 @@ from streamer import streamer
 import html
 import validators
 import myregex
-import wsgiserver
+try: import wsgiserver
+except: logging.warning("unable to import wsgiserver")
 import portalocker
 ### contrib moduels
 import contrib.simplejson
@@ -135,7 +136,7 @@ def wsgibase(environ, responder):
             
             if len(items)>2 and items[1]=='static':
                 static_file=os.path.join(request.env.web2py_path,'applications',items[0],'static','/'.join(items[2:]))
-                if not os.access(static_file,os.R_OK): 
+                if not os.path.exists(static_file): 
                     raise HTTP(400,error_message,web2py_error='invalid application')
                 stat_file=os.stat(static_file)
                 mtime=RFC1123_DATETIME(stat_file[stat.ST_MTIME])
@@ -162,7 +163,7 @@ def wsgibase(environ, responder):
             ###################################################
             # access the requested application
             ################################################### 
-            if not os.access(request.folder,os.F_OK):
+            if not os.path.exists(request.folder):
                 if items==['init','default','index']: 
                    redirect('/welcome/default/index')
                 raise HTTP(400,error_message,web2py_error='invalid application')
@@ -254,8 +255,10 @@ def wsgibase(environ, responder):
             # on application error, rollback database
             ###################################################                
             SQLDB.close_all_instances(SQLDB.rollback)
-            ticket=e.log(request)
-            #print e.traceback
+            try: ticket=e.log(request)
+            except:
+                 ticket='unkown'
+                 logging.error(e.traceback)
             if session_file: portalocker.unlock(session_file)
             return HTTP(200,error_message_ticket % (ticket,ticket),\
                web2py_error='ticket %s'%ticket).to(responder)
@@ -270,10 +273,7 @@ def wsgibase(environ, responder):
         try: ticket=e.log(request)
         except:
             ticket='unrecoverable'
-            print '*'*10,'intenral error traceback','*'*10
-            print e.traceback
-            print '*'*49
-        #print e.traceback
+            logging.error(e.traceback)
         if session_file: portalocker.unlock(session_file)
         return HTTP(200,error_message_ticket % (ticket,ticket),
                 web2py_error='ticket %s'%ticket).to(responder)
@@ -328,7 +328,7 @@ class HttpServer(object):
         save_password(password,port)
         self.pid_filename=pid_filename
         if not server_name: server_name=socket.gethostname()
-        print 'starting web server...'        
+        logging.info('starting web server...')        
         self.server=wsgiserver.CherryPyWSGIServer((ip, port),
                     appfactory(wsgibase,log_filename,web2py_path=path),
                     numthreads=int(numthreads), server_name=server_name,
@@ -336,17 +336,17 @@ class HttpServer(object):
                     timeout=int(timeout),
                     shutdown_timeout=int(shutdown_timeout))
         if not ssl_certificate or not ssl_private_key:
-            print 'SSL is off'
+            logging.info('SSL is off')
         elif not wsgiserver.SSL:
-            print 'Error: OpenSSL libraries available. SSL is OFF'
-        elif not os.access(ssl_certificate,os.R_OK):
-            print 'Error: unable to open SSL certificate. SSL is OFF'
-        elif not os.access(ssl_private_key,os.R_OK):
-            print 'Error: unable to open SSL private key. SSL is OFF'
+            logging.warning('OpenSSL libraries available. SSL is OFF')
+        elif not os.path.exists(ssl_certificate):
+            logging.warning('unable to open SSL certificate. SSL is OFF')
+        elif not os.path.exists(ssl_private_key):
+            logging.warning('unable to open SSL private key. SSL is OFF')
         else:
             self.server.ssl_certificate=ssl_certificate
             self.server.ssl_private_key=ssl_private_key
-            print 'SSL is ON'
+            logging.info('SSL is ON')
     def start(self):
         try: signal.signal(signal.SIGTERM,lambda a,b,s=self:s.stop())
         except: pass

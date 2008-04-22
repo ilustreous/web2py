@@ -1,6 +1,6 @@
 <script type="text/javascript" src="/{{=request.application}}/static/jquery.js"></script>
 {{import os
-if os.access(os.path.join(request.folder,'static','ui.datepicker.js'),os.R_OK):}}
+if os.path.exists(os.path.join(request.folder,'static','ui.datepicker.js')):}}
 <link rel="stylesheet" href="/{{=request.application}}/static/ui.datepicker.css" type="text/css" media="screen" title="core css file" charset="utf-8" />
 <script src="/{{=request.application}}/static/ui.datepicker.js" type="text/javascript" charset="utf-8"></script>
 {{pass}}

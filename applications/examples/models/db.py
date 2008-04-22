@@ -1,4 +1,3 @@
-
 dba=SQLDB('sqlite://tests.db')
       
 dba.define_table('users',

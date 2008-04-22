@@ -7,8 +7,10 @@ def form():
                     TR("Profile",TEXTAREA(_name="profile",value="write something here")),
                     TR("",INPUT(_type="submit",_value="SUBMIT"))))
     if form.accepts(request.vars,session): 
-        response.flash="form accepted!"
+        response.flash="form accepted"
+    elif form.errors: 
+        response.flash="form is invalid"
     else: 
-        response.flash="form is invalid!"
+        response.flash="please fill the form"
     return dict(form=form,vars=form.vars)
  

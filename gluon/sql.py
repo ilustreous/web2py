@@ -6,7 +6,7 @@ License: GPL v2
 
 __all__=['SQLDB','SQLField'] 
 
-import re, sys, os, types, cPickle, datetime, thread, cStringIO, csv, copy, socket
+import re, sys, os, types, cPickle, datetime, thread, cStringIO, csv, copy, socket, logging
 
 try:
     import hashlib
@@ -19,17 +19,17 @@ try: import sqlite3
 except: 
     try:
         from pysqlite2 import dbapi2 as sqlite3 
-        sys.stderr.write('warning: importing mysqlite3.dbapi2 as sqlite3\n')
+        logging.warning('importing mysqlite3.dbapi2 as sqlite3\n')
     except:
-        sys.stderr.write('warning: no sqlite3 or dbapi2 driver\n')
+        logging.warning('no sqlite3 or dbapi2 driver\n')
 try: import MySQLdb
-except: sys.stderr.write('warning: no MySQLdb driver\n')
+except: logging.warning('no MySQLdb driver\n')
 try: import psycopg2
-except: sys.stderr.write('warning: no psycopg2 driver\n')
+except: logging.warning('no psycopg2 driver\n')
 try: 
     import cx_Oracle
-    sys.stderr.write('warning: support for Oracle is experimental')
-except: sys.stderr.write('warning: no cx_Oracle driver\n')
+    logging.warning('support for Oracle is experimental')
+except: logging.warning('no cx_Oracle driver\n')
 import portalocker
 import validators
 
@@ -439,7 +439,7 @@ class SQLTable(SQLStorage):
               '%s_%s.table' % (hash5(self._db._uri),self._tablename))        
         logfilename=os.path.join(self._db._folder,'sql.log')
         logfile=open(logfilename,'a')      
-        if not os.access(self._dbt,os.R_OK):
+        if not os.path.exists(self._dbt):
             logfile.write('timestamp: %s\n' % \
                           datetime.datetime.today().isoformat())
             logfile.write(query+'\n')

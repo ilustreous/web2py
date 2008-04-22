@@ -66,7 +66,7 @@ class translator(object):
                 if language in self.current_languages: break
                 if not regex_language.match(language): continue
                 filename=os.path.join(self.folder,'languages/','%s.py'%language)
-                if os.access(filename,os.R_OK):
+                if os.path.exists(filename):
                     self.accepted_language=language
                     self.t=eval(open(filename,'r').read())
                     return

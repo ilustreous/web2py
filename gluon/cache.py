@@ -4,7 +4,9 @@ Developed by Massimo Di Pierro <mdipierro@cs.depaul.edu>
 License: GPL v2
 """
 
-import time, portalocker, shelve, thread, cPickle, dbhash, os
+import time, portalocker, shelve, thread, cPickle, os, logging
+try: import dbhash
+except: logging.warning("unable to import dbhash")
 
 __all__=['Cache']
 
@@ -61,7 +63,8 @@ class CacheOnDisk(object):
 class Cache(object):
     def __init__(self,request):
         self.ram=CacheInRam(request)
-        self.disk=CacheOnDisk(request)
+        try: self.disk=CacheOnDisk(request)
+        except IOError: logging.warning('no cache.disk')
     def __call__(self,key=None,time_expire=300,cache_model=None):
         if not cache_model: cache_model=self.ram
         def tmp(func):

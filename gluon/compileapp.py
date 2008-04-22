@@ -11,7 +11,9 @@ from fileutils import listdir
 from myregex import regex_expose
 from http import HTTP
 from html import CODE
-import os, py_compile, marshal, imp, types, doctest
+import os, marshal, imp, types, doctest, logging
+try: import py_compile
+except: logging.warning("unable to import py_compile")
 
 error_message='<html><body><h1>Invalid request</h1>%s</body></html>'
 
@@ -99,7 +101,7 @@ def run_models_in(environment):
     """
     folder=environment['request'].folder
     path=os.path.join(folder,'compiled/')
-    if os.access(path,os.R_OK):
+    if os.path.exists(path):
          for model in listdir(path,'^models_.+\.pyc$',0):
              restricted(read_pyc(model),environment,layer=model)
     else:
@@ -116,15 +118,15 @@ def run_controller_in(controller,function,environment):
     # if compiled should run compiled!
     folder=environment['request'].folder
     path=os.path.join(folder,'compiled/')
-    if os.access(path,os.R_OK):
+    if os.path.exists(path):
         filename=os.path.join(path,'controllers_%s_%s.pyc' %(controller,function))
-        if not os.access(filename,os.R_OK): 
+        if not os.path.exists(filename):
             raise HTTP(400,error_message % 'invalid function',
                        web2py_error='invalid function')
         restricted(read_pyc(filename),environment,layer=filename)
     elif function=='_TEST':
         filename=os.path.join(folder,'controllers/%s.py' % controller)
-        if not os.access(filename,os.R_OK):
+        if not os.path.exists(filename):
             raise HTTP(400,error_message % 'invalid controller',
                        web2py_error='invalid controller')
         environment['__symbols__']=environment.keys()
@@ -133,7 +135,7 @@ def run_controller_in(controller,function,environment):
         restricted(code,environment,layer=filename)
     else:
         filename=os.path.join(folder,'controllers/%s.py' % controller)
-        if not os.access(filename,os.R_OK):
+        if not os.path.exists(filename):
             raise HTTP(400,error_message % 'invalid controller',
                        web2py_error='invalid controller')
         code=open(filename,'r').read()
@@ -159,11 +161,11 @@ def run_view_in(environment):
     folder=environment['request'].folder
     response=environment['response']
     path=os.path.join(folder,'compiled/')
-    if os.access(path,os.R_OK):
+    if os.path.exists(path):
         filename=os.path.join(path,'views_%s.pyc' % response.view[:-5].replace('/','_'))
-        if not os.access(filename,os.R_OK): 
+        if not os.path.exists(filename): 
              filename=os.path.join(folder,'compiled/','views_generic.pyc')
-        if not os.access(filename,os.R_OK): 
+        if not os.path.exists(filename): 
             raise HTTP(400,error_message % 'invalid view',
                        web2py_error='invalid view')
         code=read_pyc(filename)
@@ -171,10 +173,10 @@ def run_view_in(environment):
         restricted(code,environment,layer=filename) 
     else:
         filename=os.path.join(folder,'views/',response.view)
-        if not os.access(filename,os.R_OK):
+        if not os.path.exists(filename):
              response.view='generic.html'
         filename=os.path.join(folder,'views/',response.view)
-        if not os.access(filename,os.R_OK):
+        if not os.path.exists(filename):
              raise HTTP(400,error_message % 'invalid view',
                         web2py_error='invalid view')
         code=parse_template(response.view,os.path.join(folder,'views/'))

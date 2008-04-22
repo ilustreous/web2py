@@ -206,3 +206,12 @@ fixed bug with belongs, faster sql.py
 included jquery.js
 minor aestetical fixes
 sortable.js is gone
+
+web2py 1.29
+Now selet mutliple works with get, so does is IS_LENGTH
+Added IS_LIST_OF
+fixed problem with admin from windows and localhost
+
+web2py 1.30
+added flv to contenttype
+added support for appengine

@@ -1,5 +1,4 @@
 {{extend 'layout.html'}}
-
 <script language="Javascript" type="text/javascript" src="/{{=request.application}}/static/edit_area/edit_area_full.js"></script><script language="Javascript" type="text/javascript">
 editAreaLoader.init({id: "body",start_highlight: true,allow_resize: "both",allow_toggle: true,language: "en",syntax: "{{=filetype}}",replace_tab_by_spaces: 4});
 </script>
@@ -8,5 +7,5 @@ editAreaLoader.init({id: "body",start_highlight: true,allow_resize: "both",allow
 
 <form action="/{{=request.application}}/default/edit/{{=filename}}" method="post">
 <input type="submit" value="save"/><br/>
-<textarea cols=80 rows=25 id="body" style="width: 100%;" name="data">{{=data}}</textarea>
+<textarea cols="80" rows="25" id="body" style="width: 100%;" name="data">{{=data}}</textarea>
 </form>

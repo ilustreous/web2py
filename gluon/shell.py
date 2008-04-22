@@ -5,8 +5,10 @@
 #
 #   Distributed under the terms of the BSD license.
 
-import os, sys
+import os, sys, code, logging
 from optparse import OptionParser
+from glob import glob
+from gluon.fileutils import untar
 
 def env(app, import_models=False, dir=''):
     import gluon.html as html
@@ -46,19 +48,14 @@ def env(app, import_models=False, dir=''):
     
     if import_models:
         model_path = os.path.join(request.folder,'models', '*.py')
-        from glob import glob
         for f in glob(model_path):
             fname, ext = os.path.splitext(f)
             execfile(f, environment)
-#            print 'Imported "%s" model file' % fname
-    
     return environment
 
 def run(appname, plain=False, import_models=False, startfile=None):
-    from gluon.fileutils import untar
-    
     path=os.path.join('applications',appname)
-    if not os.access(path,os.F_OK):
+    if not os.path.exists(path):
         if raw_input('application %s does not exit, create (y/n)?' % appname).lower() in ['y','yes']:
             os.mkdir(path)
             untar('welcome.tar',path)    
@@ -82,16 +79,12 @@ def run(appname, plain=False, import_models=False, startfile=None):
                 shell.mainloop()
                 return
             except:
-                print 'error: Import IPython error, please check you installed IPython'\
-                        ' correctly, and use default python shell.'
-                
-        import code
+                logging.warning('import IPython error, use default python shell')
         try:
-            import readline
+            import readline, rlcompleter
         except ImportError:
             pass
         else:
-            import rlcompleter
             readline.set_completer(rlcompleter.Completer(_env).complete)
             readline.parse_and_bind("tab:complete")
 
