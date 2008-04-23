@@ -7,11 +7,12 @@ License: GPL v2
 __all__=['GQLDB','SQLField'] 
 
 import re, sys, os, types, cPickle, datetime, thread, cStringIO, csv, copy, socket, logging
-import validators
+import gluon.validators as validators
+import gluon.sqlhtml as sqlhtml
 from new import classobj
 from google.appengine.ext import db as google_db
 
-SQL_DIALECTS={'google':{'boolean':google_db.BooleanProperty,
+SQL_DIALECTS={'google':{'boolean':google_db.StringProperty,
                         'string':google_db.StringProperty,
                         'text':google_db.TextProperty,
                         'password':google_db.StringProperty,
@@ -245,9 +246,8 @@ class SQLField(SQLXorable):
         return value
     def __str__(self): return '%s.%s' % (self._tablename,self.name)
 
-
 def sql_represent(object,fieldtype,dbname):    
-    if object is None: return 'NULL'
+    if object is None: return ''
     if fieldtype=='boolean':
          if object and not str(object)[0].upper()=='F': return "'T'"
          else: return "'F'"
@@ -270,6 +270,9 @@ def sql_represent(object,fieldtype,dbname):
     else: object=str(object)
     return "'%s'" % object.replace("'","''").replace('\0','\\0') ### escape
 
+class QueryException:
+    def __init__(self,**a): self.__dict__=a
+
 class SQLQuery(object):
     """
     a query object necessary to define a set.
@@ -281,6 +284,11 @@ class SQLQuery(object):
     records=set.select()
     """
     def __init__(self,left,op=None,right=None):        
+        if left.name=='id':
+            if op=='=':
+                self.sql=QueryException(tablename=left._tablename,id=int(right))
+                return
+            else: raise SyntaxError, 'not supported'
         if op is None and right is None: self.sql=left
         elif right is None:
             if op=='=': 
@@ -343,12 +351,15 @@ class SQLSet(object):
     def __init__(self,db,where=''):
         self._db=db
         self._tables=[]
+        if isinstance(where.sql,QueryException):
+            self.sql_w=where.sql
+            return
         # find out wchich tables are involved
         self.sql_w=str(where)
-        #print self.sql_w
         self._tables=parse_tablenames(self.sql_w)
-        #print self._tables
     def __call__(self,where):
+        if isinstance(self.sql_w,QueryException) or\
+           isinstance(where,QueryException): raise SyntaxeError
         return SQLSet(self._db,SQLQuery(self.sql_w)&where)
     def _select(self,*fields,**attributes):
         valid_attributes=['orderby','groupby','limitby','required',
@@ -356,7 +367,8 @@ class SQLSet(object):
         if [key for key in attributes.keys() if not key in valid_attributes]:
             raise SyntaxError, 'invalid select attribute'
         ### if not fields specified take them all from the requested tables
-        if not fields: fields=[self._db[table].ALL for table in self._tables]
+        if not fields or not isinstance(fields[0],SQLALL):
+            fields=[self._db[table].ALL for table in self._tables]
         sql_f=', '.join([str(f) for f in fields])
         tablenames=parse_tablenames(self.sql_w+' '+sql_f)
         if len(tablenames)<1: raise SyntaxError, 'SQLSet: no tables selected'
@@ -390,12 +402,24 @@ class SQLSet(object):
         tablename=tablenames[0]
         q=q.replace(str(self._db[tablename].ALL),'*')
         q=q.replace('%s.'%tablename,'')
-        logging.info(q)
         return q,tablename,self._db[tablename].fields
+    def _select_except(self):
+        tablename,id=self.sql_w.tablename,self.sql_w.id
+        fields=self._db[tablename].fields
+        self.colnames=['%s.%s'%(tablename,t) for t in fields]
+        item=self._db[tablename]._tableobj.get_by_id(id)
+        new_item=[]
+        for t in fields:
+            if t=='id': new_item.append(id)
+            else: new_item.append(getattr(item,t))
+        r=[new_item]
+        return SQLRows(self._db,r,*self.colnames)
     def select(self,*fields,**attributes):
         """
         Always returns a SQLRows object, even if it may be empty
         """
+        logging.warning(self.sql_w)
+        if isinstance(self.sql_w,QueryException): return self._select_except()
         query,tablename,fields=self._select(*fields,**attributes)
         self.colnames=['%s.%s'%(tablename,t) for t in fields]
         self._db['_lastsql']=query
@@ -403,20 +427,24 @@ class SQLSet(object):
         for item in google_db.GqlQuery(query[:-1]):
             new_item=[]
             for t in fields:
-                if t=='id': new_item.append(item.key().id())
+                if t=='id': new_item.append(int(item.key().id()))
                 else: new_item.append(getattr(item,t))
             r.append(new_item)
         return SQLRows(self._db,r,*self.colnames)      
     def delete(self):
         query,tablename,fields=self._select()
-        google_db.delete(google_db.GqlQuery(query[:-1]))
+        tableobj=self._db[tablename]._tableobj
+        for item in google_db.GqlQuery(query[:-1]):
+            tableobj.get_by_id(int(item.key().id())).delete()
     def update(self,**fields):
-        for row in self.select(): row.update_record(fields)
+        raise SyntaxError, "Not supported"
 
 def update_record(t,s,id,a):
     logging.error(id)
     r=s._tableobj.get_by_id(int(id))
-    for key,value in a.items(): setattr(r,key,value)
+    for key,value in a.items():
+       setattr(t,key,value)
+       setattr(r,key,value)
     r.put()
 
 class SQLRows(object):
@@ -507,7 +535,6 @@ class SQLRows(object):
         """
         serializes the table using sqlhtml.SQLTABLE (if present)
         """
-        import sqlhtml
         return sqlhtml.SQLTABLE(self).xml() 
         
 def test_all():
