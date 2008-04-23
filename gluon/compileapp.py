@@ -179,8 +179,8 @@ def run_view_in(environment):
         if not os.path.exists(filename):
              raise HTTP(400,error_message % 'invalid view',
                         web2py_error='invalid view')
-        code=parse_template(response.view,os.path.join(folder,'views/'))
-        #response.body=restricted(code,environment,layer=filename) 
+        code=parse_template(response.view,os.path.join(folder,'views/'),
+                            context=environment)
         restricted(code,environment,layer=filename)
 
 def remove_compiled_application(folder):
