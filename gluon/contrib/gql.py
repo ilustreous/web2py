@@ -351,7 +351,7 @@ class SQLSet(object):
     def __init__(self,db,where=''):
         self._db=db
         self._tables=[]
-        if isinstance(where.sql,QueryException):
+        if hasattr(where,'sql') and isinstance(where.sql,QueryException):
             self.sql_w=where.sql
             return
         # find out wchich tables are involved
