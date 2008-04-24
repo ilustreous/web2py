@@ -393,14 +393,8 @@ class SQLSet(object):
         if attributes.has_key('limitby') and attributes['limitby']: 
             ### oracle does not support limitby
             lmin,lmax=attributes['limitby']
-            if self._db._dbname=='oracle':
-                if not attributes.has_key('orderby') or not attributes['orderby']:
-                   sql_o+=' ORDER BY %s'%', '.join([t+'.id' for t in tablenames])
-                return "SELECT %s FROM (SELECT _tmp.*, ROWNUM _row FROM (SELECT %s FROM %s%s%s) _tmp WHERE ROWNUM<%i ) WHERE _row>=%i;" %(sql_f,sql_f,sql_t,sql_w,sql_o,lmax,lmin)
-            sql_o+=' LIMIT %i OFFSET %i' % (lmax-lmin,lmin)
-        q='SELECT %s FROM %s%s%s;'%(sql_f,sql_t,sql_w,sql_o) 
         tablename=tablenames[0]
-        q=q.replace(str(self._db[tablename].ALL),'*')
+        q='SELECT * FROM %s%s%s;'%(sql_t,sql_w,sql_o) 
         q=q.replace('%s.'%tablename,'')
         return q,tablename,self._db[tablename].fields
     def _select_except(self):
