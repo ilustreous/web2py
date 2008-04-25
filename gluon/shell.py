@@ -129,7 +129,7 @@ def execute_from_command_line(argv=None):
     if len(args) > 0:
         startfile = args[0]
     else:
-        sstartfile = ''
+        startfile = ''
     run(options.shell, options.plain, startfile=startfile)
 
 if __name__ == '__main__':
