@@ -66,7 +66,7 @@ class Response(Storage):
         the file content will be streamed at 100 bytes at the time
         """
         if isinstance(stream,str):
-            stream_file_or_304_or_206(stream,request=request,chunk_size=chunk_size)
+            stream_file_or_304_or_206(stream,request=request,chunk_size=chunk_size,headers=self.headers)
         ### the following is for backward compatibility
         if hasattr(stream,'name'): filename=stream.name
         else: filename=None
