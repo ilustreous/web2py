@@ -23,7 +23,6 @@ from sql import SQLDB, SQLField
 from sqlhtml import SQLFORM, SQLTABLE
 from rewrite import rewrite
 from xmlrpc import handler
-from streamer import streamer
 import html
 import validators
 import myregex
@@ -50,9 +49,6 @@ error_message='<html><body><h1>Invalid request</h1></body></html>'
 error_message_ticket='<html><body><h1>Internal error</h1>Ticket issued: <a href="/admin/default/ticket/%s" target="_blank">%s</a></body></html>'
 
 working_folder=os.getcwd()
-
-def RFC1123_DATETIME(seconds):
-    return time.strftime("%a, %d %b %Y %H:%M:%S GMT", time.gmtime(seconds))
 
 def serve_controller(request,response,session):    
     """
@@ -106,7 +102,6 @@ def wsgibase(environ, responder):
     is requested (static or dynamical). it can be called by paste.httpserver
     or by apache mod_wsgi.
     """
-    ### os.chdir(working_folder) ### to recover if the app does chdir
     request=Request()
     response=Response()
     session=Session()
@@ -135,18 +130,9 @@ def wsgibase(environ, responder):
             ###################################################
             
             if len(items)>2 and items[1]=='static':
-                static_file=os.path.join(request.env.web2py_path,'applications',items[0],'static','/'.join(items[2:]))
-                if not os.path.exists(static_file): 
-                    raise HTTP(400,error_message,web2py_error='invalid application')
-                stat_file=os.stat(static_file)
-                mtime=RFC1123_DATETIME(stat_file[stat.ST_MTIME])
-                headers={'Content-Type':contenttype(static_file),
-                         'Content-Length':stat_file[stat.ST_SIZE],
-                         'Last-Modified':mtime}
-                if environ.get('HTTP_IF_MODIFIED_SINCE', '') == mtime:
-                    raise HTTP(304)
-                else:
-                    raise HTTP(200,streamer(open(static_file,'rb')),**headers)
+                static_file=os.path.join(request.env.web2py_path,'applications',\
+                                         items[0],'static','/'.join(items[2:]))
+                response.stream(static_file,request=request)
             ###################################################
             # parse application, controller and function
             ###################################################
@@ -269,7 +255,6 @@ def wsgibase(environ, responder):
         ###################################################
         # on application error, rollback database
         ###################################################        
-        ### os.chdir(working_folder) ### to recover if the app does chdir
         try: SQLDB.close_all_instances(SQLDB.rollback)
         except: pass
         e=RestrictedError('Framework','','',locals())

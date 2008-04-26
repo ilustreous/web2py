@@ -6,7 +6,7 @@ License: GPL v2
 
 from storage import Storage
 from compileapp import run_view_in
-from streamer import streamer
+from streamer import streamer, stream_file_or_304_or_206
 from xmlrpc import handler
 from contenttype import contenttype
 from html import xmlescape
@@ -59,12 +59,15 @@ class Response(Storage):
         run_view_in(self._view_environment)
         self.body=self.body.getvalue()
         return self.body
-    def stream(self,stream,chunk_size=10**6):
+    def stream(self,stream,chunk_size=10**6,request=None):
         """
         if a controller function
         > return response.stream(file,100)
         the file content will be streamed at 100 bytes at the time
         """
+        if isinstance(stream,str):
+            stream_file_or_304_or_206(stream,request=request,chunk_size=chunk_size)
+        ### the following is for backward compatibility
         if hasattr(stream,'name'): filename=stream.name
         else: filename=None
         keys=[item.lower() for item in self.headers.keys()]
