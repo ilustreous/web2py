@@ -10,6 +10,7 @@ from streamer import streamer, stream_file_or_304_or_206
 from xmlrpc import handler
 from contenttype import contenttype
 from html import xmlescape
+from http import HTTP
 import sys, cPickle, cStringIO, thread, time, shelve, os, stat
 
 __all__=['Request','Response','Session']
@@ -89,7 +90,7 @@ class Response(Storage):
         > connection=xmlrpclib.ServerProxy('http://hostname/app/contr/func')
         > print connection.add(3,4)        
         """
-        return handler(request,self,methods)
+        raise HTTP(200,handler(request,self,methods))
 
 class Session(Storage): 
     """
