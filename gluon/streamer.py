@@ -12,8 +12,8 @@ regex_stop_range=re.compile('(?<=\-)\d+')
 
 def streamer(file,chunk_size=10**6,bytes=None):
     offset=0
-    while offset<bytes:
-        if bytes-offset<chunk_size: chunk_size=bytes-offset
+    while bytes==None or offset<bytes:
+        if bytes!=None and bytes-offset<chunk_size: chunk_size=bytes-offset
         data=file.read(chunk_size)
         length=len(data)
         if not length: break
