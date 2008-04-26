@@ -174,6 +174,17 @@ def wsgibase(environ, responder):
             if request.env.content_length:
                 copystream(request.env.wsgi_input,request.body,
                            int(request.env.content_length))
+            ### parse GET vars, even if POST
+            dget=cgi.parse_qsl(request.env.query_string)
+            for key,value in dget:
+                if request.vars.has_key(key):
+                    if isinstance(request.vars[key],list):
+                        request.vars[key].append(value)
+                    else:
+                        request.vars[key]=[request.vars[key],value]
+                else: request.vars[key]=value
+                request.get_vars[key]=request.vars[key]
+            ### parse POST vars if any
             if request.env.request_method in ['POST', 'BOTH']:
                 dpost=cgi.FieldStorage(fp=request.body,
                                        environ=environ,keep_blank_values=1)
@@ -186,14 +197,6 @@ def wsgibase(environ, responder):
                     elif not dpk.filename: value=dpk.value
                     else: value=dpk
                     request.post_vars[key]=request.vars[key]=value
-            if request.env.request_method in ['GET', 'BOTH']:
-                dget=cgi.FieldStorage(environ=environ,keep_blank_values=1)
-                for key in dget.keys():
-                    dgk=dget[key]
-                    if isinstance(dgk,list): value=[x.value for x in dgk]
-                    else: value=dgk.value
-                    request.get_vars[key]=request.vars[key]=value
-
             ###################################################
             # load cookies
             ###################################################
