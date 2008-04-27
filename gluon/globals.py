@@ -59,7 +59,7 @@ class Response(Storage):
         for key,value in self._vars.items(): self._view_environment[key]=value
         run_view_in(self._view_environment)
         self.body=self.body.getvalue()
-        raise HTTP(self.status,self.body,**self.headers)
+        return self.body
     def stream(self,stream,chunk_size=10**6,request=None):
         """
         if a controller function
@@ -76,7 +76,8 @@ class Response(Storage):
              self.headers['Content-Type']=contenttype(filename)
         if filename and not 'content-length' in keys:
              self.headers['Content-Length']=os.stat(filename)[stat.ST_SIZE]
-        raise HTTP(self.status,streamer(stream,chunk_size),**self.headers)
+        self.body=streamer(stream,chunk_size)
+        return self.body
     def xmlrpc(self,request,methods):
         """
         assuming: 
@@ -89,7 +90,8 @@ class Response(Storage):
         > connection=xmlrpclib.ServerProxy('http://hostname/app/contr/func')
         > print connection.add(3,4)        
         """
-        raise HTTP(self.status,handler(request,self,methods),**self.headers)
+        self.body=handler(request,self,methods)
+        return self.body
 
 class Session(Storage): 
     """
