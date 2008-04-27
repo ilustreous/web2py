@@ -10,6 +10,8 @@ from contenttype import contenttype
 regex_start_range=re.compile('\d+(?=\-)')
 regex_stop_range=re.compile('(?<=\-)\d+')
 
+error_message='<html><body><h1>Invalid request</h1></body></html>'
+
 def streamer(file,chunk_size=10**6,bytes=None):
     offset=0
     while bytes==None or offset<bytes:
@@ -21,9 +23,9 @@ def streamer(file,chunk_size=10**6,bytes=None):
         if length<chunk_size: break
         offset+=length
 
-def stream_file_or_304_or_206(static_file,chunk_size=10**6,request=None,headers={}):
+def stream_file_or_304_or_206(static_file,chunk_size=10**6,request=None,headers={},error_message=error_message):
     if not os.path.exists(static_file):
-         raise HTTP(400,error_message,web2py_error='invalid application')
+         raise HTTP(400,error_message,web2py_error='invalid file')
     stat_file=os.stat(static_file)
     fsize=stat_file[stat.ST_SIZE]
     mtime=time.strftime("%a, %d %b %Y %H:%M:%S GMT", time.gmtime(stat_file[stat.ST_MTIME]))
