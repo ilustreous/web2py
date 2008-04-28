@@ -190,7 +190,7 @@ def highlight(code,language,link='/exmaples/globals/vars/',counter=1,styles={},a
         background-color: #E0E0E0;
         color: #A0A0A0;
     """
-    else: linenumbers_style=styles['LINENUMBES']
+    else: linenumbers_style=styles['LINENUMBERS']
     if language and language.upper() in ['PYTHON','C','CPP','HTML','WEB2PY']: 
         code=Highlighter(language,link,styles).highlight(code)
     else: 
