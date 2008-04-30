@@ -111,6 +111,7 @@ def tar_compiled(file,dir,expression='^.+$'):
         if file[:6]=='models': continue
         if file[:5]=='views': continue
         if file[:11]=='controllers': continue
+        if file[:7]=='modules' and file[-3:]=='.py': continue
         tar.add(dir+file,file,False)
 
 def get_session(request,other_application='admin'):
