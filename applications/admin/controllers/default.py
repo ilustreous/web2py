@@ -129,8 +129,11 @@ def pack():
         app=request.args[0]
         filename=apath('../deposit/%s.tar' % app)
         tar(filename,apath(app),'^[\w\.\-]+$')
-    except: redirect(URL(r=request,f='site'))
+    except:
+        session.flash='internal error'
+        redirect(URL(r=request,f='site'))
     response.headers['Content-Type']='application/x-tar'
+    response.headers['Content-Disposition']='attachment; filename=web2py.app.%s.tar'%app
     return open(filename,'rb').read()
 
 def pack_compiled():        
@@ -138,9 +141,12 @@ def pack_compiled():
     try: 
         app=request.args[0]
         filename=apath('../deposit/%s.tar' % app)
-        tar_compiled(apath(app),'[^[\w\.\-]+$')
-    except: redirect(URL(r=request,f='site'))
+        tar_compiled(filename,apath(app),'^[\w\.\-]+$')
+    except:
+        session.flash='internal error'
+        redirect(URL(r=request,f='site'))
     response.headers['Content-Type']='application/x-tar'
+    response.headers['Content-Disposition']='attachment; filename=web2py.app.%s.compiled.tar'%app
     return open(filename,'rb').read()
 
 def uninstall():
