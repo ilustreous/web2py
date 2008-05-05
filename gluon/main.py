@@ -216,6 +216,14 @@ def wsgibase(environ, responder):
             response.cookies[session_id_name]['path']="/"
             response.session_id_name=session_id_name
             ###################################################
+            # set no-cache headers
+            ###################################################
+            response.headers['Cache-Control']=\
+               "no-store, no-cache, must-revalidate, post-check=0, pre-check=0"
+            response.headers['Expires']=\
+               time.strftime("%a, %d %b %Y %H:%M:%S GMT",time.gmtime())
+            response.headers['Pragma']="no-cache"
+            ###################################################
             # run controller
             ###################################################
             if not items[1]=='static':

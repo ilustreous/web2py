@@ -23,10 +23,6 @@ if request.env.http_x_forwarded_for or \
    request.env.wsgi_url_scheme in ['https','HTTPS']:
     response.cookies[response.session_id_name]['secure']=True
 
-response.headers['Cache-Control']="no-store, no-cache, must-revalidate, post-check=0, pre-check=0"
-response.headers['Expires']=time.strftime("%a, %d %b %Y %H:%M:%S GMT",time.gmtime())
-response.headers['Pragma']="no-cache"
-
 ############################################################
 ### generate menu
 ############################################################
