@@ -222,19 +222,22 @@ class SQLTABLE(TABLE):
     optional arguments:
     linkto: URL to edit individual records
     uplaod: URL to download uploaded files
+    orderby: Add an orderby link to column headers.
+    headers: dictionary of headers to headers redefinions
+    truncate: length at which to truncate text in table cells.
+              Defaults to 16 characters.
     optional names attributes for passed to the <table> tag
     """
-    def __init__(self,sqlrows,linkto=None,upload=None,orderby=None,**attributes):
+    def __init__(self,sqlrows,linkto=None,upload=None,orderby=None,headers={},truncate=16,**attributes):
         TABLE.__init__(self,**attributes)
         self.components=[]
         self.attributes=attributes
         self.sqlrows=sqlrows        
         components,row=self.components,[]
         if not orderby:
-           for colname in sqlrows.colnames: row.append(TH('%s'%colname))
+           for c in sqlrows.colnames: row.append(TH(headers.get(c,c)))
         else:
-           for colname in sqlrows.colnames:
-               row.append(TH(A('%s'%colname,_href='?orderby='+colname)))
+           for c in sqlrows.colnames: row.append(TH(A(headers.get(c,c),_href='?orderby='+c)))
         components.append(THEAD(TR(*row)))
         tbody=[]
         for record in sqlrows:
@@ -252,7 +255,7 @@ class SQLTABLE(TABLE):
                     if r: row.append(TD(A('file',_href='%s/%s' % (upload,r))))
                     else: row.append(TD())
                     continue
-                if len(r)>16: r=r[:13]+'...'                
+                if len(r)>truncate: r=r[:truncate-3]+'...'                
                 if linkto and field.type=='id':
                     row.append(TD(A(r,_href='%s/%s/%s' % \
                                     (linkto,tablename,r))))
