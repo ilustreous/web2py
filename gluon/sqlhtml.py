@@ -25,6 +25,7 @@ class SQLFORM(FORM):
     
     fields: a list of fields that should be placed in the form, default is all.
     labels: a dictionary with labels for each field. keys are field names.
+    col3  : a dictionary with content for an optional third column (right of each field). keys are field names.
     linkto: the URL of a controller/function to access referencedby records
             see controller appadmin.py for examples
     upload: the URL of a controller/function to download an uploaded file
@@ -33,7 +34,15 @@ class SQLFORM(FORM):
             for example _class, _id, _style, _action,_method, etc.
 
     """
-    def __init__(self,table,record=None,deletable=False,linkto=None,upload=None,fields=None,labels=None,submit_button='Submit',delete_label='Check to delete:',showid=True,**attributes):
+    # usability improvements proposal by fpp - 4 May 2008 :
+    # - correct labels (for points to filed id, not field name)
+    # - add label for delete checkbox
+    # - add translatable label for record ID
+    # - add third column to right of fields, populated from the col3 dict
+    
+    def __init__(self,table,record=None,deletable=False,linkto=None,upload=None,fields=None,labels=None,col3={},
+                       submit_button='Submit', delete_label='Check to delete:', id_label='Record id: ',
+                       showid=True,**attributes):
         """
         SQLFORM(db.table,
                record=None,
@@ -54,7 +63,9 @@ class SQLFORM(FORM):
             if fieldname=='id':                
                 if record: 
                     if showid:
-                        xfields.append(TR(TD('Record id:'),TD(B(record['id']))))
+                        xfields.append(TR(LABEL(id_label,_for='id',_id='id__label'),\
+                                          B(record['id']),col3.get('id',''),\
+                                          _id='id__row'))
                     self.record_id=str(record['id'])
                 continue
             field=self.table[fieldname]            
@@ -65,7 +76,7 @@ class SQLFORM(FORM):
                 label=labels[fieldname]
             else: 
                 label=fieldname.replace('_',' ').capitalize()+': '
-            label=LABEL(label,_for=fieldname,_id='%s__label'%field_id)
+            label=LABEL(label,_for=field_id,_id='%s__label'%field_id)
             if field.type=='blob' or field.type=='text':
                 inp=TEXTAREA(_type='text',_id=field_id,_class=field.type,
                     _name=fieldname,value=default, requires=field.requires)
@@ -103,22 +114,21 @@ class SQLFORM(FORM):
                  inp=INPUT(_type='text', _id=field_id,_class=field.type,
                       _name=fieldname,value=str(default),
                       requires=field.requires)
-            xfields.append(TR(TD(label),TD(inp),_id=field_id+'__row'))
+            xfields.append(TR(label,inp,col3.get(fieldname,''),_id=field_id+'__row'))
         if record and linkto:
             if linkto:
                 for rtable,rfield in table._referenced_by:
                     query=urllib.quote(str(table._db[rtable][rfield]==record.id))
-                    xfields.append(TR(' ',A('%s.%s' % (rtable,rfield),
+                    lname=olname='%s.%s' % (rtable,rfield)
+                    if labels and labels.has_key(lname): lname=labels[lname]
+                    xfields.append(TR('',A(lname,
                            _class='reference',
-                           _href='%s/%s?query=%s'%(linkto,rtable,query))))
+                           _href='%s/%s?query=%s'%(linkto,rtable,query)),col3.get(olname,''),_id='%s__row'%olname.replace('.','__')))
         if record and deletable:
-            xfields.append(TR(delete_label,INPUT(_type='checkbox',
-                          _class='delete',
-                          _name='delete_this_record')))            
-        xfields.append(TR(' ',INPUT(_type='submit',_class='submit_button',_value=submit_button)))
+            xfields.append(TR(LABEL(delete_label, _for='delete_record',_id='delete_record__label'),INPUT(_type='checkbox', _class='delete', _id='delete_record', _name='delete_this_record'),col3.get('delete_record',''),_id='delete_record__row'))            
+        xfields.append(TR('',INPUT(_type='submit',_value=submit_button),col3.get('submit_button',''),_id='submit_record__row'))
         if record:
-            self.components=[TABLE(*xfields),
-                        INPUT(_type='hidden',_name='id',_value=record['id'])]
+            self.components=[TABLE(*xfields),INPUT(_type='hidden',_name='id',_value=record['id'])]
         else: self.components=[TABLE(*xfields)]
     def accepts(self,vars,session=None,formname='%(tablename)s',keepvalues=False):
         """
