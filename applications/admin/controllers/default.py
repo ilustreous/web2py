@@ -374,7 +374,7 @@ def create_file():
         open(filename,'w').write(text)
         session.flash='file "%s" created' % filename[len(path):]
     except Exception, e:
-        session.flash='cannot create file "%s"' % filename
+        session.flash='cannot create file'
     redirect(request.vars.sender)
 
 def upload_file(): 
