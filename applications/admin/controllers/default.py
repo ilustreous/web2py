@@ -57,7 +57,7 @@ except: raise HTTP(200,'admin disbaled because unable to access password file')
 ### session expiration
 ############################################################
 
-EXPIRATION=10*60 # logout after 10 minutes of inactivity
+EXPIRATION=60*60 # logout after 10 minutes of inactivity
 t0=time.time()
 if session.authorized:
     if session.last_time and session.last_time<t0-EXPIRATION:
