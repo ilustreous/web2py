@@ -40,9 +40,10 @@ class SQLFORM(FORM):
     # - add translatable label for record ID
     # - add third column to right of fields, populated from the col3 dict
     
-    def __init__(self,table,record=None,deletable=False,linkto=None,upload=None,fields=None,labels=None,col3={},
-                       submit_button='Submit', delete_label='Check to delete:', id_label='Record id: ',
-                       showid=True,**attributes):
+    def __init__(self,table,record=None,deletable=False,
+                 linkto=None,upload=None,fields=None,labels=None,col3={},
+                 submit_button='Submit', delete_label='Check to delete:', 
+                 id_label='Record id: ', showid=True,**attributes):
         """
         SQLFORM(db.table,
                record=None,
@@ -120,10 +121,13 @@ class SQLFORM(FORM):
                 for rtable,rfield in table._referenced_by:
                     query=urllib.quote(str(table._db[rtable][rfield]==record.id))
                     lname=olname='%s.%s' % (rtable,rfield)
+                    if fields and not olname in fields: continue
                     if labels and labels.has_key(lname): lname=labels[lname]
                     xfields.append(TR('',A(lname,
                            _class='reference',
-                           _href='%s/%s?query=%s'%(linkto,rtable,query)),col3.get(olname,''),_id='%s__row'%olname.replace('.','__')))
+                           _href='%s/%s?query=%s'%(linkto,rtable,query)),
+                           col3.get(olname,''),
+                           _id='%s__row'%olname.replace('.','__')))
         if record and deletable:
             xfields.append(TR(LABEL(delete_label, _for='delete_record',_id='delete_record__label'),INPUT(_type='checkbox', _class='delete', _id='delete_record', _name='delete_this_record'),col3.get('delete_record',''),_id='delete_record__row'))            
         xfields.append(TR('',INPUT(_type='submit',_value=submit_button),col3.get('submit_button',''),_id='submit_record__row'))
