@@ -60,6 +60,7 @@ class SQLFORM(FORM):
         self.record=record
         self.record_id=None
         for fieldname in self.fields:
+            if fieldname.find('.')>=0: continue
             field_id='%s_%s' % (table._tablename,fieldname)
             if fieldname=='id':                
                 if record: 

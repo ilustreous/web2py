@@ -450,25 +450,21 @@ class FORM(DIV):
         if not self.attributes.has_key('_action'): self.attributes['_action']=""
         if not self.attributes.has_key('_method'): self.attributes['_method']="post"
         if not self.attributes.has_key('_enctype'): self.attributes['_enctype']="multipart/form-data"
-    def xml(self):        
+    def xml(self):
+        newform=FORM(*self.components,**self.attributes)
+        c=newform.components
         if self.session!=None:
-           try:
-               if self.components[-1].attributes['_name']=='_form_key':
-                   self.components=self.components[:-1]
-           except: pass
            form_key='_form_key[%s]' % self.formname
            key=self.session[form_key]=str(random.random())[2:]
-           self.components.append(INPUT(_type='hidden',
-                                  _name='_form_key',_value=key))
+           c.append(INPUT(_type='hidden',_name='_form_key',_value=key))
         if self.formname!=None:
-           self.components.append(INPUT(_type='hidden',
-                                  _name='_formname',_value=self.formname))
+           c.append(INPUT(_type='hidden',_name='_formname',\
+                          _value=self.formname))
         if self.attributes.has_key('hidden'):
            hidden=self.attributes['hidden']
            for key,value in hidden.items():
-               self.components.append(INPUT(_type='hidden',
-                                      _name=key,_value=value))
-        return DIV.xml(self)
+               c.append(INPUT(_type='hidden',_name=key,_value=value))
+        return DIV.xml(newform)
 
 class BEAUTIFY(DIV):
     """
