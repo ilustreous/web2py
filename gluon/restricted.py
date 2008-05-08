@@ -58,7 +58,7 @@ def restricted(code,environment={},layer='Unkown'):
     """
     try: 
         if type(code)==types.CodeType: ccode=code
-        else: ccode=compile(code,layer,'exec')             
+        else: ccode=compile(code.replace('\r\n','\n'),layer,'exec')
         exec ccode in environment
     except Exception, exception:
         raise RestrictedError(layer,code,'',environment)
