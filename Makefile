@@ -10,7 +10,7 @@ backup:
 	mv web2py.zip ../web2py.zip.old | echo 'none'
 	cd ..; zip -r web2py.zip web2py
 all:
-	echo 'Version 1.29 ('`date +%Y-%m-%d\ %H:%M:%S`')' > VERSION
+	echo 'Version 1.32 ('`date +%Y-%m-%d\ %H:%M:%S`')' > VERSION
 	### build epydoc
 	rm -r applications/examples/static/epydoc/ | echo 'none'
 	epydoc --config epydoc.conf
@@ -48,18 +48,18 @@ all:
 	mv applications/examples/examples.tar ./
 	### build web2py_src.zip
 	mv web2py_src.zip web2py_src_old.zip | echo 'no old'
-	cd ..; zip -r web2py/web2py_src.zip web2py/gluon/*.py web2py/gluon/contrib/* web2py/*.py web2py/*.tar web2py/ABOUT  web2py/LICENSE web2py/README web2py/VERSION web2py/Makefile web2py/epydoc.css web2py/epydoc.conf
+	cd ..; zip -r web2py/web2py_src.zip web2py/gluon/*.py web2py/gluon/contrib/* web2py/*.py web2py/*.tar web2py/ABOUT  web2py/LICENSE web2py/README web2py/VERSION web2py/Makefile web2py/epydoc.css web2py/epydoc.conf web2py/app.yaml
 app:
 	rm -r dist/web2py.app | echo 'ok'
 	python setup_app.py py2app
 	zip -ry web2py_osx.zip dist/web2py.app
-	scp web2py_osx.zip notroot@140.192.34.200:~/web2py/applications/examples/static/
+	scp web2py_osx.zip toor@140.192.34.200:~/web2py/applications/examples/static/
 post:
-	rsync -avz --partial --progress -e ssh web2py_src.zip notroot@140.192.34.200:~/
+	rsync -avz --partial --progress -e ssh web2py_src.zip toor@140.192.34.200:~/
 run:
 	python web2py.py -a hello
 tunnel:
-	ssh -L 8888:140.192.34.158:8000 -l notroot 140.192.34.158
+	ssh -L 8888:140.192.34.158:8000 -l toor 140.192.34.158
 rename:
 	find . -name *.html -exec grep -l Gluon {} \; | xargs perl -pi~ -e 's/Gluon/web2py/'
 	find . -name '*.py' -exec grep -l Gluon {} \; | xargs perl -pi~ -e 's/Gluon/web2py/'

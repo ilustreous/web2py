@@ -203,7 +203,7 @@ def wsgibase(environ, responder):
                 try: 
                      session_file=open(session_filename,'rb+')
                      portalocker.lock(session_file,portalocker.LOCK_EX)
-                     session=Storage(cPickle.load(session_file))
+                     session.update(cPickle.load(session_file))
                      session_file.seek(0)
                 except:
                      if session_file: portalocker.unlock(session_file)
@@ -230,6 +230,10 @@ def wsgibase(environ, responder):
                 serve_controller(request,response,session)        
         except HTTP, http_response:
             ###################################################
+            # on sucess, tru store session in database
+            ###################################################
+            indb=session.put_in(response)
+            ###################################################
             # on sucess, committ database
             ###################################################                
             SQLDB.close_all_instances(SQLDB.commit)
@@ -238,7 +242,7 @@ def wsgibase(environ, responder):
             ###################################################
             if response.session_id:
                 http_response.headers['Set-Cookie']=[str(response.cookies[i])[11:] for i in response.cookies.keys()]
-                if session_new:
+                if session_new and not indb:
                     session_file=open(session_filename,'wb')
                     portalocker.lock(session_file,portalocker.LOCK_EX)
                 cPickle.dump(dict(session),session_file)

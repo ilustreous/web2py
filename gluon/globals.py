@@ -11,7 +11,7 @@ from xmlrpc import handler
 from contenttype import contenttype
 from html import xmlescape
 from http import HTTP
-import sys, cPickle, cStringIO, thread, time, shelve, os, stat
+import sys, cPickle, cStringIO, thread, time, shelve, os, stat, uuid
 
 __all__=['Request','Response','Session']
 
@@ -28,7 +28,6 @@ class Request(Storage):
         self.application=None
         self.function=None        
         self.args=[]
-    pass
 
 class Response(Storage):
     """
@@ -97,5 +96,32 @@ class Session(Storage):
     """
     defines the session object and the default values of its members (None)
     """
-    pass
+    def get_from(self,field,request,master=None):
+        if not master==request.application: master=request.application
+        session_id_name='session_id_%s'%master
+        try:
+             key=request.cookies[session_id_name].value
+             session_id,key1=key.split(':')
+             if session_id=='0': raise Exception
+             rows=field._table._db(field._table.id==session_id).select()
+             if len(rows)==0: raise Exception
+             key2,session=cPickle.loads(rows[0][field.name])
+             if key1!=key2: raise Exception
+        except Exception, e:
+             session_id,key1,session=None,str(uuid.uuid4()),{}
+        self._dbfield_and_key=(session_id_name,field,session_id,key1)
+        self.update(session)
+    def put_in(self,response):
+        if self._dbfield_and_key:
+            session_id_name,field,session_id,key1=self._dbfield_and_key
+            del self._dbfield_and_key
+            dd={field.name:cPickle.dumps((key1,dict(self)))}
+            if session_id:
+                field._table._db(field._table.id==session_id).update(**dd)
+            else:
+                session_id=field._table.insert(**dd)
+            response.cookies[session_id_name]='%s:%s' % (session_id,key1)
+            response.cookies[session_id_name]['path']="/"
+            return True
+        return False
 
