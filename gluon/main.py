@@ -41,7 +41,7 @@ __all__=['wsgibase', 'save_password', 'appfactory', 'HttpServer']
 
 ### Security Checks: validate URL and session_id here, accept_language is validated in languages
 # pattern to find valid paths in url /application/controller/...
-regex_url=re.compile('(?:^$)|(?:^(\w+/?){0,3}$)|(?:^(\w+/){3}\w+(/?\.?[\w\-\.]+)*/?$)|(?:^(\w+)/static(/\.?[\w\-\.]+)*/?$)')
+regex_url=re.compile('(?:^$)|(?:^\w+/?$)|(?:^\w+/\w+/?$)|(?:^(\w+/){2}\w+/?$)|(?:^(\w+/){2}\w+(/[\w\-]+(\.[\w\-]+)*)+$)|(?:^(\w+)/static(/[\w\-]+(\.[\w\-]+)*)+$)')
 # patter used to validate session ids
 regex_session_id=re.compile('([0-9]+\.)+[0-9]+')
 
