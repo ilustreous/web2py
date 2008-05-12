@@ -344,7 +344,7 @@ class INPUT(DIV):
                    del self.attributes['_checked']
             elif self.attributes['_type'].lower()=='radio' and \
                  self.attributes.has_key('_value'):
-                   if self.attributes['value']==self.attributes['_value']:
+                   if str(self.attributes['value'])==str(self.attributes['_value']):
                        self.attributes['_checked']=ON
                    elif self.attributes.has_key('_checked'): 
                        del self.attributes['_checked']
@@ -421,7 +421,7 @@ class SELECT(INPUT):
                 components.append(OPTION(c,_value=str(c)))
             if self.attributes.has_key('value') and \
                self.attributes['value']!=None and \
-               self.attributes['value']==components[-1].attributes['_value']:
+               str(self.attributes['value'])==str(components[-1].attributes['_value']):
                 components[-1].attributes['_selected']=ON
         self.components=components
 
