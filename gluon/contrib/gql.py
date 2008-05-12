@@ -308,9 +308,9 @@ class SQLQuery(object):
         else:
             right=sql_represent(right,left.type,left._db._dbname)
             self.sql='%s%s%s' % (left,op,right)
-    def __and__(self,other): return SQLQuery('(%s AND %s)'%(self,other))
-    def __or__(self,other): return SQLQuery('(%s OR %s)'%(self,other))
-    def __invert__(self): return SQLQuery('(NOT %s)'%self)
+    def __and__(self,other): return SQLQuery('%s AND %s'%(self,other))
+    # def __or__(self,other): return SQLQuery('(%s) OR (%s)'%(self,other))
+    # def __invert__(self): return SQLQuery('(NOT %s)'%self)
     def __str__(self): return self.sql
 
 regex_tables=re.compile('(?P<table>[a-zA-Z]\w*)\.')
