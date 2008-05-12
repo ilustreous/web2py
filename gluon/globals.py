@@ -122,7 +122,7 @@ class Session(Storage):
                      response.session_id=None
             if not response.session_id:
                 response.session_id=request.env.remote_addr+'.'+str(int(time.time()))+'.'+str(random.random())[2:]
-                response.session_filename=os.path.join(request.folder,'sessions',response.session_id)
+                response.session_filename=os.path.join(request.folder,'..',masterapp,'sessions',response.session_id)
                 response.session_new=True
         else:
              table=db.define_table(tablename,
