@@ -48,10 +48,10 @@ def try_start_browser(url):
 
 def start_browser(ip,port):
     print 'please visit:'
-    print '\thttp://%s:%s/welcome' % (ip,port)
+    print '\thttp://%s:%s' % (ip,port)
     print 'starting browser...in 5 seconds'
     time.sleep(5)
-    try_start_browser('http://%s:%s/welcome'%(ip,port))
+    try_start_browser('http://%s:%s'%(ip,port))
 
 def presentation(root):
         root.withdraw()
@@ -343,7 +343,7 @@ def start():
     ### start server
     ip,port=options.ip,int(options.port)
     print 'please visit:'
-    print '\thttp://%s:%s/welcome' % (ip,port)
+    print '\thttp://%s:%s' % (ip,port)
     print 'use "kill -SIGTERM %i" to shutdown the web2py server'  % os.getpid()
     server=HttpServer(ip=ip,port=port,password=options.password,
                       pid_filename=options.pid_filename,

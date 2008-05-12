@@ -11,7 +11,12 @@ from xmlrpc import handler
 from contenttype import contenttype
 from html import xmlescape
 from http import HTTP
-import sys, cPickle, cStringIO, thread, time, shelve, os, stat, uuid
+from sql import SQLField
+import portalocker
+import sys, cPickle, cStringIO, thread, time, shelve, os, stat, uuid,datetime,re,random
+now=datetime.datetime.today()
+
+regex_session_id=re.compile('([0-9:]+\.)+[0-9]+')
 
 __all__=['Request','Response','Session']
 
@@ -96,32 +101,77 @@ class Session(Storage):
     """
     defines the session object and the default values of its members (None)
     """
-    def get_from(self,field,request,master=None):
-        if not master==request.application: master=request.application
-        session_id_name='session_id_%s'%master
-        try:
-             key=request.cookies[session_id_name].value
-             session_id,key1=key.split(':')
-             if session_id=='0': raise Exception
-             rows=field._table._db(field._table.id==session_id).select()
-             if len(rows)==0: raise Exception
-             key2,session=cPickle.loads(rows[0][field.name])
-             if key1!=key2: raise Exception
-        except Exception, e:
-             session_id,key1,session=None,str(uuid.uuid4()),{}
-        self._dbfield_and_key=(session_id_name,field,session_id,key1)
-        self.update(session)
-    def put_in(self,response):
-        if self._dbfield_and_key:
-            session_id_name,field,session_id,key1=self._dbfield_and_key
-            del self._dbfield_and_key
-            dd={field.name:cPickle.dumps((key1,dict(self)))}
-            if session_id:
-                field._table._db(field._table.id==session_id).update(**dd)
-            else:
-                session_id=field._table.insert(**dd)
-            response.cookies[session_id_name]='%s:%s' % (session_id,key1)
-            response.cookies[session_id_name]['path']="/"
-            return True
-        return False
-
+    def connect(self,request,response,db=None,tablename='web2py_session',masterapp=None):
+        if response.session_file: del response.session_file
+        if not masterapp: masterapp=request.application
+        response.session_id_name='session_id_%s'%masterapp
+        if not db:
+            if request.cookies.has_key(response.session_id_name):
+                response.session_id=request.cookies[response.session_id_name].value
+                if regex_session_id.match(response.session_id):
+                     response.session_filename=os.path.join(request.folder,'sessions',response.session_id)
+                else: response.session_id=None
+            if response.session_id:
+                try:
+                     response.session_file=open(response.session_filename,'rb+')
+                     portalocker.lock(response.session_file,portalocker.LOCK_EX)
+                     self.update(cPickle.load(response.session_file))
+                     response.session_file.seek(0)
+                except:
+                     if response.session_file: portalocker.unlock(response.session_file)
+                     response.session_id=None
+            if not response.session_id:
+                response.session_id=request.env.remote_addr+'.'+str(int(time.time()))+'.'+str(random.random())[2:]
+                response.session_filename=os.path.join(request.folder,'sessions',response.session_id)
+                response.session_new=True
+        else:
+             table=db.define_table(tablename,
+                 SQLField('locked',default=False),
+                 SQLField('client_ip'),
+                 SQLField('created_datetime','datetime',default=now),
+                 SQLField('modified_datetime'),
+                 SQLField('unique_key'),
+                 SQLField('session_data','text'))
+             try:
+                 key=request.cookies[response.session_id_name].value
+                 record_id,unique_key=key.split(':')
+                 if record_id=='0': raise Exception
+                 rows=db(table.id==record_id).select()
+                 if len(rows)==0 or rows[0].unique_key!=unique_key:
+                     raise Exception                 
+                 rows[0].update_record(locked=True)
+                 session_data=cPickle.loads(rows[0].session_data)
+             except Exception, e:
+                 record_id,unique_key,session_data=None,str(uuid.uuid4()),{}
+             response._dbtable_and_field=(response.session_id_name,table,record_id,unique_key)
+             self.update(session_data)
+             response.session_id='%s:%s' % (record_id,unique_key)
+        response.cookies[response.session_id_name]=response.session_id
+        response.cookies[response.session_id_name]['path']="/"
+    def secure(self):
+        self._secure=True
+    def forget(self):
+        self._forget=True
+    def try_store_in_db(self,request,response):      
+        if not response._dbtable_and_field or not response.session_id or self._forget: return
+        record_id_name,table,record_id,unique_key=response._dbtable_and_field
+        dd=dict(locked=False,
+                client_ip=request.env.client_addr,
+                modified_datetime=now,
+                session_data=cPickle.dumps(dict(self)),
+                unique_key=unique_key)
+        if record_id:
+            table._db(table.id==record_id).update(**dd)
+        else:
+            record_id=table.insert(**dd)
+        response.cookies[response.session_id_name]='%s:%s' % (record_id,unique_key)
+        response.cookies[response.session_id_name]['path']="/"
+    def try_store_on_disk(self,request,response):        
+        if response._dbtable_and_field or not response.session_id or self._forget:
+            if response.session_file: del response.session_file
+            return
+        if response.session_new:
+            response.session_file=open(response.session_filename,'wb')
+            portalocker.lock(response.session_file,portalocker.LOCK_EX)
+        cPickle.dump(dict(self),response.session_file)
+        del response.session_file

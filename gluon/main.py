@@ -43,7 +43,6 @@ __all__=['wsgibase', 'save_password', 'appfactory', 'HttpServer']
 # pattern to find valid paths in url /application/controller/...
 regex_url=re.compile('(?:^$)|(?:^\w+/?$)|(?:^\w+/\w+/?$)|(?:^(\w+/){2}\w+/?$)|(?:^(\w+/){2}\w+(/[\w\-]+(\.[\w\-]+)*)+$)|(?:^(\w+)/static(/[\w\-]+(\.[\w\-]+)*)+$)')
 # patter used to validate session ids
-regex_session_id=re.compile('([0-9]+\.)+[0-9]+')
 
 error_message='<html><body><h1>Invalid request</h1></body></html>'
 error_message_ticket='<html><body><h1>Internal error</h1>Ticket issued: <a href="/admin/default/ticket/%s" target="_blank">%s</a></body></html>'
@@ -193,6 +192,8 @@ def wsgibase(environ, responder):
             ###################################################
             # try load session or create new session file
             ###################################################
+            session.connect(request,response)
+            """
             session_id_name='session_id_%s'%request.application
             if request.cookies.has_key(session_id_name):
                 response.session_id=request.cookies[session_id_name].value
@@ -215,6 +216,7 @@ def wsgibase(environ, responder):
             response.cookies[session_id_name]=response.session_id
             response.cookies[session_id_name]['path']="/"
             response.session_id_name=session_id_name
+            """
             ###################################################
             # set no-cache headers
             ###################################################
@@ -230,22 +232,28 @@ def wsgibase(environ, responder):
                 serve_controller(request,response,session)        
         except HTTP, http_response:
             ###################################################
-            # on sucess, tru store session in database
+            # on sucess, try store session in database
             ###################################################
-            indb=session.put_in(response)
+            session.try_store_in_db(request,response)
             ###################################################
             # on sucess, committ database
             ###################################################                
             SQLDB.close_all_instances(SQLDB.commit)
             ###################################################
-            # save cookies is session (static files do not have a session)
+            # if session not in db try store session on filesystem
             ###################################################
+            session.try_store_on_disk(request,response)
+            """
             if response.session_id:
-                http_response.headers['Set-Cookie']=[str(response.cookies[i])[11:] for i in response.cookies.keys()]
                 if session_new and not indb:
                     session_file=open(session_filename,'wb')
                     portalocker.lock(session_file,portalocker.LOCK_EX)
                 cPickle.dump(dict(session),session_file)
+            """
+            ###################################################
+            # store cookies in headers
+            ###################################################
+            http_response.headers['Set-Cookie']=[str(cookie)[11:] for cookie in response.cookies.values()]
             ###################################################   
             # whatever happens return the intended HTTP response
             ###################################################                
