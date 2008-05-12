@@ -268,7 +268,7 @@ def sql_represent(object,fieldtype,dbname):
          if isinstance(object,datetime.time): object=object.strftime('%H:%M:%S')
          else: object=str(object)
     else: object=str(object)
-    return "'%s'" % object.replace("'","''").replace('\0','\\0') ### escape
+    return "'%s'" % object.replace("'","''")  ### escape
 
 class QueryException:
     def __init__(self,**a): self.__dict__=a
@@ -391,11 +391,14 @@ class SQLSet(object):
         if attributes.has_key('orderby') and attributes['orderby']: 
             sql_o+=' ORDER BY %s'% attributes['orderby']
         if attributes.has_key('limitby') and attributes['limitby']: 
-            ### oracle does not support limitby
             lmin,lmax=attributes['limitby']
         tablename=tablenames[0]
         q='SELECT * FROM %s%s%s;'%(sql_t,sql_w,sql_o) 
-        q=q.replace('%s.'%tablename,'')
+        p=None
+        regex_undot=re.compile("^(?P<a>(([^']*'){2})*[^']*)(?P<b>%s\.)(?P<c>.*)$"%tablename)
+        while p!=q:
+           p=q
+           q=regex_undot.sub('\g<a>\g<c>',p)
         return q,tablename,self._db[tablename].fields
     def _select_except(self):
         tablename,id=self.sql_w.tablename,self.sql_w.id
@@ -430,16 +433,20 @@ class SQLSet(object):
         tableobj=self._db[tablename]._tableobj
         for item in google_db.GqlQuery(query[:-1]):
             tableobj.get_by_id(int(item.key().id())).delete()
-    def update(self,**fields):
-        raise SyntaxError, "Not supported"
+    def update(self,**update_fields):
+        query,tablename,fields=self._select()
+        tableobj=self._db[tablename]._tableobj
+        for item in google_db.GqlQuery(query[:-1]):
+            for key,value in update_fields.items():
+                setattr(item,key,value)
+            item.put()
 
 def update_record(t,s,id,a):
-    logging.error(id)
-    r=s._tableobj.get_by_id(int(id))
+    item=s._tableobj.get_by_id(int(id))
     for key,value in a.items():
-       setattr(t,key,value)
-       setattr(r,key,value)
-    r.put()
+       t[key]=value
+       setattr(item,key,value)
+    item.put()
 
 class SQLRows(object):
     ### this class still needs some work to care for ID/OID
