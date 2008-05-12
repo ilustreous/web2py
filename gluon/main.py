@@ -193,30 +193,6 @@ def wsgibase(environ, responder):
             # try load session or create new session file
             ###################################################
             session.connect(request,response)
-            """
-            session_id_name='session_id_%s'%request.application
-            if request.cookies.has_key(session_id_name):
-                response.session_id=request.cookies[session_id_name].value
-                if regex_session_id.match(response.session_id):
-                     session_filename=os.path.join(request.folder,'sessions',response.session_id)
-                else: response.session_id=None            
-            if response.session_id:
-                try: 
-                     session_file=open(session_filename,'rb+')
-                     portalocker.lock(session_file,portalocker.LOCK_EX)
-                     session.update(cPickle.load(session_file))
-                     session_file.seek(0)
-                except:
-                     if session_file: portalocker.unlock(session_file)
-                     response.session_id=None
-            if not response.session_id:
-                response.session_id=request.env.remote_addr+'.'+str(int(time.time()))+'.'+str(random())[2:]
-                session_filename=os.path.join(request.folder,'sessions',response.session_id)
-                session_new=True
-            response.cookies[session_id_name]=response.session_id
-            response.cookies[session_id_name]['path']="/"
-            response.session_id_name=session_id_name
-            """
             ###################################################
             # set no-cache headers
             ###################################################
@@ -234,7 +210,7 @@ def wsgibase(environ, responder):
             ###################################################
             # on sucess, try store session in database
             ###################################################
-            session.try_store_in_db(request,response)
+            session._try_store_in_db(request,response)
             ###################################################
             # on sucess, committ database
             ###################################################                
@@ -242,18 +218,14 @@ def wsgibase(environ, responder):
             ###################################################
             # if session not in db try store session on filesystem
             ###################################################
-            session.try_store_on_disk(request,response)
-            """
-            if response.session_id:
-                if session_new and not indb:
-                    session_file=open(session_filename,'wb')
-                    portalocker.lock(session_file,portalocker.LOCK_EX)
-                cPickle.dump(dict(session),session_file)
-            """
+            session._try_store_on_disk(request,response)
             ###################################################
             # store cookies in headers
             ###################################################
-            http_response.headers['Set-Cookie']=[str(cookie)[11:] for cookie in response.cookies.values()]
+            if session._secure:
+                response.cookies[response.session_id_name]['secure']=True
+            http_response.headers['Set-Cookie']=\
+                [str(cookie)[11:] for cookie in response.cookies.values()]
             ###################################################   
             # whatever happens return the intended HTTP response
             ###################################################                

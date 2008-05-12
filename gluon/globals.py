@@ -109,7 +109,7 @@ class Session(Storage):
             if request.cookies.has_key(response.session_id_name):
                 response.session_id=request.cookies[response.session_id_name].value
                 if regex_session_id.match(response.session_id):
-                     response.session_filename=os.path.join(request.folder,'sessions',response.session_id)
+                     response.session_filename=os.path.join(request.folder,'..',masterapp,'sessions',response.session_id)
                 else: response.session_id=None
             if response.session_id:
                 try:
@@ -152,7 +152,7 @@ class Session(Storage):
         self._secure=True
     def forget(self):
         self._forget=True
-    def try_store_in_db(self,request,response):      
+    def _try_store_in_db(self,request,response):      
         if not response._dbtable_and_field or not response.session_id or self._forget: return
         record_id_name,table,record_id,unique_key=response._dbtable_and_field
         dd=dict(locked=False,
@@ -166,7 +166,7 @@ class Session(Storage):
             record_id=table.insert(**dd)
         response.cookies[response.session_id_name]='%s:%s' % (record_id,unique_key)
         response.cookies[response.session_id_name]['path']="/"
-    def try_store_on_disk(self,request,response):        
+    def _try_store_on_disk(self,request,response):        
         if response._dbtable_and_field or not response.session_id or self._forget:
             if response.session_file: del response.session_file
             return
