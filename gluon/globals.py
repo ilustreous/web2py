@@ -156,7 +156,7 @@ class Session(Storage):
         if not response._dbtable_and_field or not response.session_id or self._forget: return
         record_id_name,table,record_id,unique_key=response._dbtable_and_field
         dd=dict(locked=False,
-                client_ip=request.env.client_addr,
+                client_ip=request.env.remote_addr,
                 modified_datetime=now,
                 session_data=cPickle.dumps(dict(self)),
                 unique_key=unique_key)
