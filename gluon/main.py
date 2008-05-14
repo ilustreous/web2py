@@ -229,7 +229,7 @@ def wsgibase(environ, responder):
             ###################################################   
             # whatever happens return the intended HTTP response
             ###################################################                
-            if session_file: portalocker.unlock(session_file)
+            session._unlock(response)
             return http_response.to(responder)
         except RestrictedError, e:
             ###################################################
@@ -240,7 +240,7 @@ def wsgibase(environ, responder):
             except:
                  ticket='unkown'
                  logging.error(e.traceback)
-            if session_file: portalocker.unlock(session_file)
+            session._unlock(response)
             return HTTP(200,error_message_ticket % (ticket,ticket),\
                web2py_error='ticket %s'%ticket).to(responder)
     except Exception, exception:
@@ -254,7 +254,7 @@ def wsgibase(environ, responder):
         except:
             ticket='unrecoverable'
             logging.error(e.traceback)
-        if session_file: portalocker.unlock(session_file)
+        session._unlock(response)
         return HTTP(200,error_message_ticket % (ticket,ticket),
                 web2py_error='ticket %s'%ticket).to(responder)
 

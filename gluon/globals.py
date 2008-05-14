@@ -102,7 +102,7 @@ class Session(Storage):
     defines the session object and the default values of its members (None)
     """
     def connect(self,request,response,db=None,tablename='web2py_session',masterapp=None):
-        if response.session_file: del response.session_file
+        self._unlock(response)
         if not masterapp: masterapp=request.application
         response.session_id_name='session_id_%s'%masterapp
         if not db:
@@ -118,7 +118,7 @@ class Session(Storage):
                      self.update(cPickle.load(response.session_file))
                      response.session_file.seek(0)
                 except:
-                     if response.session_file: portalocker.unlock(response.session_file)
+                     portalocker.unlock(response.session_file)
                      response.session_id=None
             if not response.session_id:
                 response.session_id=request.env.remote_addr+'.'+str(int(time.time()))+'.'+str(random.random())[2:]
@@ -168,10 +168,14 @@ class Session(Storage):
         response.cookies[response.session_id_name]['path']="/"
     def _try_store_on_disk(self,request,response):        
         if response._dbtable_and_field or not response.session_id or self._forget:
-            if response.session_file: del response.session_file
+            self._unlock(response)
             return
         if response.session_new:
             response.session_file=open(response.session_filename,'wb')
             portalocker.lock(response.session_file,portalocker.LOCK_EX)
         cPickle.dump(dict(self),response.session_file)
-        del response.session_file
+        self._unlock(response)
+    def _unlock(self,response):
+        if response.session_file:
+            portalocker.unlock(response.session_file)
+            del response.session_file
