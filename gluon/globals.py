@@ -118,7 +118,7 @@ class Session(Storage):
                      self.update(cPickle.load(response.session_file))
                      response.session_file.seek(0)
                 except:
-                     portalocker.unlock(response.session_file)
+                     self._unlock(response)
                      response.session_id=None
             if not response.session_id:
                 response.session_id=request.env.remote_addr+'.'+str(int(time.time()))+'.'+str(random.random())[2:]

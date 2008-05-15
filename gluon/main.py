@@ -28,7 +28,6 @@ import validators
 import myregex
 try: import wsgiserver
 except: logging.warning("unable to import wsgiserver")
-import portalocker
 ### contrib moduels
 import contrib.simplejson
 import contrib.pyrtf
