@@ -133,6 +133,7 @@ class IS_NOT_IN_DB(object):
         self.field=field
         self.error_message=error_message
         self.record_id=0
+    def set_self_id(self,id): self.record_id=id
     def __call__(self,value):        
         fieldname=str(self.field)
         id_field='%s.id' % fieldname[:fieldname.find('.')]
@@ -315,6 +316,9 @@ class IS_UPPER(object):
 class IS_NULL_OR(object):
     def __init__(self,other,null=None):
         self.other,self.null=other,null
+    def set_self_id(self,id):
+        if hasattr(self.other,'set_self_id'):
+            self.other.set_self_id(id)
     def __call__(self,value):
         if not value: return (self.null,None)
         return self.other(value)

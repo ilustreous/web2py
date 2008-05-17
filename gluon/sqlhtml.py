@@ -156,8 +156,8 @@ class SQLFORM(FORM):
                     try: field.requires=list(field.requires)
                     except TypeError: field.requires=[field.requires]
                 for item in field.requires:                    
-                    if isinstance(item,IS_NOT_IN_DB):
-                        item.record_id=self.record_id
+                    if hasattr(item,'set_self_id'):
+                        item.set_self_id(self.record_id)
             ### END
             fields={}
             for key in self.vars.keys(): fields[key]=self.vars[key]            
