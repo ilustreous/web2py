@@ -6,7 +6,7 @@ License: GPL v2
 
 __all__=['SQLDB','SQLField'] 
 
-import re, sys, os, types, cPickle, datetime, thread, cStringIO, csv, copy, socket, logging
+import re, sys, os, types, cPickle, datetime, thread, cStringIO, csv, copy, socket, logging, copy_reg
 
 try:
     import hashlib
@@ -365,6 +365,31 @@ class SQLDB(SQLStorage):
         self['_lastsql']=query
         self._execute(query)
         return self._cursor.fetchall()
+    def __getstate__(self): return dict()
+
+def unpickle_SQLDB(state):
+    logging.warning('unpickling SQLDB objects is experimental')
+    db=SQLDB(state['uri'])
+    for k,d in state['tables']:
+        db.define_table(k,*[SQLField(**i) for i in d],**dict(migrate=False))
+    return db
+
+def pickle_SQLDB(db):
+    logging.warning('pickling SQLDB objects is experimental')
+    tables=[]
+    for k in db.values():
+        if not isinstance(k,SQLTable): continue
+        fields=[]
+        for f in k.values():
+            if not isinstance(f,SQLField) or f.name=='id': continue
+            fields.append(dict(fieldname=f.name,type=f.type,
+                 length=f.length,default=f.default,required=f.required,
+                 requires=f.requires,ondelete=f.ondelete,
+                 notnull=f.notnull,unique=f.notnull))
+        tables.append((k._tablename,fields))
+    return unpickle_SQLDB, (dict(uri=db._uri,tables=tables),)
+
+copy_reg.pickle(SQLDB, pickle_SQLDB)
 
 class SQLALL(object):
     def __init__(self,table): 
