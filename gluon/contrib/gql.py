@@ -485,7 +485,7 @@ class SQLRows(object):
                 row[tablename][fieldname]=rid
                 #row[tablename][fieldname]=SQLSet(self._db[referee].id==rid)
             elif field.type=='boolean' and value!=None:
-                if value=='T': row[tablename][fieldname]=True
+                if value==True or value=='T': row[tablename][fieldname]=True
                 else: row[tablename][fieldname]=False
             elif field.type=='date' and value!=None and not isinstance(value,datetime.date):
                 y,m,d=[int(x) for x in str(value).strip().split('-')]
