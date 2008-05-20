@@ -171,12 +171,12 @@ def uninstall():
 def cleanup():        
     """ admin controller function """
     app=request.args[0]
-    files=listdir(apath('%s/errors/' % app),'',0)
+    files=listdir(apath('%s/errors/' % app),'^\d.*$',0)
     for file in files: os.unlink(file)
-    files=listdir(apath('%s/sessions/' % app),'',0)
+    files=listdir(apath('%s/sessions/' % app),'\d.*',0)
     for file in files: os.unlink(file)
     session.flash="cache, errors and sessions cleaned"
-    files=listdir(apath('%s/cache/' % app),'',0)
+    files=listdir(apath('%s/cache/' % app),'cache.*',0)
     for file in files: 
         try: os.unlink(file)
         except: session.flash="cache is in use, errors and sessions cleaned"

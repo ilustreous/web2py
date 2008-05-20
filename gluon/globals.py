@@ -126,10 +126,10 @@ class Session(Storage):
                 response.session_new=True
         else:
              table=db.define_table(tablename,
-                 SQLField('locked',default=False),
+                 SQLField('locked','boolean',default=False),
                  SQLField('client_ip'),
                  SQLField('created_datetime','datetime',default=now),
-                 SQLField('modified_datetime'),
+                 SQLField('modified_datetime','datetime'),
                  SQLField('unique_key'),
                  SQLField('session_data','text'))
              try:
@@ -138,7 +138,7 @@ class Session(Storage):
                  if record_id=='0': raise Exception
                  rows=db(table.id==record_id).select()
                  if len(rows)==0 or rows[0].unique_key!=unique_key:
-                     raise Exception                 
+                     raise Exception, "No record"
                  rows[0].update_record(locked=True)
                  session_data=cPickle.loads(rows[0].session_data)
              except Exception, e:
