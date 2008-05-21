@@ -662,7 +662,7 @@ class SQLField(SQLXorable):
     def __init__(self,fieldname,type='string',
                  length=32,default=None,required=False,
                  requires=sqlhtml_validators,ondelete='CASCADE',
-                 notnull=False,unique=False,uploadfield=None):
+                 notnull=False,unique=False,uploadfield=True):
         self.name=cleanup(fieldname)
         if fieldname in dir(SQLTable) or fieldname[0]=='_':
             raise SyntaxError, 'SQLField: invalid field name'
