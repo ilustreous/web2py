@@ -6,7 +6,8 @@ License: GPL v2
 
 __all__=['SQLDB','SQLField'] 
 
-import re, sys, os, types, cPickle, datetime, thread, cStringIO, csv, copy, socket, logging, copy_reg
+import re, sys, os, types, cPickle, datetime, thread, cStringIO
+import csv, copy, socket, logging, copy_reg, base64
 
 try:
     import hashlib
@@ -141,29 +142,31 @@ def sqlhtml_validators(field_type,length):
     try: return v[field_type[:9]]
     except KeyError: return []
 
-def sql_represent(object,fieldtype,dbname):    
-    if object is None: return 'NULL'
+def sql_represent(obj,fieldtype,dbname):    
+    if obj is None: return 'NULL'
     if fieldtype=='boolean':
-         if object and not str(object)[0].upper()=='F': return "'T'"
+         if obj and not str(obj)[0].upper()=='F': return "'T'"
          else: return "'F'"
-    if fieldtype[0]=='i': return str(int(object))
-    elif fieldtype[0]=='r': return str(int(object))
-    elif fieldtype=='double': return str(float(object))
-    if isinstance(object,unicode): object=object.encode('utf-8')
-    if fieldtype=='date':
-         if isinstance(object,(datetime.date,datetime.datetime)): object=object.strftime('%Y-%m-%d')
-         else: object=str(object)
-         if dbname=='oracle': return "to_date('%s','yyyy-mm-dd')" % object
+    if fieldtype[0]=='i': return str(int(obj))
+    elif fieldtype[0]=='r': return str(int(obj))
+    elif fieldtype=='double': return str(float(obj))
+    if isinstance(obj,unicode): obj=obj.encode('utf-8')
+    if fieldtype=='blob':
+         obj=base64.b64encode(str(obj))
+    elif fieldtype=='date':
+         if isinstance(obj,(datetime.date,datetime.datetime)): obj=obj.strftime('%Y-%m-%d')
+         else: obj=str(obj)
+         if dbname=='oracle': return "to_date('%s','yyyy-mm-dd')" % obj
     elif fieldtype=='datetime':
-         if isinstance(object,datetime.datetime): object=object.strftime('%Y-%m-%d %H:%M:%S')
-         elif isinstance(object,datetime.date): object=object.strftime('%Y-%m-%d 00:00:00')
-         else: object=str(object)
-         if dbname=='oracle': return "to_date('%s','yyyy-mm-dd hh24:mi:ss')" % object
+         if isinstance(obj,datetime.datetime): obj=obj.strftime('%Y-%m-%d %H:%M:%S')
+         elif isinstance(obj,datetime.date): obj=obj.strftime('%Y-%m-%d 00:00:00')
+         else: obj=str(obj)
+         if dbname=='oracle': return "to_date('%s','yyyy-mm-dd hh24:mi:ss')" % obj
     elif fieldtype=='time':
-         if isinstance(object,datetime.time): object=object.strftime('%H:%M:%S')
-         else: object=str(object)
-    else: object=str(object)
-    return "'%s'" % object.replace("'","''").replace('\0','\\0') ### escape
+         if isinstance(obj,datetime.time): obj=obj.strftime('%H:%M:%S')
+         else: obj=str(obj)
+    else: obj=str(obj)
+    return "'%s'" % obj.replace("'","''")
 
 def cleanup(text):
     if re.compile('[^0-9a-zA-Z_]').findall(text):
@@ -385,7 +388,7 @@ def pickle_SQLDB(db):
             fields.append(dict(fieldname=f.name,type=f.type,
                  length=f.length,default=f.default,required=f.required,
                  requires=f.requires,ondelete=f.ondelete,
-                 notnull=f.notnull,unique=f.notnull))
+                 notnull=f.notnull,unique=f.notnull),uploadfield=f.uploadfield)
         tables.append((k._tablename,fields))
     return unpickle_SQLDB, (dict(uri=db._uri,tables=tables),)
 
@@ -643,7 +646,7 @@ class SQLField(SQLXorable):
 
     example:
 
-    a=SQLField(name,'string',length=32,required=False,default=None,requires=IS_NOT_EMPTY(),notnull=False,unique=False)
+    a=SQLField(name,'string',length=32,required=False,default=None,requires=IS_NOT_EMPTY(),notnull=False,unique=False,uloadfield=None)
     
     to be used as argument of SQLDB.define_table
 
@@ -659,7 +662,7 @@ class SQLField(SQLXorable):
     def __init__(self,fieldname,type='string',
                  length=32,default=None,required=False,
                  requires=sqlhtml_validators,ondelete='CASCADE',
-                 notnull=False,unique=False):
+                 notnull=False,unique=False,uploadfield=None):
         self.name=cleanup(fieldname)
         if fieldname in dir(SQLTable) or fieldname[0]=='_':
             raise SyntaxError, 'SQLField: invalid field name'
@@ -674,6 +677,7 @@ class SQLField(SQLXorable):
         self.ondelete=ondelete.upper()     # this is for reference fields only
         self.notnull=notnull
         self.unique=unique
+        self.uploadfield=uploadfield
         if requires==sqlhtml_validators: requires=sqlhtml_validators(type,length)
         elif requires is None: requires=[]
         self.requires=requires             # list of validators
@@ -911,6 +915,8 @@ class SQLRows(object):
                 rid=value
                 row[tablename][fieldname]=rid
                 #row[tablename][fieldname]=SQLSet(self._db[referee].id==rid)
+            elif field.type=='blob' and value!=None:
+                row[tablename][fieldname]=base64.b64decode(value)
             elif field.type=='boolean' and value!=None:
                 if value==True or value=='T' or value=='t':
                     row[tablename][fieldname]=True

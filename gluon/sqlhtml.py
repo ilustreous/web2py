@@ -5,7 +5,7 @@ License: GPL v2
 """
 
 import urllib, random, re, sys, os, shutil, cStringIO
-from html import FORM,INPUT,TEXTAREA,SELECT,OPTION,TABLE,TR,TD,TH,A,B,DIV,LABEL,ON,TAG,THEAD,TBODY
+from html import FORM,INPUT,TEXTAREA,SELECT,OPTION,TABLE,TR,TD,TH,A,B,DIV,LABEL,ON,TAG,THEAD,TBODY,B
 from validators import IS_IN_SET, IS_NOT_IN_DB, CRYPT
 from sql import SQLStorage
 
@@ -79,9 +79,11 @@ class SQLFORM(FORM):
             else: 
                 label=fieldname.replace('_',' ').capitalize()+': '
             label=LABEL(label,_for=field_id,_id='%s__label'%field_id)
-            if field.type=='blob' or field.type=='text':
+            if field.type=='text':
                 inp=TEXTAREA(_type='text',_id=field_id,_class=field.type,
                     _name=fieldname,value=default, requires=field.requires)
+            elif field.type=='blob':
+                inp=B('<blob>')
             elif field.type=='upload':
                 inp=INPUT(_type='file',_id=field_id,_class=field.type,
                           _name=fieldname, requires=field.requires)
@@ -188,19 +190,21 @@ class SQLFORM(FORM):
                     if f!='':
                         newfilename='%s.%s.%s%s'%(self.table._tablename, \
                                     fieldname,str(random.random())[2:],e)
-                        pathfilename=os.path.join(self.table._db._folder,\
-                                    '../uploads/',newfilename)
-                        dest_file=open(pathfilename,'wb')
-                        shutil.copyfileobj(source_file,dest_file)
-                        dest_file.close()
                         fields[fieldname]=newfilename
+                        if field.uploadfield==True:
+                            pathfilename=os.path.join(self.table._db._folder,'../uploads/',newfilename)
+                            dest_file=open(pathfilename,'wb')
+                            shutil.copyfileobj(source_file,dest_file)
+                            dest_file.close()
+                        elif field.uploadfield:
+                            fields[field.uploadfield]=source_file.read()
                     else:
                         fd=fieldname+'__delete'
                         if (vars.has_key(fd) and vars[fd]=='on') or not self.record:  
                             fields[fieldname]=''
                         else: 
                             fields[fieldname]=self.record[fieldname]
-                        continue
+                    continue
                 elif vars.has_key(fieldname): fields[fieldname]=vars[fieldname]
                 elif field.default==None: return False                
                 if field.type[:9] in ['integer', 'reference']:
