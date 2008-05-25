@@ -14,7 +14,7 @@ dba.define_table('dogs',
 
 dba.define_table('products',
                 SQLField('name'),
-                SQLField('description','blob'))
+                SQLField('description','text'))
 
 # MANY (users) TO MANY (purchases)
 dba.define_table('purchases',
