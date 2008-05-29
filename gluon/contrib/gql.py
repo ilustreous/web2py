@@ -91,6 +91,7 @@ class GQLDB(SQLStorage):
         else: raise SyntaxError, "table already defined"
         t=self[tablename]=GQLTable(self,tablename,*fields)
         t._create()
+        return t
     def __call__(self,where=''):
         return SQLSet(self,where)
 
