@@ -218,7 +218,7 @@ class IS_URL(IS_MATCH):
     INPUT(_type='text',_name='name',requires=IS_URL())
     """
     def __init__(self,error_message='invalid url!'):
-        IS_MATCH.__init__(self,'^http\://(\w+.)*(\w+)$',error_message)
+        IS_MATCH.__init__(self,'^(http|HTTP|https|HTTPS|ftp|FTP|file|FILE|rstp|RSTP)\://(\w+.)*(\w+)$',error_message)
 
 class IS_TIME(object):
     """
