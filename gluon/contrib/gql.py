@@ -402,11 +402,13 @@ class SQLSet(object):
            p=q
            q=regex_undot.sub('\g<a>\g<c>',p)
         return q,tablename,self._db[tablename].fields
-    def _select_except(self):
+    def _getitem_exception(self):
         tablename,id=self.sql_w.tablename,self.sql_w.id
         fields=self._db[tablename].fields
         self.colnames=['%s.%s'%(tablename,t) for t in fields]
-        item=self._db[tablename]._tableobj.get_by_id(id)
+        return self._db[tablename]._tableobj.get_by_id(id),fields
+    def _select_except(self):
+        item,fields=self._getitem_exception()
         new_item=[]
         for t in fields:
             if t=='id': new_item.append(id)
@@ -417,7 +419,6 @@ class SQLSet(object):
         """
         Always returns a SQLRows object, even if it may be empty
         """
-        logging.warning(self.sql_w)
         if isinstance(self.sql_w,QueryException): return self._select_except()
         query,tablename,fields=self._select(*fields,**attributes)
         self.colnames=['%s.%s'%(tablename,t) for t in fields]
@@ -431,17 +432,27 @@ class SQLSet(object):
             r.append(new_item)
         return SQLRows(self._db,r,*self.colnames)      
     def delete(self):
-        query,tablename,fields=self._select()
-        tableobj=self._db[tablename]._tableobj
-        for item in google_db.GqlQuery(query[:-1]):
-            tableobj.get_by_id(int(item.key().id())).delete()
+        if isinstance(self.sql_w,QueryException):
+            item,fields=self._getitem_exception()
+            item.delete()
+        else:
+            query,tablename,fields=self._select()
+            tableobj=self._db[tablename]._tableobj
+            for item in google_db.GqlQuery(query[:-1]):
+                tableobj.get_by_id(int(item.key().id())).delete()
     def update(self,**update_fields):
-        query,tablename,fields=self._select()
-        tableobj=self._db[tablename]._tableobj
-        for item in google_db.GqlQuery(query[:-1]):
+        if isinstance(self.sql_w,QueryException):
+            item,fields=self._getitem_exception()
             for key,value in update_fields.items():
                 setattr(item,key,value)
             item.put()
+        else:
+            query,tablename,fields=self._select()
+            tableobj=self._db[tablename]._tableobj
+            for item in google_db.GqlQuery(query[:-1]):
+                for key,value in update_fields.items():
+                    setattr(item,key,value)
+                item.put()
 
 def update_record(t,s,id,a):
     item=s._tableobj.get_by_id(int(id))
