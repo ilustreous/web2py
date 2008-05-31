@@ -434,6 +434,7 @@ class SQLSet(object):
     def delete(self):
         if isinstance(self.sql_w,QueryException):
             item,fields=self._getitem_exception()
+            if not item: return
             item.delete()
         else:
             query,tablename,fields=self._select()
@@ -443,6 +444,7 @@ class SQLSet(object):
     def update(self,**update_fields):
         if isinstance(self.sql_w,QueryException):
             item,fields=self._getitem_exception()
+            if not item: return
             for key,value in update_fields.items():
                 setattr(item,key,value)
             item.put()
