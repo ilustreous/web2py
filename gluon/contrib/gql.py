@@ -163,6 +163,9 @@ class SQLTable(SQLStorage):
         # nothing to do, here for backward compatility
         pass
     def insert(self,**fields):
+        for field in self.fields:
+            if not fields.has_key(field) and self[field].default!=None:
+                fields[field]=self[field].default
         tmp=self._tableobj(**fields)
         tmp.put()
         return tmp.key().id()
