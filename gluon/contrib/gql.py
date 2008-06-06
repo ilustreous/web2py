@@ -434,6 +434,8 @@ class SQLSet(object):
                 else: new_item.append(getattr(item,t))
             r.append(new_item)
         return SQLRows(self._db,r,*self.colnames)      
+    def count(self):
+        return len(self.select().response)
     def delete(self):
         if isinstance(self.sql_w,QueryException):
             item,fields=self._getitem_exception()

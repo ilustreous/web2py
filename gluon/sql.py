@@ -849,6 +849,10 @@ class SQLSet(object):
              key=self._db._uri+'/'+query
              r=cache_model(key,lambda:response(query),time_expire)
         return SQLRows(self._db,r,*self.colnames)      
+    def _count(self):
+        return self._select('count(*)')
+    def count(self):
+        return self.select('count(*)').response[0][0]
     def _delete(self):
         if len(self._tables)!=1:
             raise SyntaxError, 'SQLSet: unable to determine what to delete'
