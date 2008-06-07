@@ -22,7 +22,7 @@ re_strings=re.compile(PY_STRING_LITERAL_RE,re.DOTALL)
 
 re_include_nameless=re.compile('\{\{\s*include\s*\}\}')
 re_include=re.compile('\{\{\s*include\s+(?P<name>.+?)\s*\}\}',re.DOTALL)
-re_extend=re.compile('^\s*\{\{\s*extend\s+(?P<name>.+?)\s*\}\}',re.DOTALL)
+re_extend=re.compile('\{\{\s*extend\s+(?P<name>.+?)\s*\}\}',re.DOTALL)
 
 def reindent(text):
     lines=text.split('\n')
@@ -74,8 +74,8 @@ def parse_template(filename,path='views/',cache='cache/',context=dict()):
         t=os.path.join(path,eval(match.group('name'),context))
         try: parent=open(t,'rb').read()
         except IOError: raise RestrictedError('Processing View '+filename,data,'','Unable to open parent view file: '+t)
-        data=re_include_nameless.sub(re_extend.sub('',data,1),parent)
-
+        a,b=match.start(),match.end()
+        data=data[0:a]+re_include_nameless.sub(data[b:],parent)
     ##
     # check whether it includes subtemplates
     ##
