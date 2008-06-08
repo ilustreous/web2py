@@ -58,7 +58,11 @@ class Highlighter(object):
         if style and style[:5]=='link:':
             self.change_style(None,None)
             url,style=style[5:].split(';',1)
-            self.output.append('<a href="%s%s" style="%s">%s</a>' % (url,value,style,value))
+            if url=='None' or url=='': 
+                self.output.append('<span style="%s">%s</span>'%(style,value))
+            else:
+                self.output.append('<a href="%s%s" style="%s">%s</a>' % \
+                                   (url,value,style,value))
         else:
             self.change_style(token,style)
             self.output.append( value)
