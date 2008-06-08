@@ -14,7 +14,7 @@ from http import HTTP
 from sql import SQLField
 import portalocker
 import sys, cPickle, cStringIO, thread, time, shelve, os, stat, uuid
-import datetime,re,random, logging
+import datetime,re,random
 now=datetime.datetime.today()
 
 regex_session_id=re.compile('([0-9:]+\.)+[0-9]+')
@@ -137,7 +137,6 @@ class Session(Storage):
                  key=request.cookies[response.session_id_name].value
                  record_id,unique_key=key.split(':')
                  if record_id=='0': raise Exception
-                 logging.error('record_id:'+str(record_id))
                  rows=db(table.id==record_id).select()
                  if len(rows)==0 or rows[0].unique_key!=unique_key:
                      raise Exception, "No record"
@@ -145,7 +144,6 @@ class Session(Storage):
                  session_data=cPickle.loads(rows[0].session_data) 
                  self.update(session_data)
              except Exception, e:
-                 logging.error('session: no load')
                  record_id,unique_key,session_data=None,str(uuid.uuid4()),{}
              finally:
                  response._dbtable_and_field=(response.session_id_name,table,record_id,unique_key)
@@ -165,10 +163,8 @@ class Session(Storage):
                 session_data=cPickle.dumps(dict(self)),
                 unique_key=unique_key)
         if record_id:
-            logging.error('session: update')
             table._db(table.id==record_id).update(**dd)
         else:
-            logging.error('session: insert')
             record_id=table.insert(**dd)
         response.cookies[response.session_id_name]='%s:%s' % (record_id,unique_key)
         response.cookies[response.session_id_name]['path']="/"
