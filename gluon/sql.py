@@ -646,7 +646,7 @@ class SQLField(SQLXorable):
 
     example:
 
-    a=SQLField(name,'string',length=32,required=False,default=None,requires=IS_NOT_EMPTY(),notnull=False,unique=False,uloadfield=None)
+    a=SQLField(name,'string',length=32,required=False,default=None,requires=IS_NOT_EMPTY(),notnull=False,unique=False,uploadfield=None)
     
     to be used as argument of SQLDB.define_table
 

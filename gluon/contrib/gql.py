@@ -414,7 +414,7 @@ class SQLSet(object):
         item,fields=self._getitem_exception()
         new_item=[]
         for t in fields:
-            if t=='id': new_item.append(id)
+            if t=='id': new_item.append(int(item.key().id()))
             else: new_item.append(getattr(item,t))
         r=[new_item]
         return SQLRows(self._db,r,*self.colnames)
