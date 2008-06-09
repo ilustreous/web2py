@@ -83,7 +83,7 @@ class SQLFORM(FORM):
                 inp=TEXTAREA(_type='text',_id=field_id,_class=field.type,
                     _name=fieldname,value=default, requires=field.requires)
             elif field.type=='blob':
-                inp=B('<blob>')
+                continue
             elif field.type=='upload':
                 inp=INPUT(_type='file',_id=field_id,_class=field.type,
                           _name=fieldname, requires=field.requires)
@@ -206,7 +206,7 @@ class SQLFORM(FORM):
                             fields[fieldname]=self.record[fieldname]
                     continue
                 elif vars.has_key(fieldname): fields[fieldname]=vars[fieldname]
-                elif field.default==None: return False                
+                elif field.default==None: return False
                 if field.type[:9] in ['integer', 'reference']:
                     if fields[fieldname]!=None:
                         fields[fieldname]=int(fields[fieldname])
