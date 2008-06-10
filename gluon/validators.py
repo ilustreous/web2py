@@ -1,6 +1,7 @@
 """
 This file is part of web2py Web Framework (Copyrighted, 2007)
 Developed by Massimo Di Pierro <mdipierro@cs.depaul.edu>
+Thanks to ga2arch for help with IS_IN_DB and IS_NOT_IN_DB on GAE
 License: GPL v2
 """
 
@@ -115,8 +116,14 @@ def IS_IN_DB(dbset,field,label=None,error_message='value not in database!'):
     ks=re.compile('%\((?P<name>[^\)]+)\)s').findall(label)    
     if not kfield in ks: ks+=[kfield]
     fields=['%s.%s'%(ktable,k) for k in ks]    
-    records=dbset.select(*fields,**dict(orderby=', '.join(fields)))
-    theset=[r[kfield] for r in records]    
+    if dbset._db._dbname!='gql':
+        dd=dict(orderby=', '.join(fields))
+        records=dbset.select(*fields,**dd)
+    else:
+        dd=dict(orderby=', '.join([k for k in ks if k!='id']))
+        if not dd: dd=None
+        records=dbset.select(dbset._db[ktable].ALL,**dd)
+    theset=[r[kfield] for r in records]
     labels=[label % dict(r) for r in records]
     return IS_IN_SET(theset,labels,error_message)
 
@@ -129,19 +136,17 @@ class IS_NOT_IN_DB(object):
     makes the field unique
     """
     def __init__(self,dbset,field,error_message='value already in database!'):
-        self.dbset=dbset
+        try: self.dbset=dbset()
+        except TypeError: self.dbset=dbset
         self.field=field
         self.error_message=error_message
         self.record_id=0
     def set_self_id(self,id): self.record_id=id
     def __call__(self,value):        
-        fieldname=str(self.field)
-        id_field='%s.id' % fieldname[:fieldname.find('.')]
-        value_field=gluon.sql.sql_represent(value,'string',None)
-        if not self.record_id: value_id='0'
-        else: value_id=gluon.sql.sql_represent(self.record_id,'integer',None)
-        fetched=self.dbset("%s=%s AND %s<>%s" % (fieldname,value_field,id_field,value_id)).select('count(*)')
-        if fetched[0]['count(*)']==0: return (value,None)
+        tablename,fieldname=str(self.field).split('.')
+        db=self.dbset._db        
+        rows=db(db[tablename][fieldname]==value).select(limitby=(0,1))
+        if len(rows)==0 or rows[0].id==self.record_id: return (value,None)
         return (value,self.error_message)
 
 class IS_INT_IN_RANGE(object):
