@@ -55,7 +55,7 @@ def URL(a=None,c=None,f=None,r=None,args=[],vars={}):
     url='/%s/%s/%s%s' % (application, controller, function, other)
     return url
 
-ON=None
+ON=True
 
 class XML(object):
     """
@@ -137,13 +137,18 @@ class DIV(object):
             if hasattr(c,'rec_accepts'): c.rec_accepts(vars)            
     def _xml(self):
         items=self.attributes.items()
-        fa=' '.join([key[1:].lower() for key,value in items if key[:1]=='_' and value==None]+['%s="%s"' % (key[1:].lower(),xmlescape(value,True)) for key,value in items if key[:1]=='_' and value!=None])
-        if fa: fa=' '+fa
+        fa=''
+        for key,value in items:
+             if key[:1]!='_': continue
+             name=key[1:].lower()
+             if value is True: value=name
+             elif value is False or value is None: continue  
+             fa+=' %s="%s"'%(name,xmlescape(value,True))
         co=''.join([xmlescape(component) for component in self.components])
         return fa,co
     def xml(self):
         fa,co=self._xml()
-        if self.tag[-1]=='/': return '<%s%s/>' % (self.tag[:-1],fa)
+        if self.tag[-1]=='/': return '<%s%s />' % (self.tag[:-1],fa)
         return '<%s%s>%s</%s>' % (self.tag,fa,co,self.tag)
     def __str__(self):
         return self.xml()
@@ -216,7 +221,7 @@ class P(DIV):
              text=text.replace('\n','<br/>')
         return text
 
-class B(DIV): tag='B'
+class B(DIV): tag='b'
 
 class BR(DIV): tag='br/'
 

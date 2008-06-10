@@ -11,13 +11,23 @@ from gluon.contrib.markdown import WIKI
 from gluon.compileapp import compile_application, remove_compiled_application
 import time,os,sys,re,urllib,socket
 
+
 ############################################################
 ### make sure administrator is on localhost
 ############################################################
 
 http_host = request.env.http_host.split(':')[0]
+
+try:
+     from gluon.contrib.gql import GQLDB
+     session_db=GQLDB()
+     session.connect(request,response,db=session_db)
+     hosts=(http_host,)
+except:
+     hosts=(http_host,socket.gethostname(),socket.gethostbyname(http_host))
+
 remote_addr = request.env.remote_addr
-if remote_addr not in (http_host,socket.gethostname(),socket.gethostbyname(http_host)):
+if remote_addr not in hosts:
     raise HTTP(200,'Admin is disabled because unsecure channel')
 if request.env.http_x_forwarded_for or \
    request.env.wsgi_url_scheme in ['https','HTTPS']:
@@ -51,7 +61,7 @@ try:
     restricted(open(apath('../parameters_%i.py'%port),'r').read(),_config)
     if not _config.has_key('password') or not _config['password']:
         raise HTTP(200,'admin disabled because no admin password')
-except: raise HTTP(200,'admin disbaled because unable to access password file')
+except: raise HTTP(200,'admin disabled because unable to access password file')
 
 ############################################################
 ### session expiration
@@ -302,7 +312,7 @@ def design():
     app=request.args[0] 
     if not response.slash and app==request.application:
         response.flash='ATTENTION: you cannot edit the running application!'
-    if os.access(apath('%s/compiled' % app),os.R_OK):
+    if os.path.exists(apath('%s/compiled' % app)):
         session.flash='application is compiled and cannot be designed'
         redirect(URL(r=request,f='site'))
     models=listdir(apath('%s/models/' % app), '.*\.py$')
@@ -365,7 +375,7 @@ def create_file():
         filename=os.path.join(path,filename)
         dirpath=os.path.dirname(filename)
         if not os.path.exists(dirpath): os.makedirs(dirpath)
-        if os.access(filename,os.R_OK): raise SyntaxError
+        if os.path.exists(filename): raise SyntaxError
         open(filename,'w').write(text)
         session.flash='file "%s" created' % filename[len(path):]
     except Exception, e:
