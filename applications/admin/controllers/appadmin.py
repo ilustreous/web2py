@@ -8,7 +8,9 @@ import gluon.fileutils
 
 http_host = request.env.http_host.split(':')[0]
 remote_addr = request.env.remote_addr
-if remote_addr not in (http_host, socket.gethostbyname(remote_addr)):
+try: hosts=(http_host, socket.gethostbyname(remote_addr))
+except: hosts=(http_host,)
+if remote_addr not in hosts:
     raise HTTP(400)
 if not gluon.fileutils.check_credentials(request):
     redirect('/admin')
@@ -56,7 +58,19 @@ def insert():
 
 def download():
     import os
-    filename=os.path.join(request.folder,'uploads/','%s' % request.args[0])
+    dbname=request.args[0]
+    ### for GAE only ###
+    tablename,fieldname=request.args[1].split('.')[:2]
+    uploadfield=eval(dbname)[tablename][fieldname].uploadfield
+    filename=request.args[1]
+    if isinstance(uploadfield,str):
+        from gluon.contenttype import contenttype
+        response.headers['Content-Type']=contenttype(filename)
+        db=eval(dbname)
+        rows=db(db[tablename][fieldname]==filename).select()
+        return rows[0][uploadfield]
+    ### end for GAE ###
+    filename=os.path.join(request.folder,'uploads/',filename)
     return response.stream(open(filename,'rb'))
 
 def csv():
@@ -138,7 +152,7 @@ def select():
         response.flash='invalid SQL FILTER'
         return dict(records='no records',nrecords=0,query=query,start=0)
     linkto=URL(r=request,f='update',args=[dbname])
-    upload=URL(r=request,f='download')
+    upload=URL(r=request,f='download',args=[dbname])
     return dict(start=start,query=query,orderby=orderby, \
                 nrecords=len(records),\
                 records=SQLTABLE(records,linkto,upload,orderby=True,_class='sortable'))
@@ -163,7 +177,7 @@ def update():
         redirect(URL(r=request,f='select/%s/%s'%(dbname,table)))
     form=SQLFORM(db[table],record,deletable=True,
                  linkto=URL(r=request,f='select',args=[dbname]),
-                 upload=URL(r=request,f='download'))
+                 upload=URL(r=request,f='download',args=[dbname]))
     if form.accepts(request.vars,session): 
         response.flash='done!'        
         redirect(URL(r=request,f='select/%s/%s'%(dbname,table)))

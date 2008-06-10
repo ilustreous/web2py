@@ -146,8 +146,9 @@ class IS_NOT_IN_DB(object):
         tablename,fieldname=str(self.field).split('.')
         db=self.dbset._db        
         rows=db(db[tablename][fieldname]==value).select(limitby=(0,1))
-        if len(rows)==0 or rows[0].id==self.record_id: return (value,None)
-        return (value,self.error_message)
+        if len(rows)>0 and rows[0].id!=int(self.record_id): 
+            return (value,self.error_message)
+        return (value,None)
 
 class IS_INT_IN_RANGE(object):
     """
