@@ -794,7 +794,8 @@ class SQLSet(object):
         self._tables=parse_tablenames(self.sql_w)
         #print self._tables
     def __call__(self,where):
-        return SQLSet(self._db,SQLQuery(self.sql_w)&where)
+        if self.sql_w: return SQLSet(self._db,SQLQuery(self.sql_w)&where)
+        else: SQLSet(self._db,where)
     def _select(self,*fields,**attributes):
         valid_attributes=['orderby','groupby','limitby','required',
                           'default','requires','left']

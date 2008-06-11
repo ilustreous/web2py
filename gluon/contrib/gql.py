@@ -367,7 +367,8 @@ class SQLSet(object):
     def __call__(self,where):
         if isinstance(self.sql_w,QueryException) or\
            isinstance(where,QueryException): raise SyntaxeError
-        return SQLSet(self._db,SQLQuery(self.sql_w)&where)
+        if self.sql_w: return SQLSet(self._db,SQLQuery(self.sql_w)&where)
+        else: SQLSet(self._db,where)
     def _select(self,*fields,**attributes):
         valid_attributes=['orderby','groupby','limitby','required',
                           'default','requires','left']
