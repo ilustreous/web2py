@@ -271,7 +271,7 @@ class IS_DATE(object):
     def __call__(self,value):
         try:
             y, m, d, hh, mm, ss, t0, t1, t2=time.strptime(value,str(self.format))
-            value=datetime.date(y,m,d).isoformat()            
+            value=datetime.date(y,m,d)
             return (value,None)
         except:
             return (value,self.error_message)
@@ -293,7 +293,7 @@ class IS_DATETIME(object):
     def __call__(self,value):
         try:
             y, m, d, hh, mm, ss, t0, t1, t2=time.strptime(value,str(self.format))
-            value=datetime.datetime(y,m,d,hh,mm,ss).strftime(self.isodatetime)
+            value=datetime.datetime(y,m,d,hh,mm,ss)
             return (value,None)
         except:
             return (value,self.error_message)

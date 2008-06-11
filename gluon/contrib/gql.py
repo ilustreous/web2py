@@ -256,8 +256,8 @@ class SQLField(SQLXorable):
 def sql_represent(object,fieldtype,dbname):    
     if object is None: return ''
     if fieldtype=='boolean':
-         if object and not str(object)[0].upper()=='F': return "'T'"
-         else: return "'F'"
+         if object and not str(object)[0].upper()=='F': return "'TRUE'"
+         else: return "'FALSE'"
     if fieldtype[0]=='i': return str(int(object))
     elif fieldtype[0]=='r': return str(int(object))
     elif fieldtype=='double': return str(float(object))
@@ -265,8 +265,6 @@ def sql_represent(object,fieldtype,dbname):
     if fieldtype=='date':
          if isinstance(object,(datetime.date,datetime.datetime)): object=object.strftime('%Y-%m-%d')
          else: object=str(object)
-         if dbname=='oracle': return "to_date('%s','yyyy-mm-dd')" % object
-    elif fieldtype=='datetime':
          if isinstance(object,datetime.datetime): object=object.strftime('%Y-%m-%d %H:%M:%S')
          elif isinstance(object,datetime.date): object=object.strftime('%Y-%m-%d 00:00:00')
          else: object=str(object)
