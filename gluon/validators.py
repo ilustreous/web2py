@@ -146,7 +146,7 @@ class IS_NOT_IN_DB(object):
         tablename,fieldname=str(self.field).split('.')
         db=self.dbset._db        
         rows=db(db[tablename][fieldname]==value).select(limitby=(0,1))
-        if len(rows)>0 and rows[0].id!=int(self.record_id): 
+        if len(rows)>0 and str(rows[0].id)!=str(self.record_id): 
             return (value,self.error_message)
         return (value,None)
 
