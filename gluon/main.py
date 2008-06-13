@@ -159,7 +159,7 @@ def wsgibase(environ, responder):
                 copystream(request.env.wsgi_input,request.body,
                            int(request.env.content_length))
             ### parse GET vars, even if POST
-            dget=cgi.parse_qsl(request.env.query_string)
+            dget=cgi.parse_qsl(request.env.query_string,keep_blank_values=1)
             for key,value in dget:
                 if request.vars.has_key(key):
                     if isinstance(request.vars[key],list):
