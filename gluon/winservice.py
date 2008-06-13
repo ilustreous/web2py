@@ -11,6 +11,7 @@ import win32event
 import servicemanager
 import _winreg
 from main import HttpServer
+from fileutils import up
 
 __all__=['web2py_windows_service_handler']
 
@@ -96,7 +97,7 @@ class Web2pyService(Service):
 
 def web2py_windows_service_handler(argv=None, opt_file='options'):
     path = os.path.dirname(__file__)
-    classstring = os.path.normpath(os.path.join(path, '../gluon.winservice.Web2pyService'))
+    classstring = os.path.normpath(os.path.join(up(path), 'gluon.winservice.Web2pyService'))
     if opt_file:
         Web2pyService._exe_args_ = opt_file
         win32serviceutil.HandleCommandLine(Web2pyService, serviceClassString=classstring,argv=['', 'install'])

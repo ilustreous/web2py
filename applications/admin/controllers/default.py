@@ -52,8 +52,11 @@ response.menu.append(('help',False,'/examples/default/index'))
 ### exposed functions
 ############################################################
 
-def apath(path=''): 
-    return os.path.join(request.folder,'..',path).replace('\\','/')
+def apath(path=''):
+    from gluon.fileutils import up
+    opath=up(request.folder)
+    while path[:3]=='../': opath,path=up(opath),path[3:]
+    return os.path.join(opath,path).replace('\\','/')
 
 try:
     _config={}

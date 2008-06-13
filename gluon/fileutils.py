@@ -114,12 +114,16 @@ def tar_compiled(file,dir,expression='^.+$'):
         if file[:7]=='modules' and file[-3:]=='.py': continue
         tar.add(dir+file,file,False)
 
+def up(path):
+    return os.path.dirname(os.path.normpath(path))
+
+
 def get_session(request,other_application='admin'):
     """ checks that user is authorized to access other_application""" 
     if request.application==other_application: raise KeyError
     try:
         session_id=request.cookies['session_id_'+other_application].value
-        osession=storage.load_storage(os.path.join(request.folder,'..',
+        osession=storage.load_storage(os.path.join(up(request.folder),
                                       other_application,'sessions',session_id))
     except: osession=storage.Storage()
     return osession

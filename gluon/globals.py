@@ -12,6 +12,7 @@ from contenttype import contenttype
 from html import xmlescape
 from http import HTTP
 from sql import SQLField
+from fileutils import up
 import portalocker
 import sys, cPickle, cStringIO, thread, time, shelve, os, stat, uuid
 import datetime,re,random
@@ -38,7 +39,7 @@ class Request(Storage):
 class Response(Storage):
     """
     defines the response object and the default values of its members
-    response.write(....) can be used to write in the output html
+    response.write(   ) can be used to write in the output html
     """
     def __init__(self):
         self.status=200
@@ -110,7 +111,7 @@ class Session(Storage):
             if request.cookies.has_key(response.session_id_name):
                 response.session_id=request.cookies[response.session_id_name].value
                 if regex_session_id.match(response.session_id):
-                     response.session_filename=os.path.join(request.folder,'..',masterapp,'sessions',response.session_id)
+                     response.session_filename=os.path.join(up(request.folder),masterapp,'sessions',response.session_id)
                 else: response.session_id=None
             if response.session_id:
                 try:
@@ -123,7 +124,7 @@ class Session(Storage):
                      response.session_id=None
             if not response.session_id:
                 response.session_id=request.env.remote_addr+'.'+str(int(time.time()))+'.'+str(random.random())[2:]
-                response.session_filename=os.path.join(request.folder,'..',masterapp,'sessions',response.session_id)
+                response.session_filename=os.path.join(up(request.folder),masterapp,'sessions',response.session_id)
                 response.session_new=True
         else:
              table=db.define_table(tablename,
