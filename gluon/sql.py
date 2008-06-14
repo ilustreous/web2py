@@ -736,6 +736,10 @@ class SQLField(SQLXorable):
     def seconds(self):
         s=self._db._translator["extract"] % dict(name='seconds',field=str(self))
         return SQLXorable(s,'integer',self._db)
+    def count(self):
+        return 'count(%s)' % str(self)
+    def sum(self):
+        return 'sum(%s)' % str(self)
     def __str__(self): return '%s.%s' % (self._tablename,self.name)
 
 class SQLQuery(object):
