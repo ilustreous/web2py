@@ -9,6 +9,8 @@ from html import FORM,INPUT,TEXTAREA,SELECT,OPTION,TABLE,TR,TD,TH,A,B,DIV,LABEL,
 from validators import IS_IN_SET, IS_NOT_IN_DB, CRYPT
 from sql import SQLStorage
 
+table_field=re.compile('[\w_]+\.[\w_]+')
+
 class SQLFORM(FORM):
     """
     SQLFORM is used to map a table (and a current record) into an HTML form
@@ -213,7 +215,7 @@ class SQLFORM(FORM):
                 elif field.type=='double':
                     if fields[fieldname]!=None:
                        fields[fieldname]=float(fields[fieldname])
-            if vars.has_key('id'):                
+            if vars.has_key('id'):
                 if vars['id']!=self.record_id:
                     raise SyntaxError, "user is tampering with form"
                 id=int(vars['id'])
@@ -252,7 +254,11 @@ class SQLTABLE(TABLE):
         for record in sqlrows:
             row=[]
             for colname in sqlrows.colnames:
-                tablename,fieldname=colname.split('.')
+                if not table_field.match(colname):
+                    r=record._extra[colname]
+                    row.append(TD(r))
+                    continue
+                tablename,fieldname=colname
                 field=sqlrows._db[tablename][fieldname]
                 if record.has_key(tablename) and isinstance(record,SQLStorage):
                     r=record[tablename][fieldname]

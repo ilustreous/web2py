@@ -9,6 +9,8 @@ __all__=['SQLDB','SQLField']
 import re, sys, os, types, cPickle, datetime, thread, cStringIO
 import csv, copy, socket, logging, copy_reg, base64
 
+table_field=re.compile('[\w_]+\.[\w_]+')
+
 try:
     import hashlib
     def hash5(txt): return hashlib.md5(txt).hexdigest()    
@@ -123,7 +125,25 @@ SQL_DIALECTS={'sqlite':{'boolean':'CHAR(1)',
                       'is null':'IS NULL',
                       'is not null':'IS NOT NULL',
                       'extract':'EXTRACT(%(name)s FROM %(field)s)',
-                      'left join':'LEFT OUTER JOIN'}
+                      'left join':'LEFT OUTER JOIN'},
+             'mssql':{'boolean':'bit',
+                      'string':'varchar(%(length)s)',
+                      'text':'text',
+                      'password':'varchar(%(length)s)',
+                      'blob':'image',
+                      'upload':'varchar(64))',
+                      'integer':'int',
+                      'double':'float',
+                      'date':'datetime',
+                      'time':'char(8)',
+                      'datetime':'datetime',
+                      'id':'NUMBER PRIMARY KEY',
+                      'reference':'NUMBER, CONSTRAINT %(field_name)s FOREIGN KEY (%(field_name)s) REFERENCES %(foreign_key)s ON DELETE % (on_delete_action)s',
+                      'lower':'LOWER(%(field)s)',
+                      'upper':'UPPER(%(field)s)',
+                      'is null':'IS NULL',
+                      'is not null':'IS NOT NULL',
+                      'extract':' DATEPART(%(name)s , %(field)s)'}
               }
 
 def sqlhtml_validators(field_type,length):
@@ -591,6 +611,9 @@ class SQLTable(SQLStorage):
             t=self._tablename
             self._db._execute('SELECT %s_sequence.currval FROM dual;' %t)
             id=int(self._db._cursor.fetchone()[0])
+        elif self._db._dbname=='mssql':
+            self._db._execute('SELECT @@IDENTITY;')
+            id=int(self._db._cursor.fetchone()[0])
         else:
             id=None
         return id
@@ -905,12 +928,11 @@ class SQLRows(object):
         for j in xrange(len(self.colnames)):            
             value=self.response[i][j]
             if isinstance(value,unicode): value=value.encode('utf-8')
-            packed=self.colnames[j].split('.')
-            try: tablename,fieldname=packed
-            except:
+            if not table_field.match(self.colnames[j]):
                  if not row.has_key('_extra'): row['_extra']=SQLStorage()
                  row['_extra'][self.colnames[j]]=value
-                 continue
+                 continue            
+            tablename,fieldname=self.colnames[j].split('.')
             table=self._db[tablename]
             field=table[fieldname]
             if not row.has_key(tablename):
@@ -949,7 +971,8 @@ class SQLRows(object):
                 for referee_table,referee_name in table._referenced_by:
                     s=self._db[referee_table][referee_name]
                     row[tablename][referee_table]=SQLSet(self._db,s==id)
-        if len(row.keys())==1: return row[row.keys()[0]]
+        keys=row.keys()
+        if len(keys)==1 and keys[0]!='_extra': return row[row.keys()[0]]
         return row
     def __iter__(self):
         """
