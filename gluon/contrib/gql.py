@@ -24,7 +24,7 @@ SQL_DIALECTS={'google':{'boolean':google_db.BooleanProperty,
                         'time':google_db.TimeProperty,        
                         'datetime':google_db.DateTimeProperty,
                         'id':None,
-                        'reference':google_db.ReferenceProperty,
+                        'reference':google_db.IntegerProperty,
                         'lower':None,
                         'upper':None,
                         'is null':'IS NULL',
@@ -191,7 +191,7 @@ class SQLXorable(object):
     def __gt__(self,value): return SQLQuery(self,'>',value)
     def __ge__(self,value): return SQLQuery(self,'>=',value)
     #def like(self,value): return SQLQuery(self,' LIKE ',value)
-    #def belongs(self,value): return SQLQuery(self,' IN ',value)
+    # def belongs(self,value): return SQLQuery(self,' IN ',value)
     # for use in both SQLQuery and sortby
     def __add__(self,other): 
         return SQLXorable('%s+%s'%(self,other),'float',None)
@@ -302,9 +302,7 @@ class SQLQuery(object):
                 self.sql='%s %s' % (left,left._db._translator['is not null'])
             else: raise SyntaxError, 'do not know what to do'
         elif op==' IN ':
-            if isinstance(right,str):
-                self.sql='%s%s(%s)'%(left,op,right[:-1])
-            elif hasattr(right,'__iter__'):
+            if hasattr(right,'__iter__'):
                 r=','.join([sql_represent(i,left.type,left._db) for i in right])
                 self.sql='%s%s(%s)'%(left,op,r)
             else: raise SyntaxError, 'do not know what to do'
