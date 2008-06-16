@@ -258,7 +258,7 @@ class SQLTABLE(TABLE):
                     r=record._extra[colname]
                     row.append(TD(r))
                     continue
-                tablename,fieldname=colname
+                tablename,fieldname=colname.split('.')
                 field=sqlrows._db[tablename][fieldname]
                 if record.has_key(tablename) and isinstance(record,SQLStorage):
                     r=record[tablename][fieldname]
