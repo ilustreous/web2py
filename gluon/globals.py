@@ -151,6 +151,7 @@ class Session(Storage):
                  response.session_id='%s:%s' % (record_id,unique_key)
         response.cookies[response.session_id_name]=response.session_id
         response.cookies[response.session_id_name]['path']="/"
+        if self.flash: response.flash, self.flash=self.flash, None
     def secure(self):
         self._secure=True
     def forget(self):

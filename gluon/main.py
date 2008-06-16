@@ -80,7 +80,6 @@ def serve_controller(request,response,session):
     # set default view, controller can override it
     response.view='%s/%s.html' % (request.controller,request.function)
     # also, make sure the flash is passed through
-    if session.flash: response.flash, session.flash=session.flash, None  
     ###################################################
     # process models, controller and view (if required)
     ###################################################     

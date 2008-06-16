@@ -251,8 +251,10 @@ class SQLTABLE(TABLE):
            for c in sqlrows.colnames: row.append(TH(A(headers.get(c,c),_href='?orderby='+c)))
         components.append(THEAD(TR(*row)))
         tbody=[]
-        for record in sqlrows:
+        for rc,record in enumerate(sqlrows):
             row=[]
+            if rc%2==0: _class='even'
+            else: _class='odd'
             for colname in sqlrows.colnames:
                 if not table_field.match(colname):
                     r=record._extra[colname]
@@ -278,6 +280,6 @@ class SQLTABLE(TABLE):
                         row.append(TD(A(r,_href='%s/%s/%s' % \
                                        (linkto,field.type[10:],r))))
                 else: row.append(TD(r))
-            tbody.append(TR(*row))
+            tbody.append(TR(_class=_class,*row))
         components.append(TBODY(*tbody))
         
