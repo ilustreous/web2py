@@ -411,6 +411,7 @@ class SQLSet(object):
         return self._db[tablename]._tableobj.get_by_id(id),fields
     def _select_except(self):
         item,fields=self._getitem_exception()
+        if not item: return []
         new_item=[]
         for t in fields:
             if t=='id': new_item.append(int(item.key().id()))

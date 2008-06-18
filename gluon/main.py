@@ -236,7 +236,7 @@ def wsgibase(environ, responder):
             SQLDB.close_all_instances(SQLDB.rollback)
             try: ticket=e.log(request)
             except:
-                 ticket='unkown'
+                 ticket='unknown'
                  logging.error(e.traceback)
             session._unlock(response)
             return HTTP(200,error_message_ticket % (ticket,ticket),\
