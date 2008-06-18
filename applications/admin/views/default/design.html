@@ -5,6 +5,8 @@ def peekfile(path,file):
     return A(file.replace('\\\\','/'),_href=URL(r=request,f='peek/%s/%s/%s' % (app, path, file)))
 def editfile(path,file):
     return A('edit',_href=URL(r=request,f='edit/%s/%s/%s' % (app, path, file)))
+def testfile(path,file):
+    return A('test',_href=URL(r=request,f='test/%s/%s' % (app, file)))
 def htmleditfile(path,file):
     return A('htmledit',_href=URL(r=request,f='htmledit/%s/%s/%s' % (app, path, file)))
 def editlanguagefile(path,file):
@@ -60,7 +62,7 @@ for c in controllers: controller_functions+=[c[:-3]+'/%s.html'%x for x in functi
 {{pass}}
 <ul>
 {{for c in controllers:}}<li>{{=peekfile('controllers',c)}}
-[ {{=editfile('controllers',c)}} |
+[ {{=testfile('controllers',c)}} | {{=editfile('controllers',c)}} |
 <a href="/{{=request.application}}/default/delete/{{=app}}/controllers/{{=c}}?sender={{=request.function}}/{{=app}}">delete</a> ]
 {{if functions[c]:}}exposes {{pass}}{{=XML(', '.join([A(f,_href=URL(a=app,c=c[:-3],f=f)).xml() for f in functions[c]]))}}
 </li>{{pass}}

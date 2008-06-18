@@ -243,7 +243,9 @@ def peek():
 
 def test():
     app=request.args[0]
-    controllers=listdir(apath('%s/controllers/' % app), '.*\.py$')
+    if len(request.args)>1: file=request.args[1]
+    else: file='.*\.py'
+    controllers=listdir(apath('%s/controllers/' % app), file + '$')
     return dict(app=app,controllers=controllers)
 
 def edit():
