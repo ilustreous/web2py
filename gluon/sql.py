@@ -632,9 +632,24 @@ class SQLTable(SQLStorage):
             else:
                 items=[(colnames[i],line[i]) for i in c]                
                 self.insert(**dict(items))
+    def _truncate(self):
+        t = self._tablename
+        if self._db._dbname=='sqlite':
+            return ["DELETE FROM %s;" % (t), 
+                    "DELETE FROM sqlite_sequence WHERE name='%s';" % (t)]
+        return ['TRUNCATE TABLE %s;', (t)]
+    def truncate(self):
+        logfile=open(os.path.join(self._db._folder,'sql.log'),'a')
+        queries=self._truncate()
+        self._db['_lastsql']='\n'.join(queries)
+        for query in queries:
+            logfile.write(query+'\n')
+            self._db._execute(query)
+        self._db.commit()
+        logfile.write('success!\n')
     def __str__(self):
         return self._tablename
-
+ 
 class SQLXorable(object):
     def __init__(self,name,type='string',db=None):
         self.name,self.type,self._db=name,type,db

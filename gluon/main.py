@@ -316,7 +316,7 @@ class HttpServer(object):
         if not ssl_certificate or not ssl_private_key:
             logging.info('SSL is off')
         elif not wsgiserver.SSL:
-            logging.warning('OpenSSL libraries available. SSL is OFF')
+            logging.warning('OpenSSL libraries unavailable. SSL is OFF')
         elif not os.path.exists(ssl_certificate):
             logging.warning('unable to open SSL certificate. SSL is OFF')
         elif not os.path.exists(ssl_private_key):
