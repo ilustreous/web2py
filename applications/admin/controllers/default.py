@@ -90,11 +90,12 @@ def index():
     if request.vars.password:
         if _config['password']==CRYPT()(request.vars.password)[0]:
             session.authorized=True
-            try:        
-                version=urllib.urlopen('http://mdp.cti.depaul.edu/examples/default/version').read()
-                myversion=open(apath('../VERSION'),'r').read()
-                if version>myversion: session.flash='A new version of web2py is available, you should upgrade at http://mdp.cti.depaul.edu/examples'
-            except: pass
+            if CHECK_VERSION:
+                try:        
+                    version=urllib.urlopen('http://mdp.cti.depaul.edu/examples/default/version').read()
+                    myversion=open(apath('../VERSION'),'r').read()
+                    if version>myversion: session.flash='A new version of web2py is available, you should upgrade at http://mdp.cti.depaul.edu/examples'
+                except: pass
             session.last_time=t0
             redirect(send)
         else: response.flash='invalid password'
