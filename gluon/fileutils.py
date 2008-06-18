@@ -130,7 +130,16 @@ def get_session(request,other_application='admin'):
 
 def check_credentials(request,other_application='admin'):
     """ checks that user is authorized to access other_application""" 
-    return get_session(request,other_application).authorized
+    try:
+         from google.appengine.api import users
+    except:
+         return get_session(request,other_application).authorized
+    else:
+         user=users.get_current_user()
+         if users.is_current_user_admin(): return True
+         login_html='<a href="%s">Sign in with your google account</a>.'%\
+                    users.create_login_url('/')
+         raise HTTP(200,'<html><body>%s</body></html>' % login_html)
 
 def fix_newlines(path):
     regex=re.compile(r'(\r\n|\r|\n)')

@@ -35,7 +35,7 @@ print ProgramVersion
 from gluon.main import HttpServer, save_password
 from gluon.fileutils import tar, untar
 from optparse import *
-from gluon.shell import run
+from gluon.shell import run, test
 try:
     from gluon.winservice import web2py_windows_service_handler
 except: pass
@@ -264,6 +264,9 @@ def console():
     parser.add_option('-f','--folder',default=os.getcwd(),
                   dest='folder',
                   help='the folder where to run web2py')
+    parser.add_option('-v', '--verbose',
+                  action='store_true', dest='verbose', default=False,
+                  help='increase --test verbosity')
     parser.add_option('-S', '--shell',
                   dest='shell', metavar='APPNAME',
                   help='run web2py in interactive shell or IPython(if installed) with specified appname')
@@ -275,6 +278,8 @@ def console():
                   help='auto import model files, default is False, should be used with --shell option')
     parser.add_option('-R', '--run', dest='run', metavar='PYTHON_FILE', default='',
                   help='run PYTHON_FILE in web2py environment, should be used with --shell option')
+    parser.add_option('-T', '--test', dest='test', metavar='TEST_PATH', default=None,
+                  help='run doctests in web2py environment, TEST_PATH like a/c/f (c,f optional)')
     parser.add_option('-W', '--winservice', dest='winservice', default='',
                   help='-W install|start|stop as windows service')
     parser.add_option('-L', '--config', dest='config', default='',
@@ -309,6 +314,10 @@ def start():
         else: 
             print 'Error: windows services not supported on this platform'
             sys.exit(1)
+        return
+    ### if -T run doctests
+    if options.test:
+        test(options.test, verbose=options.verbose)
         return
     ### if -S start interactive shell
     if options.shell:

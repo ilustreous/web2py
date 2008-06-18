@@ -5,30 +5,45 @@
 #
 #   Distributed under the terms of the BSD license.
 
-import os, sys, code, logging
-from optparse import OptionParser
-from glob import glob
-from gluon.fileutils import untar
+import os, sys, code, logging, doctest, types
+import re
+import optparse
+import glob
+import gluon.fileutils
+import gluon.html as html
+import gluon.validators as validators
+from gluon.http import HTTP, redirect
+from gluon.languages import translator
+from gluon.cache import Cache
+from gluon.globals import Request, Response, Session
+from gluon.sql import SQLDB, SQLField
+from gluon.sqlhtml import SQLFORM, SQLTABLE
 
-def env(app, import_models=False, dir=''):
-    import gluon.html as html
-    import gluon.validators as validators
-    from gluon.http import HTTP, redirect
-    from gluon.languages import translator
-    from gluon.cache import Cache
-    from gluon.globals import Request, Response, Session
-    from gluon.sql import SQLDB, SQLField
-    from gluon.sqlhtml import SQLFORM, SQLTABLE
+def env(a, import_models=False, c=None, f=None, dir=''):
+    '''
+    Return web2py execution environment for application (a), controller (c),
+    function (f).
+    If import_models is True the exec all application models into the
+    evironment.
+    '''
 
     request=Request()
     response=Response()
     session=Session()
-    request.application = app
+    request.application = a
     
     if not dir:
-        request.folder = os.path.join('applications', app)
+        request.folder = os.path.join('applications', a)
     else:
         request.folder = dir
+    request.controller = c or 'default'
+    request.function = f or 'index'
+    request.env.path_info = '/%s/%s/%s' % (a,c,f)
+    request.env.http_host = '127.0.0.1:8000'
+    request.env.remote_addr = '127.0.0.1'
+    # Monkey patch so credentials checks pass.
+    def check_credentials(request,other_application='admin'): return True
+    gluon.fileutils.check_credentials = check_credentials
         
     environment={}
     for key in html.__all__: environment[key]=getattr(html,key)
@@ -48,20 +63,36 @@ def env(app, import_models=False, dir=''):
     
     if import_models:
         model_path = os.path.join(request.folder,'models', '*.py')
-        for f in glob(model_path):
+        for f in glob.glob(model_path):
             fname, ext = os.path.splitext(f)
             execfile(f, environment)
     return environment
 
 def run(appname, plain=False, import_models=False, startfile=None):
-    path=os.path.join('applications',appname)
-    if not os.path.exists(path):
-        if raw_input('application %s does not exit, create (y/n)?' % appname).lower() in ['y','yes']:
-            os.mkdir(path)
-            untar('welcome.tar',path)    
+    """
+    Start interactive shell or run Python script (startfile) in web2py
+    controller environment. appname is formatted like:
+
+    a      web2py application name
+    a/c    exec the controller c into the application environment
+    """
+    a,c,f = parse_path_info(appname)
+    errmsg = 'invalid application name: %s' % appname
+    if not a: die(errmsg)
+    adir = os.path.join('applications',a)
+    if not os.path.exists(adir):
+        if raw_input('application %s does not exist, create (y/n)?' % a).lower() in ['y','yes']:
+            os.mkdir(adir)
+            gluon.fileutils.untar('welcome.tar',adir)
         else: return
 
-    _env = env(appname, import_models)
+    if c: import_models = True
+    _env = env(a, c=c, import_models=import_models)
+    if c:
+        cfile = os.path.join('applications', a, 'controllers', c+'.py')
+        if not os.path.isfile(cfile): die(errmsg)
+        execfile(cfile, _env)
+
     
     if startfile:
         pythonrc = os.environ.get("PYTHONSTARTUP")
@@ -96,6 +127,78 @@ def run(appname, plain=False, import_models=False, startfile=None):
                 pass
         code.interact(local=_env)
 
+def parse_path_info(path_info):
+    """
+    Parse path info formatted like a/c/f where c and f are optional.
+    Return tuple (a,c,f). If invalid path_info a is set ot None.
+    If c or f are omitted they are set to None.
+    """
+    mo = re.match(r'^/?(?P<a>\w+)(/(?P<c>\w+)(/(?P<f>\w+))?)?$', path_info)
+    if mo:
+        return (mo.group('a'), mo.group('c'), mo.group('f'))
+    else:
+        return (None,None,None)
+
+def die(msg):
+    print >>sys.stderr, msg
+    sys.exit(1)
+
+def test(testpath, import_models=True, verbose=False):
+    """
+    Run doctests in web2py environment. testpath is formatted like:
+
+    a      tests all controllers in application a
+    a/c    tests controller c in application a
+    a/c/f  test function f in controller c, application a
+
+    Where a, c and f are application, controller and function names
+    respectively. If the testpath is a file name the file is tested.
+    If a controller is specified models are executed by default.
+    """
+    if os.path.isfile(testpath):
+        mo = re.match(r'(|.*/)applications/(?P<a>[^/]+)', testpath)
+        if not mo:
+            die('test file is not in application directory: %s' % testpath)
+        a = mo.group('a')
+        c = f = None
+        files = [testpath]
+    else:
+        a,c,f = parse_path_info(testpath)
+        errmsg = 'invalid test path: %s' % testpath
+        if not a: die(errmsg)
+        cdir = os.path.join('applications',a,'controllers')
+        if not os.path.isdir(cdir): die(errmsg)
+        if c:
+            cfile = os.path.join(cdir, c+'.py')
+            if not os.path.isfile(cfile): die(errmsg)
+            files = [cfile]
+        else:
+            files = glob.glob(os.path.join(cdir,'*.py'))
+    for testfile in files:
+        globs = env(a,import_models)
+        ignores = globs.keys()
+        execfile(testfile, globs)
+        def doctest_object(name, obj):
+            '''doctest obj and enclosed methods and classes.'''
+            if type(obj) in (types.FunctionType, types.TypeType,
+                    types.ClassType, types.MethodType,
+                    types.UnboundMethodType):
+                # Reload environment before each test.
+                globs = env(a, c=c, f=f, import_models=import_models)
+                execfile(testfile, globs)
+                doctest.run_docstring_examples(obj, globs=globs,
+                    name='%s: %s' %(os.path.basename(testfile),name),
+                    verbose=verbose)
+                if type(obj) in (types.TypeType, types.ClassType):
+                    for attr_name in dir(obj):
+                        # Execute . operator so decorators are executed.
+                        o = eval('%s.%s' % (name,attr_name), globs)
+                        doctest_object(attr_name,o)
+        for name,obj in globs.items():
+            if name not in ignores and (f is None or f == name):
+                doctest_object(name, obj)
+
+
 def get_usage():
     usage = """
   %prog [options] pythonfile
@@ -106,7 +209,7 @@ def execute_from_command_line(argv=None):
     if argv is None:
         argv = sys.argv
 
-    parser = OptionParser(usage=get_usage())
+    parser = optparse.OptionParser(usage=get_usage())
 
     parser.add_option('-S', '--shell',
                   dest='shell', metavar='APPNAME',
