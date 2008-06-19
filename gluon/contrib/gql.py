@@ -294,7 +294,7 @@ class SQLQuery(object):
                 self.sql=QueryException(tablename=left._tablename,id=int(right))
                 return
             else: raise SyntaxError, 'not supported'
-        if left.type=='text:
+        if left.type in ['text', 'blob']:
             raise SyntaxError, 'not supported'
         if op is None and right is None: self.sql=left
         elif right is None:
