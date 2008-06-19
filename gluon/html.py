@@ -69,6 +69,10 @@ class XML(object):
     """
     def __init__(self,text,sanitize=False,permitted_tags=['a','b','blockquote','br/','i', 'li', 'ol','ul', 'p', 'cite','code','pre','img/'],allowed_attributes={'a':['href','title'],'img':['src','alt'],'blockquote':['type']}):        
         if sanitize: text=sanitizer.sanitize(text,permitted_tags,allowed_attributes)
+        if isinstance(text,unicode):
+            text=text.encode("utf8","xmlcharrefreplace")
+        elif not isinstance(text,str):
+            text=str(text)
         self.text=text
     def xml(self):
         return self.text
