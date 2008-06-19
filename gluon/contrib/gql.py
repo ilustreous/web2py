@@ -294,7 +294,7 @@ class SQLQuery(object):
                 self.sql=QueryException(tablename=left._tablename,id=int(right))
                 return
             else: raise SyntaxError, 'not supported'
-        if left.type in ['text', 'blob']:
+        if hasattr(left,'type') and left.type in ['text', 'blob']:
             raise SyntaxError, 'not supported'
         if op is None and right is None: self.sql=left
         elif right is None:
@@ -398,6 +398,7 @@ class SQLSet(object):
             sql_o+=' ORDER BY %s'% attributes['orderby']
         if attributes.has_key('limitby') and attributes['limitby']: 
             lmin,lmax=attributes['limitby']
+            sql_o+=' LIMIT %i OFFSET %i' % (lmax-lmin,lmin)
         tablename=tablenames[0]
         q='SELECT * FROM %s%s%s'%(sql_t,sql_w,sql_o) 
         p=None
