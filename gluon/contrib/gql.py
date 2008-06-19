@@ -256,8 +256,8 @@ class SQLField(SQLXorable):
 def sql_represent(object,fieldtype,dbname):    
     if object is None: return ''
     if fieldtype=='boolean':
-         if object and not str(object)[0].upper()=='F': return "'TRUE'"
-         else: return "'FALSE'"
+         if object and not str(object)[0].upper()=='F': return "True"
+         else: return "False"
     if fieldtype[0]=='i': return str(int(object))
     elif fieldtype[0]=='r': return str(int(object))
     elif fieldtype=='double': return str(float(object))
@@ -397,7 +397,7 @@ class SQLSet(object):
         if attributes.has_key('limitby') and attributes['limitby']: 
             lmin,lmax=attributes['limitby']
         tablename=tablenames[0]
-        q='SELECT * FROM %s%s%s;'%(sql_t,sql_w,sql_o) 
+        q='SELECT * FROM %s%s%s'%(sql_t,sql_w,sql_o) 
         p=None
         regex_undot=re.compile("^(?P<a>(([^']*'){2})*[^']*)(?P<b>%s\.)(?P<c>.*)$"%tablename)
         while p!=q:
@@ -427,7 +427,7 @@ class SQLSet(object):
         self.colnames=['%s.%s'%(tablename,t) for t in fields]
         self._db['_lastsql']=query
         r=[]
-        for item in google_db.GqlQuery(query[:-1]):
+        for item in google_db.GqlQuery(query):
             new_item=[]
             for t in fields:
                 if t=='id': new_item.append(int(item.key().id()))
@@ -444,7 +444,7 @@ class SQLSet(object):
         else:
             query,tablename,fields=self._select()
             tableobj=self._db[tablename]._tableobj
-            for item in google_db.GqlQuery(query[:-1]):
+            for item in google_db.GqlQuery(query):
                 tableobj.get_by_id(int(item.key().id())).delete()
     def update(self,**update_fields):
         if isinstance(self.sql_w,QueryException):
@@ -456,7 +456,7 @@ class SQLSet(object):
         else:
             query,tablename,fields=self._select()
             tableobj=self._db[tablename]._tableobj
-            for item in google_db.GqlQuery(query[:-1]):
+            for item in google_db.GqlQuery(query):
                 for key,value in update_fields.items():
                     setattr(item,key,value)
                 item.put()
