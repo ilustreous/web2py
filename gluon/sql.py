@@ -421,6 +421,13 @@ class SQLALL(object):
         s=['%s.%s'%(self.table._tablename,name) for name in self.table.fields]
         return ', '.join(s)
 
+class SQLJoin(object):
+    def __init__(self,table,query):
+        self.table=table
+        self.query=query
+    def __str__(self):
+        return '%s ON %s' % (self.table,self.query)
+
 class SQLTable(SQLStorage):
     """
     an instance of this class represents a database table
@@ -632,6 +639,8 @@ class SQLTable(SQLStorage):
             else:
                 items=[(colnames[i],line[i]) for i in c]                
                 self.insert(**dict(items))
+    def on(self,query):
+        return SQLJoin(self,query)
     def _truncate(self):
         t = self._tablename
         if self._db._dbname=='sqlite':
@@ -854,11 +863,17 @@ class SQLSet(object):
         sql_o=''
         if attributes.has_key('left') and attributes['left']: 
             join=attributes['left']
-            if not isinstance(join,(tuple,list)): join=[join]
-            join=[str(t) for t in join]
-            excluded=[t for t in tablenames if not t in join]
             command=self._db._translator['left join']           
-            sql_t='%s %s %s' %(', '.join(excluded),command,', '.join(join))
+            if not isinstance(join,(tuple,list)): join=[join]
+            joint=[str(t) for t in join if not isinstance(t,SQLJoin)]
+            joinon=[t for t in join if isinstance(t,SQLJoin)]
+            joinont=[str(t.table) for t in joinon]
+            excluded=[t for t in tablenames if not t in joint+joinont]
+            sql_t=', '.join(excluded)
+            if joint:
+                sql_t+=' %s %s' %(command,', '.join(joint))            
+            for t in joinon:
+                sql_t+=' %s %s' %(command,str(t))
         else:
             sql_t=', '.join(tablenames)
         if attributes.has_key('groupby') and attributes['groupby']: 
