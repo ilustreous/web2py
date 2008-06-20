@@ -180,9 +180,9 @@ class SQLXorable(object):
     def __str__(self): 
         return self.name
     def __or__(self,other): # for use in sortby
-        return SQLXorable(str(self)+', '+str(other),None,None)
+        return SQLXorable(str(self)+', '+str(other),self.type,None)
     def __invert__(self):
-        return SQLXorable(str(self)+' DESC',None,None)
+        return SQLXorable(str(self)+' DESC',self.type,None)
     # for use in SQLQuery
     def __eq__(self,value): return SQLQuery(self,'=',value)
     def __ne__(self,value): return SQLQuery(self,'<>',value)
@@ -256,8 +256,8 @@ class SQLField(SQLXorable):
 def sql_represent(object,fieldtype,dbname):    
     if object is None: return ''
     if fieldtype=='boolean':
-         if object and not str(object)[0].upper()=='F': return "True"
-         else: return "False"
+         if object and not str(object)[0].upper()=='F': return "TRUE"
+         else: return "FALSE"
     if fieldtype[0]=='i': return str(int(object))
     elif fieldtype[0]=='r': return str(int(object))
     elif fieldtype=='double': return str(float(object))
@@ -394,7 +394,10 @@ class SQLSet(object):
             sql_t=', '.join(tablenames)
         if attributes.has_key('groupby') and attributes['groupby']: 
             sql_o+=' GROUP BY %s'% attributes['groupby']
-        if attributes.has_key('orderby') and attributes['orderby']: 
+        if attributes.has_key('orderby') and attributes['orderby']:
+            if attributes['orderby'].type in ['text','blob']:
+                raise SyntaxError, "SQLSet: no orderby '%s' in appengine" \
+                                   % attributes['orderby'].type
             sql_o+=' ORDER BY %s'% attributes['orderby']
         if attributes.has_key('limitby') and attributes['limitby']: 
             lmin,lmax=attributes['limitby']
