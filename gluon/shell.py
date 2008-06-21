@@ -1,23 +1,13 @@
-#   Programmer: limodou
-#   E-mail:     limodou@gmail.com
-#
-#   Copyleft 2008 limodou
-#
-#   Distributed under the terms of the BSD license.
+#   Programmers: limodou, mdipierro, srackham
+#   E-mail:     limodou@gmail.com, mdipierro@cs.depaul.edu, srackham@gmail.com
 
-import os, sys, code, logging, doctest, types
-import re
-import optparse
-import glob
+
+import os, sys, code, logging, doctest, types, re, optparse, glob
+import gluon.main
+import gluon.compileapp
 import gluon.fileutils
-import gluon.html as html
-import gluon.validators as validators
-from gluon.http import HTTP, redirect
-from gluon.languages import translator
-from gluon.cache import Cache
 from gluon.globals import Request, Response, Session
-from gluon.sql import SQLDB, SQLField
-from gluon.sqlhtml import SQLFORM, SQLTABLE
+
 
 def env(a, import_models=False, c=None, f=None, dir=''):
     '''
@@ -31,42 +21,34 @@ def env(a, import_models=False, c=None, f=None, dir=''):
     response=Response()
     session=Session()
     request.application = a
-    
+    # Populate the dummy environment with sensible defaults.
     if not dir:
         request.folder = os.path.join('applications', a)
     else:
         request.folder = dir
     request.controller = c or 'default'
     request.function = f or 'index'
+    response.view='%s/%s.html' % (request.controller,request.function)
     request.env.path_info = '/%s/%s/%s' % (a,c,f)
     request.env.http_host = '127.0.0.1:8000'
     request.env.remote_addr = '127.0.0.1'
     # Monkey patch so credentials checks pass.
     def check_credentials(request,other_application='admin'): return True
     gluon.fileutils.check_credentials = check_credentials
-        
-    environment={}
-    for key in html.__all__: environment[key]=getattr(html,key)
-    for key in validators.__all__: environment[key]=getattr(validators,key)
-    environment['T']=translator(request)
-    environment['HTTP']=HTTP
-    environment['redirect']=redirect
-    environment['request']=request
-    environment['response']=response
-    environment['session']=session
-    environment['cache']=Cache(request)
-    environment['SQLDB']=SQLDB
-    SQLDB._set_thread_folder(os.path.join(request.folder,'databases'))
-    environment['SQLField']=SQLField
-    environment['SQLFORM']=SQLFORM
-    environment['SQLTABLE']=SQLTABLE
+
+    environment=gluon.main.build_environment(request,response,session)
     
     if import_models:
-        model_path = os.path.join(request.folder,'models', '*.py')
-        for f in glob.glob(model_path):
-            fname, ext = os.path.splitext(f)
-            execfile(f, environment)
+        gluon.compileapp.run_models_in(environment)
     return environment
+
+def exec_pythonrc():
+    pythonrc = os.environ.get('PYTHONSTARTUP')
+    if pythonrc and os.path.isfile(pythonrc):
+        try:
+            execfile(pythonrc)
+        except NameError:
+            pass
 
 def run(appname, plain=False, import_models=False, startfile=None):
     """
@@ -95,12 +77,7 @@ def run(appname, plain=False, import_models=False, startfile=None):
 
     
     if startfile:
-        pythonrc = os.environ.get("PYTHONSTARTUP")
-        if pythonrc and os.path.isfile(pythonrc):
-            try:
-                execfile(pythonrc)
-            except NameError:
-                pass
+        exec_pythonrc()
         execfile(startfile, _env)
     else:
         if not plain:
@@ -118,19 +95,14 @@ def run(appname, plain=False, import_models=False, startfile=None):
         else:
             readline.set_completer(rlcompleter.Completer(_env).complete)
             readline.parse_and_bind("tab:complete")
-
-        pythonrc = os.environ.get("PYTHONSTARTUP")
-        if pythonrc and os.path.isfile(pythonrc):
-            try:
-                execfile(pythonrc)
-            except NameError:
-                pass
+        exec_pythonrc()
         code.interact(local=_env)
 
 def parse_path_info(path_info):
     """
-    Parse path info formatted like a/c/f where c and f are optional.
-    Return tuple (a,c,f). If invalid path_info a is set ot None.
+    Parse path info formatted like a/c/f where c and f are optional
+    and a leading / accepted.
+    Return tuple (a,c,f). If invalid path_info a is set to None.
     If c or f are omitted they are set to None.
     """
     mo = re.match(r'^/?(?P<a>\w+)(/(?P<c>\w+)(/(?P<f>\w+))?)?$', path_info)

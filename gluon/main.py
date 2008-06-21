@@ -48,12 +48,33 @@ error_message_ticket='<html><body><h1>Internal error</h1>Ticket issued: <a href=
 
 working_folder=os.getcwd()
 
-def serve_controller(request,response,session):    
+def build_environment(request,response,session):
+    """
+    Build and return evnironment dictionary for controller and view.
+    """
+    environment={}
+    for key in html.__all__: environment[key]=getattr(html,key)
+    for key in validators.__all__: environment[key]=getattr(validators,key)
+    environment['T']=translator(request)
+    environment['HTTP']=HTTP
+    environment['redirect']=redirect
+    environment['request']=request
+    environment['response']=response
+    environment['session']=session
+    environment['cache']=Cache(request)
+    environment['SQLDB']=SQLDB
+    SQLDB._set_thread_folder(os.path.join(request.folder,'databases'))
+    environment['SQLField']=SQLField
+    environment['SQLFORM']=SQLFORM
+    environment['SQLTABLE']=SQLTABLE
+    return environment
+
+def serve_controller(request,response,session):
     """
     this function is used to generate a dynmaic page.
     It first runs all models, then runs the function in the controller,
-    and then tries to render the output using a view/template.    
-    this function must run from the [applciation] folder. 
+    and then tries to render the output using a view/template.
+    this function must run from the [applciation] folder.
     A typical examples would be the call to the url
     /[applicaiton]/[controller]/[function] that would result in a call
     to [function]() in applications/[application]/[controller].py
@@ -62,40 +83,26 @@ def serve_controller(request,response,session):
     ###################################################
     # build evnironment for controller and view
     ###################################################
-    environment={}
-    for key in html.__all__: environment[key]=getattr(html,key)
-    for key in validators.__all__: environment[key]=getattr(validators,key)
-    environment['T']=translator(request)        
-    environment['HTTP']=HTTP
-    environment['redirect']=redirect
-    environment['request']=request
-    environment['response']=response    
-    environment['session']=session
-    environment['cache']=Cache(request)
-    environment['SQLDB']=SQLDB
-    SQLDB._set_thread_folder(os.path.join(request.folder,'databases'))    
-    environment['SQLField']=SQLField
-    environment['SQLFORM']=SQLFORM
-    environment['SQLTABLE']=SQLTABLE
+    environment=build_environment(request,response,session)
     # set default view, controller can override it
     response.view='%s/%s.html' % (request.controller,request.function)
     # also, make sure the flash is passed through
     ###################################################
     # process models, controller and view (if required)
-    ###################################################     
+    ###################################################
     run_models_in(environment)
-    response._view_environment=copy.copy(environment)  
+    response._view_environment=copy.copy(environment)
     run_controller_in(request.controller,request.function,environment)
     if not type(response.body) in [types.StringType, types.GeneratorType]:
-        for key,value in response._vars.items(): 
+        for key,value in response._vars.items():
             response._view_environment[key]=value
         run_view_in(response._view_environment)
         response.body=response.body.getvalue()
     raise HTTP(200,response.body,**response.headers)
 
-def wsgibase(environ, responder):    
+def wsgibase(environ, responder):
     """
-    this is the gluon wsgi application. the furst function called when a page 
+    this is the gluon wsgi application. the furst function called when a page
     is requested (static or dynamical). it can be called by paste.httpserver
     or by apache mod_wsgi.
     """
@@ -119,13 +126,13 @@ def wsgibase(environ, responder):
             if not request.env.path_info and request.env.request_uri:
                 request.env.path_info=request.env.request_uri # for fcgi
             path=request.env.path_info[1:].replace('\\','/')
-            if not regex_url.match(path): 
+            if not regex_url.match(path):
                 raise HTTP(400,error_message,web2py_error='invalid path')
             items=path.split('/')
             ###################################################
             # serve if a static file
             ###################################################
-            
+
             if len(items)>2 and items[1]=='static':
                 static_file=os.path.join(request.env.web2py_path,'applications',\
                                          items[0],'static','/'.join(items[2:]))
@@ -145,15 +152,15 @@ def wsgibase(environ, responder):
             request.folder=os.path.join(request.env.web2py_path,'applications',request.application)+'/'
             ###################################################
             # access the requested application
-            ################################################### 
+            ###################################################
             if not os.path.exists(request.folder):
-                if items==['init','default','index']: 
+                if items==['init','default','index']:
                    redirect('/welcome/default/index')
                 raise HTTP(400,error_message,web2py_error='invalid application')
             ###################################################
             # get the GET and POST data -DONE
             ###################################################
-            request.body=tempfile.TemporaryFile()            
+            request.body=tempfile.TemporaryFile()
             if request.env.content_length:
                 copystream(request.env.wsgi_input,request.body,
                            int(request.env.content_length))
@@ -174,7 +181,7 @@ def wsgibase(environ, responder):
                 request.body.seek(0)
                 try: keys=dpost.keys()
                 except TypeError: keys=[]
-                for key in keys: 
+                for key in keys:
                     dpk=dpost[key]
                     if isinstance(dpk,list): value=[x.value for x in dpk]
                     elif not dpk.filename: value=dpk.value
@@ -185,7 +192,7 @@ def wsgibase(environ, responder):
             ###################################################
             request.cookies=Cookie.SimpleCookie()
             response.cookies=Cookie.SimpleCookie()
-            if request.env.http_cookie: 
+            if request.env.http_cookie:
                 request.cookies.load(request.env.http_cookie)
             ###################################################
             # try load session or create new session file
@@ -203,7 +210,7 @@ def wsgibase(environ, responder):
             # run controller
             ###################################################
             if not items[1]=='static':
-                serve_controller(request,response,session)        
+                serve_controller(request,response,session)
         except HTTP, http_response:
             ###################################################
             # on sucess, try store session in database
@@ -211,7 +218,7 @@ def wsgibase(environ, responder):
             session._try_store_in_db(request,response)
             ###################################################
             # on sucess, committ database
-            ###################################################                
+            ###################################################
             SQLDB.close_all_instances(SQLDB.commit)
             ###################################################
             # if session not in db try store session on filesystem
@@ -224,15 +231,15 @@ def wsgibase(environ, responder):
                 response.cookies[response.session_id_name]['secure']=True
             http_response.headers['Set-Cookie']=\
                 [str(cookie)[11:] for cookie in response.cookies.values()]
-            ###################################################   
+            ###################################################
             # whatever happens return the intended HTTP response
-            ###################################################                
+            ###################################################
             session._unlock(response)
             return http_response.to(responder)
         except RestrictedError, e:
             ###################################################
             # on application error, rollback database
-            ###################################################                
+            ###################################################
             SQLDB.close_all_instances(SQLDB.rollback)
             try: ticket=e.log(request)
             except:
@@ -244,7 +251,7 @@ def wsgibase(environ, responder):
     except Exception, exception:
         ###################################################
         # on application error, rollback database
-        ###################################################        
+        ###################################################
         try: SQLDB.close_all_instances(SQLDB.rollback)
         except: pass
         e=RestrictedError('Framework','','',locals())
@@ -306,11 +313,11 @@ class HttpServer(object):
         save_password(password,port)
         self.pid_filename=pid_filename
         if not server_name: server_name=socket.gethostname()
-        logging.info('starting web server...')        
+        logging.info('starting web server...')
         self.server=wsgiserver.CherryPyWSGIServer((ip, port),
                     appfactory(wsgibase,log_filename,web2py_path=path),
                     numthreads=int(numthreads), server_name=server_name,
-                    request_queue_size=int(request_queue_size), 
+                    request_queue_size=int(request_queue_size),
                     timeout=int(timeout),
                     shutdown_timeout=int(shutdown_timeout))
         if not ssl_certificate or not ssl_private_key:
