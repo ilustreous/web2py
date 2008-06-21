@@ -16,9 +16,9 @@ if not gluon.fileutils.check_credentials(request):
     redirect('/admin')
 
 response.view='appadmin.html'
-response.menu=[['design',False,'/admin/default/design/%s' % request.application],
-               ['db',False,'/%s/%s/index' % (request.application, request.controller)],
-               ['state',False,'/%s/%s/state' % (request.application, request.controller)]]
+response.menu=[[T('design'),False,'/admin/default/design/%s' % request.application],
+               [T('db'),False,'/%s/%s/index' % (request.application, request.controller)],
+               [T('state'),False,'/%s/%s/state' % (request.application, request.controller)]]
 
 
 ###########################################################
@@ -45,11 +45,11 @@ def insert():
         db=eval(dbname)
         table=db[request.args[1]]
     except:
-        session.flash='invalid request'
+        session.flash=T('invalid request')
         redirect(URL(r=request,f='index'))
     form=SQLFORM(table)
     if form.accepts(request.vars,session):
-        response.flash='new record inserted'
+        response.flash=T('new record inserted')
     return dict(form=form)
 
 ###########################################################
@@ -82,7 +82,7 @@ def csv():
         response.headers['Content-disposition']="attachment; filename=%s_%s.csv" % (request.vars.dbname, request.vars.query.split('.',1)[0])
         return str(db(request.vars.query).select())
     except:
-        session.flash='unable to retrieve data'
+        session.flash=T('unable to retrieve data')
         redirect(URL(r=request,f='index'))
 
 def import_csv(table,file):
@@ -125,32 +125,32 @@ def select():
         session.appadmin_last_orderby=orderby
         limitby=(start,start+100)
     except:
-        session.flash='invalid request'
+        session.flash=T('invalid request')
         redirect(URL(r=request,f='index'))
     if request.vars.csvfile!=None:        
         try:
             import_csv(db[table],request.vars.csvfile.file)
-            response.flash='data uploaded'
+            response.flash=T('data uploaded')
         except: 
-            response.flash='unable to parse csv file'
+            response.flash=T('unable to parse csv file')
     if request.vars.delete_all and request.vars.delete_all_sure=='yes':
         try:
             db(query).delete()
-            response.flash='records deleted'
+            response.flash=T('records deleted')
         except:
-            response.flash='invalid SQL FILTER'
+            response.flash=T('invalid SQL FILTER')
     elif request.vars.update_string:
         try:
             env=dict(db=db,query=query)
             exec('db(query).update('+request.vars.update_string+')') in env
-            response.flash='records updated'
+            response.flash=T('records updated')
         except:
-            response.flash='invalid SQL FILTER or UPDATE STRING'
+            response.flash=T('invalid SQL FILTER or UPDATE STRING')
     try:
         records=db(query).select(limitby=limitby,orderby=orderby)
     except: 
-        response.flash='invalid SQL FILTER'
-        return dict(records='no records',nrecords=0,query=query,start=0)
+        response.flash=T('invalid SQL FILTER')
+        return dict(records=T('no records'),nrecords=0,query=query,start=0)
     linkto=URL(r=request,f='update',args=[dbname])
     upload=URL(r=request,f='download',args=[dbname])
     return dict(start=start,query=query,orderby=orderby, \
@@ -167,19 +167,19 @@ def update():
         db=eval(dbname)
         table=request.args[1]
     except:
-        response.flash='invalid request'
+        response.flash=T('invalid request')
         redirect(URL(r=request,f='index'))
     try:
         id=int(request.args[2])
         record=db(db[table].id==id).select()[0]
     except:
-        session.flash='record does not exist'
+        session.flash=T('record does not exist')
         redirect(URL(r=request,f='select/%s/%s'%(dbname,table)))
     form=SQLFORM(db[table],record,deletable=True,
                  linkto=URL(r=request,f='select',args=[dbname]),
                  upload=URL(r=request,f='download',args=[dbname]))
     if form.accepts(request.vars,session): 
-        response.flash='done!'        
+        response.flash=T('done!')        
         redirect(URL(r=request,f='select/%s/%s'%(dbname,table)))
     return dict(form=form)
 

@@ -28,7 +28,7 @@ except:
 
 remote_addr = request.env.remote_addr
 if remote_addr not in hosts:
-    raise HTTP(200,'Admin is disabled because unsecure channel')
+    raise HTTP(200,T('Admin is disabled because unsecure channel'))
 if request.env.http_x_forwarded_for or \
    request.env.wsgi_url_scheme in ['https','HTTPS']:
     response.cookies[response.session_id_name]['secure']=True
@@ -38,15 +38,15 @@ if request.env.http_x_forwarded_for or \
 ############################################################
 
 _f=request.function
-response.menu=[('site',_f=='site','/%s/default/site'%request.application)]
+response.menu=[(T('site'),_f=='site','/%s/default/site'%request.application)]
 if request.args:
     _t=(request.application,request.args[0])   
-    response.menu.append(('about',_f=='about','/%s/default/about/%s'%_t))
-    response.menu.append(('design',_f=='design','/%s/default/design/%s'%_t))
-    response.menu.append(('errors',_f=='errors','/%s/default/errors/%s'%_t))    
-if not session.authorized: response.menu=[('login',True,'')]
-else: response.menu.append(('logout',False,'/%s/default/logout'%request.application))
-response.menu.append(('help',False,'/examples/default/index'))
+    response.menu.append((T('about'),_f=='about','/%s/default/about/%s'%_t))
+    response.menu.append((T('design'),_f=='design','/%s/default/design/%s'%_t))
+    response.menu.append((T('errors'),_f=='errors','/%s/default/errors/%s'%_t))    
+if not session.authorized: response.menu=[(T('login'),True,'')]
+else: response.menu.append((T('logout'),False,'/%s/default/logout'%request.application))
+response.menu.append((T('help'),False,'/examples/default/index'))
 
 ############################################################
 ### exposed functions
@@ -55,6 +55,7 @@ response.menu.append(('help',False,'/examples/default/index'))
 def apath(path=''):
     from gluon.fileutils import up
     opath=up(request.folder)
+    #TODO: This path manipulation is very OS specific.
     while path[:3]=='../': opath,path=up(opath),path[3:]
     return os.path.join(opath,path).replace('\\','/')
 
@@ -63,8 +64,8 @@ try:
     port=int(request.env.server_port)
     restricted(open(apath('../parameters_%i.py'%port),'r').read(),_config)
     if not _config.has_key('password') or not _config['password']:
-        raise HTTP(200,'admin disabled because no admin password')
-except: raise HTTP(200,'admin disabled because unable to access password file')
+        raise HTTP(200,T('admin disabled because no admin password'))
+except: raise HTTP(200,T('admin disabled because unable to access password file'))
 
 ############################################################
 ### session expiration
@@ -73,7 +74,7 @@ except: raise HTTP(200,'admin disabled because unable to access password file')
 t0=time.time()
 if session.authorized:
     if session.last_time and session.last_time<t0-EXPIRATION:
-        session.flash='session expired'
+        session.flash=T('session expired')
         session.authorized=False
     else: session.last_time=t0
 
@@ -98,7 +99,7 @@ def index():
                 except: pass
             session.last_time=t0
             redirect(send)
-        else: response.flash='invalid password'
+        else: response.flash=T('invalid password')
     apps=[file for file in os.listdir(apath()) if file.find('.')<0]    
     return dict(apps=apps,send=send)
 
@@ -115,11 +116,11 @@ def site():
             path=apath(appname)
             os.mkdir(path)
             untar('welcome.tar',path)
-            response.flash='new application "%s" created' % appname
+            response.flash=T('new application "%(appname)s" created',dict(appname=appname))
         except:
-            response.flash='unable to create new application "%s"' % request.vars.filename
+            response.flash=T('unable to create new application "%(appname)s"',dict(appname=request.vars.filename))
     elif request.vars.has_key('file') and not request.vars.filename:
-        response.flash='you must specify a name for the uploaded application'
+        response.flash=T('you must specify a name for the uploaded application')
     elif request.vars.filename and request.vars.has_key('file'):
         try:
             appname=cleanpath(request.vars.filename).replace('.','_')
@@ -129,9 +130,9 @@ def site():
             os.mkdir(path)
             untar(tarname,path)
             fix_newlines(path)
-            response.flash='application %s installed' % appname
+            response.flash=T('application %(appname)s installed',dict(appname=appname))
         except:
-            response.flash='unable to install application "%s"' % request.vars.filename
+            response.flash=T('unable to install application "%(appname)s"',dict(appname=request.vars.filename))
     regex=re.compile('^\w+$')
     apps=[file for file in os.listdir(apath()) if regex.match(file)]
     return dict(app=None,apps=apps)
@@ -143,7 +144,7 @@ def pack():
         filename=apath('../deposit/%s.tar' % app)
         tar(filename,apath(app),'^[\w\.\-]+$')
     except:
-        session.flash='internal error'
+        session.flash=T('internal error')
         redirect(URL(r=request,f='site'))
     response.headers['Content-Type']='application/x-tar'
     response.headers['Content-Disposition']='attachment; filename=web2py.app.%s.tar'%app
@@ -156,7 +157,7 @@ def pack_compiled():
         filename=apath('../deposit/%s.tar' % app)
         tar_compiled(filename,apath(app),'^[\w\.\-]+$')
     except:
-        session.flash='internal error'
+        session.flash=T('internal error')
         redirect(URL(r=request,f='site'))
     response.headers['Content-Type']='application/x-tar'
     response.headers['Content-Disposition']='attachment; filename=web2py.app.%s.compiled.tar'%app
@@ -168,6 +169,7 @@ def uninstall():
         app=request.args[0]
         if not request.vars.has_key('delete'): return dict(app=app)
         elif request.vars['delete']!='YES':
+             #TODO: It looks like this was overlooked.  When it gets filled in, don't forget to T() it.  -mdm 6/9/08
              session.flash=''
              redirect(URL(r=request,f='site'))        
         filename=apath('../deposit/%s.tar' % app )
@@ -177,9 +179,9 @@ def uninstall():
             for name in files: os.remove(os.path.join(root,name))
             for name in dirs: os.rmdir(os.path.join(root,name))
         os.rmdir(path)
-        session.flash='application "%s" uninstalled' % app
+        session.flash=T('application "%(appname)s" uninstalled',dict(appname=app))
     except:
-        session.flash='unable to uninstall "%s"' % app
+        session.flash=T('unable to uninstall "%(appname)s"',dict(appname=app))
     redirect(URL(r=request,f='site'))
 
 def cleanup():        
@@ -189,11 +191,11 @@ def cleanup():
     for file in files: os.unlink(file)
     files=listdir(apath('%s/sessions/' % app),'\d.*',0)
     for file in files: os.unlink(file)
-    session.flash="cache, errors and sessions cleaned"
+    session.flash=T("cache, errors and sessions cleaned")
     files=listdir(apath('%s/cache/' % app),'cache.*',0)
     for file in files: 
         try: os.unlink(file)
-        except: session.flash="cache is in use, errors and sessions cleaned"
+        except: session.flash=T("cache is in use, errors and sessions cleaned")
     redirect(URL(r=request,f='site'))
 
 def compile_app():
@@ -202,17 +204,17 @@ def compile_app():
     folder=apath(app)
     try:
         compile_application(folder)
-        session.flash='application compiled'
+        session.flash=T('application compiled')
     except Exception, e:
         remove_compiled_application(folder)
-        session.flash='plase debug the application first (%s)' % str(e)
+        session.flash=T('please debug the application first (%(e)s)',dict(e=str(e)))
     redirect(URL(r=request,f='site'))
 
 def remove_compiled_app():
     """ admin controller function """
     app=request.args[0]
     remove_compiled_application(apath(app))
-    session.flash='compiled application removed'
+    session.flash=T('compiled application removed')
     redirect(URL(r=request,f='site'))
 
 def delete():
@@ -222,12 +224,12 @@ def delete():
     try:
         if not request.vars.has_key('delete'): return dict(filename=filename,sender=sender)
         elif request.vars['delete']!='YES':
-             session.flash='file "%s" was not deleted' % filename
+             session.flash=T('file "%(filename)s" was not deleted',dict(filename=filename))
              redirect(URL(r=request,f=sender))
         os.unlink(apath(filename))
-        session.flash='file "%s" deleted' % filename
+        session.flash=T('file "%(filename)s" deleted',dict(filename=filename))
     except:
-        session.flash='unable to delete file "%s"' % filename
+        session.flash=T('unable to delete file "%(filename)s"',dict(filename=filename))
     redirect(URL(r=request,f=sender))
 
 def peek():
@@ -236,7 +238,7 @@ def peek():
     try:
         data=open(apath(filename),'r').read()
     except IOError: 
-        session.flash='file does not exist'
+        session.flash=T('file does not exist')
         redirect(URL(r=request,f='site'))
     extension=filename[filename.rfind('.')+1:].lower()    
     return dict(app=request.args[0],filename=filename,data=data,extension=extension)
@@ -261,7 +263,7 @@ def edit():
     try:
         data=request.vars.data.replace('\r\n','\n').strip()
         open(apath(filename),'w').write(data)
-        response.flash="file saved on "+time.ctime()       
+        response.flash=T("file saved on %(time)s",dict(time=time.ctime()))       
     except: pass
     return dict(app=request.args[0],filename=filename,filetype=filetype,data=data)
 
@@ -274,7 +276,7 @@ def edit_language():
     keys=strings.keys()
     keys.sort()
     rows=[]
-    rows.append(TR(B('Original'),B('Translation')))
+    rows.append(TR(B(T('Original')),B(T('Translation'))))
     for keyi in range(len(keys)):
         key=keys[keyi]
         if len(key)<=40:
@@ -290,7 +292,7 @@ def edit_language():
             txt+='%s:%s,\n' % (repr(key),repr(form.vars[str(keyi)]))
         txt+='}\n'
         open(apath(filename),'w').write(txt)        
-        response.flash="file saved on "+time.ctime()       
+        response.flash=T("file saved on %(time)s",dict(time=time.ctime()))       
     return dict(app=request.args[0],filename=filename,form=form)
 
 def htmledit():
@@ -301,7 +303,7 @@ def htmledit():
     try:
         data=request.vars.data.replace('\r\n','\n') 
         open(apath(filename),'w').write(data)
-        response.flash="file saved on "+time.ctime()       
+        response.flash=T("file saved on %(time)s",dict(time=time.ctime()))       
     except: pass
     return dict(app=request.args[0],filename=filename,data=data)
 
@@ -317,9 +319,9 @@ def design():
     """ admin controller function """
     app=request.args[0] 
     if not response.slash and app==request.application:
-        response.flash='ATTENTION: you cannot edit the running application!'
+        response.flash=T('ATTENTION: you cannot edit the running application!')
     if os.path.exists(apath('%s/compiled' % app)):
-        session.flash='application is compiled and cannot be designed'
+        session.flash=T('application is compiled and cannot be designed')
         redirect(URL(r=request,f='site'))
     models=listdir(apath('%s/models/' % app), '.*\.py$')
     defines={}
@@ -359,21 +361,22 @@ def create_file():
             if len(filename)==0: raise SyntaxError
             app=path.split('/')[-3] 
             findT(apath(app),filename)
-            session.flash='language file "%s" created/updated' % filename
+            session.flash=T('language file "%(filename)s" created/updated',dict(filename=filename))
             redirect(request.vars.sender)
         elif path[-8:]=='/models/': 
             if not filename[-3:]=='.py': filename+='.py'
             if len(filename)==3: raise SyntaxError
             fn=re.sub('\W','',filename[:-3].lower())
-            text='# try something like\n%s=SQLDB("sqlite://%s.db")' % (fn,fn)
+            text='# %s\n%s=SQLDB("sqlite://%s.db")' % (T('try something like'),fn,fn)
         elif path[-13:]=='/controllers/':
             if not filename[-3:]=='.py': filename+='.py'
             if len(filename)==3: raise SyntaxError
-            text='# try something like\ndef index(): return dict(message="hello from %s")' % filename
+            text='# %s\ndef index(): return dict(message="hello from %s")' % (T('try something like'),filename)
         elif path[-7:]=='/views/':
             if not filename[-5:]=='.html': filename+='.html'
             if len(filename)==5: raise SyntaxError
-            text="{{extend 'layout.html'}}\n<h1>This is the %s template</h1>\n{{=BEAUTIFY(response._vars)}}" % filename
+            text="{{extend 'layout.html'}}\n<h1>%s</h1>\n{{=BEAUTIFY(response._vars)}}" % \
+                 T('This is the %(filename)s template',dict(filename=filename))
         elif path[-8:]=='/static/':
             text=""
         else:
@@ -383,9 +386,9 @@ def create_file():
         if not os.path.exists(dirpath): os.makedirs(dirpath)
         if os.path.exists(filename): raise SyntaxError
         open(filename,'w').write(text)
-        session.flash='file "%s" created' % filename[len(path):]
+        session.flash=T('file "%(filename)s" created',dict(filename=filename[len(path):]))
     except Exception, e:
-        session.flash='cannot create file'
+        session.flash=T('cannot create file')
     redirect(request.vars.sender)
 
 def upload_file(): 
@@ -401,9 +404,9 @@ def upload_file():
         dirpath=os.path.dirname(filename)
         if not os.path.exists(dirpath): os.makedirs(dirpath)
         open(filename,'w').write(request.vars.file.file.read())
-        session.flash='file "%s" uploaded' %  filename[len(path):]
+        session.flash=T('file "%(filename)s" uploaded',dict(filename=filename[len(path):]))
     except: 
-        session.flash='cannot upload file "%s"' % filename[len(path):]
+        session.flash=T('cannot upload file "%(filename)s"',dict(filename[len(path):]))
     redirect(request.vars.sender)
 
 def errors(): 
@@ -427,5 +430,5 @@ def update_languages():
     """ admin controller function """
     app=request.args[0]
     update_all_languages(apath(app))
-    session.flash='languages updated'
+    session.flash=T('languages updated')
     redirect(URL(r=request,f='design/'+app))
