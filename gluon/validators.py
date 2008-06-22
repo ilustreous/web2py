@@ -6,7 +6,6 @@ License: GPL v2
 """
 
 import os, re, random, copy, sys, types, datetime, time, cgi, hmac
-import gluon.sql 
 try: 
     import hashlib
     have_hashlib=True
@@ -107,8 +106,7 @@ def IS_IN_DB(dbset,field,label=None,error_message='value not in database!'):
  
     used for reference fields, rendered as a dropbox
     """
-    try: dbset=dbset() # dbset is a db
-    except TypeError: pass # else dbset is a SQLSet as should be 
+    if hasattr(dbset,'define_table'): dbset=dbset()
     ktable=str(field).split('.')[0]
     kfield=str(field).split('.')[-1]
     if not label: label='%%(%s)s' % kfield    
@@ -136,8 +134,8 @@ class IS_NOT_IN_DB(object):
     makes the field unique
     """
     def __init__(self,dbset,field,error_message='value already in database!'):
-        try: self.dbset=dbset()
-        except TypeError: self.dbset=dbset
+        if hasattr(dbset,'define_table'): self.dbset=dbset()
+        else: self.dbset=dbset
         self.field=field
         self.error_message=error_message
         self.record_id=0
@@ -145,7 +143,7 @@ class IS_NOT_IN_DB(object):
     def __call__(self,value):        
         tablename,fieldname=str(self.field).split('.')
         db=self.dbset._db        
-        rows=db(db[tablename][fieldname]==value).select(limitby=(0,1))
+        rows=self.dbset(db[tablename][fieldname]==value).select(limitby=(0,1))
         if len(rows)>0 and str(rows[0].id)!=str(self.record_id): 
             return (value,self.error_message)
         return (value,None)
