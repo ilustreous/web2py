@@ -94,36 +94,67 @@ class IS_IN_SET(object):
         self.theset=[str(item) for item in theset]
         self.labels=labels
         self.error_message=error_message
+    def options(self):
+        if self.labels:
+             return [(k,self.labels[i]) for i,k in enumerate(self.theset)]
+        else:
+             return [(k,k) for k in self.theset]
     def __call__(self,value):
         if value in self.theset: return (value,None)
         return (value,self.error_message)
 
-def IS_IN_DB(dbset,field,label=None,error_message='value not in database!'):
+class IS_IN_DB(object):
     """
     example:
 
     INPUT(_type='text',_name='name',requires=IS_IN_DB(db,db.table))
- 
+
     used for reference fields, rendered as a dropbox
     """
-    if hasattr(dbset,'define_table'): dbset=dbset()
-    ktable=str(field).split('.')[0]
-    kfield=str(field).split('.')[-1]
-    if not label: label='%%(%s)s' % kfield    
-    elif str(label).find('%')<0: label='%%(%s)s' % str(label).split('.')[-1]
-    ks=re.compile('%\((?P<name>[^\)]+)\)s').findall(label)    
-    if not kfield in ks: ks+=[kfield]
-    fields=['%s.%s'%(ktable,k) for k in ks]    
-    if dbset._db._dbname!='gql':
-        dd=dict(orderby=', '.join(fields))
-        records=dbset.select(*fields,**dd)
-    else:
-        dd=dict(orderby=', '.join([k for k in ks if k!='id']))
-        if not dd: dd=None
-        records=dbset.select(dbset._db[ktable].ALL,**dd)
-    theset=[r[kfield] for r in records]
-    labels=[label % dict(r) for r in records]
-    return IS_IN_SET(theset,labels,error_message)
+    def __init__(self,dbset,field,label=None,error_message='value not in database!'):
+        if hasattr(dbset,'define_table'): self.dbset=dbset()
+        else: self.dbset=dbset
+        ktable,kfield=str(field).split('.')
+        if not label:
+            label='%%(%s)s' % kfield
+        else:
+            label='%%(%s)s' % str(label).split('.')[-1]
+        ks=re.compile('%\((?P<name>[^\)]+)\)s').findall(label)
+        if not kfield in ks: ks+=[kfield]
+        fields=['%s.%s'%(ktable,k) for k in ks]
+        self.fields=fields
+        self.field=field
+        self.label=label
+        self.ktable=ktable
+        self.kfield=kfield
+        self.ks=ks
+        self.error_message=error_message
+        self.theset=None
+    def build_set(self):
+        if self.dbset._db._dbname!='gql':
+           dd=dict(orderby=', '.join(self.fields))
+           records=self.dbset.select(*self.fields,**dd)
+        else:
+           dd=dict(orderby=', '.join([k for k in self.ks if k!='id']))
+           if not dd: dd=None
+           records=self.dbset.select(self.dbset._db[self.ktable].ALL,**dd)
+        self.theset=[str(r[self.kfield]) for r in records]
+        self.labels=[self.label % dict(r) for r in records]        
+    def options(self):
+        self.build_set()
+        if self.labels:
+             return [(k,self.labels[i]) for i,k in enumerate(self.theset)]
+        else:
+             return [(k,k) for k in self.theset]
+    def __call__(self,value):
+        if self.theset: 
+            if value in self.theset:
+                return (value,None)
+        else:
+            field=self.dbset._db[self.ktable][self.kfield]
+            if len(self.dbset(field==value).select(limitby=(0,1))):
+                 return (value,None)
+        return (value,self.error_message)         
 
 class IS_NOT_IN_DB(object):
     """

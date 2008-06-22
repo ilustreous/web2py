@@ -97,27 +97,25 @@ class SQLFORM(FORM):
                 else: default=''
                 inp=INPUT(_type='checkbox',_id=field_id,_class=field.type,
                     _name=fieldname,value=default, requires=field.requires)
-            elif isinstance(field.requires,IS_IN_SET):
-                 if field.requires.labels:
-                    opts,k=[],0
-                    for v in field.requires.theset:
-                        if v==default or (not isinstance(default,(str,unicode)) and v==str(default)):
-                            opts.append(OPTION(field.requires.labels[k],_value=v,_selected=ON))
-                        else:
-                            opts.append(OPTION(field.requires.labels[k],_value=v))
-                        k+=1
-                 else: opts=field.requires.theset
-                 inp=SELECT(*opts,**dict(_id=field_id,_class=field.type,
+            elif hasattr(field.requires,'options'):
+                opts=[]
+                for k,v in field.requires.options():
+                     if k==default or (not isinstance(default,(str,unicode)) \
+                                       and k==str(default)):
+                          opts.append(OPTION(v,_value=k,_selected=ON))
+                     else:
+                          opts.append(OPTION(v,_value=k))
+                inp=SELECT(*opts,**dict(_id=field_id,_class=field.type,
                      _name=fieldname,value=default,requires=field.requires))
             elif field.type=='password':
-                 if self.record: v='********'
-                 else: v=''
-                 inp=INPUT(_type='password', _id=field_id,
+                if self.record: v='********'
+                else: v=''
+                inp=INPUT(_type='password', _id=field_id,
                       _name=fieldname,_value=v,_class=field.type,
                       requires=field.requires)
             else:
-                 if default==None: default=''
-                 inp=INPUT(_type='text', _id=field_id,_class=field.type,
+                if default==None: default=''
+                inp=INPUT(_type='text', _id=field_id,_class=field.type,
                       _name=fieldname,value=str(default),
                       requires=field.requires)
             xfields.append(TR(label,inp,col3.get(fieldname,''),_id=field_id+'__row'))
