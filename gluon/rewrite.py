@@ -34,6 +34,7 @@ def rewrite(wsgibase,URL):
         for regex,value in routes_in:
             if regex.match(key): 
                 path=regex.sub(value,key)
+                break
         e['PATH_INFO']=path
         return e
     def filter_out(url):
