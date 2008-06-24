@@ -103,6 +103,9 @@ class IS_IN_SET(object):
         if value in self.theset: return (value,None)
         return (value,self.error_message)
 
+regex1=re.compile('[\w_]+\.[\w_]+')
+regex2=re.compile('%\((?P<name>[^\)]+)\)s')
+
 class IS_IN_DB(object):
     """
     example:
@@ -117,9 +120,9 @@ class IS_IN_DB(object):
         ktable,kfield=str(field).split('.')
         if not label:
             label='%%(%s)s' % kfield
-        else:
+        elif regex1.match(str(label)):
             label='%%(%s)s' % str(label).split('.')[-1]
-        ks=re.compile('%\((?P<name>[^\)]+)\)s').findall(label)
+        ks=regex2.findall(label)
         if not kfield in ks: ks+=[kfield]
         fields=['%s.%s'%(ktable,k) for k in ks]
         self.fields=fields
@@ -255,6 +258,8 @@ class IS_URL(IS_MATCH):
     def __init__(self,error_message='invalid url!'):
         IS_MATCH.__init__(self,'^(http|HTTP|https|HTTPS|ftp|FTP|file|FILE|rstp|RSTP)\://[\w/=&\?\.]+$',error_message)
 
+regex_time=re.compile('((?P<h>[0-9]+))([^0-9 ]+(?P<m>[0-9 ]+))?([^0-9ap ]+(?P<s>[0-9]*))?((?P<d>[ap]m))?')
+
 class IS_TIME(object):
     """
     example:
@@ -273,7 +278,7 @@ class IS_TIME(object):
     def __call__(self,value):
         try:
             ivalue=value
-            value=re.compile('((?P<h>[0-9]+))([^0-9 ]+(?P<m>[0-9 ]+))?([^0-9ap ]+(?P<s>[0-9]*))?((?P<d>[ap]m))?').match(value.lower())
+            value=regex_time.match(value.lower())
             h,m,s=int(value.group('h')),0,0
             if value.group('m')!=None: m=int(value.group('m'))
             if value.group('s')!=None: s=int(value.group('s'))
