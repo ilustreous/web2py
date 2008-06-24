@@ -420,11 +420,15 @@ def errors():
 
 def ticket():        
     """ admin controller function """
-    app=request.args[0] 
-    ticket=request.args[1] 
+    if len(request.args)!=2:
+        session.flash=T("invalid ticket")
+        redirect(URL(r=reuqest,f='site'))
+    app=request.args[0]
+    ticket=request.args[1]
     e=RestrictedError()
     e.load(apath('%s/errors/%s' % (app,ticket)))
     return dict(app=app,ticket=ticket,traceback=e.traceback,code=e.code,layer=e.layer)
+    
 
 def update_languages():
     """ admin controller function """

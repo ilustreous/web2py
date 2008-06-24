@@ -334,21 +334,21 @@ def start():
     ### if no passwors provided and havetk start Tk interface
     root=None
     if options.password=='<ask>' and havetk:
-       try: root=Tkinter.Tk()
-       except: pass
+        try: root=Tkinter.Tk()
+        except: pass
     if root:
-       root.focus_force()
-       presentation(root)
-       master=web2pyDialog(root,options)
-       signal.signal(signal.SIGTERM,lambda a,b: master.quit())
-       try: root.mainloop()
-       except: master.quit()
-       sys.exit()
+        root.focus_force()
+        presentation(root)
+        master=web2pyDialog(root,options)
+        signal.signal(signal.SIGTERM,lambda a,b: master.quit())
+        try: root.mainloop()
+        except: master.quit()
+        sys.exit()
     ### if no tk and no password, ask for a password
     if not root and options.password=='<ask>':
-       options.password=raw_input('choose a password:')
+        options.password=raw_input('choose a password:')
     if not options.password: 
-       print 'no password, no admin interface'     
+        print 'no password, no admin interface'     
     ### start server
     ip,port=options.ip,int(options.port)
     print 'please visit:'
