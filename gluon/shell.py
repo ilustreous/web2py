@@ -36,7 +36,7 @@ def env(a, import_models=False, c=None, f=None, dir=''):
     def check_credentials(request,other_application='admin'): return True
     gluon.fileutils.check_credentials = check_credentials
 
-    environment=gluon.main.build_environment(request,response,session)
+    environment=gluon.compileapp.build_environment(request,response,session)
     
     if import_models:
         gluon.compileapp.run_models_in(environment)

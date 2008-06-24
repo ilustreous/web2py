@@ -9,6 +9,7 @@ import os
 import re
 import tarfile
 import sys
+from http import HTTP
 
 __all__=['listdir', 'cleanpath', 'tar', 'untar', 'tar_compiled', 
          'get_session', 'check_credentials']
@@ -23,9 +24,10 @@ def listdir(path,expression='^.+$',drop=True,add_dirs=False):
     regex=re.compile(expression)
     items=[]
     for root,dirs,files in os.walk(path):
+        if root.startswith('.'): continue
         if add_dirs: items.append(root[n:])
-        for file in files:
-           if regex.match(file):
+        for file in files:           
+           if regex.match(file) and not file.startswith('.'):
               items.append(os.path.join(root,file)[n:])
     items.sort()
     return items
@@ -135,11 +137,12 @@ def check_credentials(request,other_application='admin'):
     except:
          return get_session(request,other_application).authorized
     else:
-         user=users.get_current_user()
-         if users.is_current_user_admin(): return True
-         login_html='<a href="%s">Sign in with your google account</a>.'%\
-                    users.create_login_url('/')
-         raise HTTP(200,'<html><body>%s</body></html>' % login_html)
+         if users.is_current_user_admin():
+             return True
+         else:
+             login_html=('<a href="%s">Sign in with your google account</a>.'%\
+                         users.create_login_url(request.env.path_info))
+             raise HTTP(200,"<html><body>%s</body></html>" % login_html)
 
 def fix_newlines(path):
     regex=re.compile(r'(\r\n|\r|\n)')

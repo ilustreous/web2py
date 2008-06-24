@@ -12,19 +12,15 @@ import tempfile, logging
 from random import random
 from storage import Storage, load_storage, save_storage
 from restricted import RestrictedError
-from languages import translator
 from http import HTTP, redirect
 from globals import Request, Response, Session
-from cache import Cache
-from compileapp import run_models_in, run_controller_in, run_view_in
+from compileapp import build_environment, run_models_in, run_controller_in, run_view_in
 from fileutils import listdir, copystream
 from contenttype import contenttype
-from sql import SQLDB, SQLField
-from sqlhtml import SQLFORM, SQLTABLE
 from rewrite import rewrite
 from xmlrpc import handler
+from sql import SQLDB
 import html
-import validators
 import myregex
 try: import wsgiserver
 except: logging.warning("unable to import wsgiserver")
@@ -47,27 +43,6 @@ error_message='<html><body><h1>Invalid request</h1></body></html>'
 error_message_ticket='<html><body><h1>Internal error</h1>Ticket issued: <a href="/admin/default/ticket/%s" target="_blank">%s</a></body></html>'
 
 working_folder=os.getcwd()
-
-def build_environment(request,response,session):
-    """
-    Build and return evnironment dictionary for controller and view.
-    """
-    environment={}
-    for key in html.__all__: environment[key]=getattr(html,key)
-    for key in validators.__all__: environment[key]=getattr(validators,key)
-    environment['T']=translator(request)
-    environment['HTTP']=HTTP
-    environment['redirect']=redirect
-    environment['request']=request
-    environment['response']=response
-    environment['session']=session
-    environment['cache']=Cache(request)
-    environment['SQLDB']=SQLDB
-    SQLDB._set_thread_folder(os.path.join(request.folder,'databases'))
-    environment['SQLField']=SQLField
-    environment['SQLFORM']=SQLFORM
-    environment['SQLTABLE']=SQLTABLE
-    return environment
 
 def serve_controller(request,response,session):
     """
@@ -132,7 +107,6 @@ def wsgibase(environ, responder):
             ###################################################
             # serve if a static file
             ###################################################
-
             if len(items)>2 and items[1]=='static':
                 static_file=os.path.join(request.env.web2py_path,'applications',\
                                          items[0],'static','/'.join(items[2:]))
@@ -141,21 +115,23 @@ def wsgibase(environ, responder):
             # parse application, controller and function
             ###################################################
             if len(items) and items[-1]=='': del items[-1]
-            if len(items)==0: redirect('/init/default/index')
-            if len(items)==1: redirect('/%s/default/index' % items[0])
-            if len(items)==2: redirect('/%s/%s/index' % tuple(items))
+            if len(items)==0: items=['init']
+            if len(items)==1: items.append('default')
+            if len(items)==2: items.append('index')
             if len(items)>3: items,request.args=items[:3],items[3:]
             if request.args==None: request.args=[]
             request.application=items[0]
             request.controller=items[1]
             request.function=items[2]
-            request.folder=os.path.join(request.env.web2py_path,'applications',request.application)+'/'
+            request.folder=os.path.join(request.env.web2py_path,\
+               'applications',request.application)+'/'
             ###################################################
             # access the requested application
             ###################################################
             if not os.path.exists(request.folder):
                 if items==['init','default','index']:
-                   redirect('/welcome/default/index')
+                   items[0]='welcome'
+                   redirect(URL(*items))
                 raise HTTP(400,error_message,web2py_error='invalid application')
             ###################################################
             # get the GET and POST data -DONE

@@ -9,8 +9,13 @@ from template import parse_template
 from restricted import restricted
 from fileutils import listdir
 from myregex import regex_expose
-from http import HTTP
-from html import CODE
+from languages import translator
+from sql import SQLDB, SQLField
+from sqlhtml import SQLFORM, SQLTABLE
+from cache import Cache
+import html
+import validators
+from http import HTTP, redirect
 import os, marshal, imp, types, doctest, logging
 try: import py_compile
 except: logging.warning("unable to import py_compile")
@@ -34,7 +39,7 @@ def _TEST():
                 if report: pf='failed'
                 else: pf='passed'
                 html+='<h3 class="%s">Function %s [%s]</h3>'%(pf,key,pf)
-                if report: html+=CODE(report,language='web2py',link='/examples/global/vars/').xml()
+                if report: html+=html.CODE(report,language='web2py',link='/examples/global/vars/').xml()
                 html+='<br/>\n'
             else:
                 html+='<h3 class="nodoctests">Function %s [no doctests]</h3><br/>'%(key)
@@ -42,6 +47,27 @@ def _TEST():
     sys.stdout=stdout
 _TEST()
 """
+
+def build_environment(request,response,session):
+    """
+    Build and return evnironment dictionary for controller and view.
+    """
+    environment={}
+    for key in html.__all__: environment[key]=getattr(html,key)
+    for key in validators.__all__: environment[key]=getattr(validators,key)
+    environment['T']=translator(request)
+    environment['HTTP']=HTTP
+    environment['redirect']=redirect
+    environment['request']=request
+    environment['response']=response
+    environment['session']=session
+    environment['cache']=Cache(request)
+    environment['SQLDB']=SQLDB
+    SQLDB._set_thread_folder(os.path.join(request.folder,'databases'))
+    environment['SQLField']=SQLField
+    environment['SQLFORM']=SQLFORM
+    environment['SQLTABLE']=SQLTABLE
+    return environment
 
 def save_pyc(filename):
     py_compile.compile(filename)

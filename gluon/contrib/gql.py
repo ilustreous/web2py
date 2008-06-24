@@ -293,6 +293,7 @@ class SQLQuery(object):
             if op=='=':
                 self.sql=QueryException(tablename=left._tablename,id=int(right))
                 return
+            elif op=='>' and str(left)=='0': pass
             else: raise SyntaxError, 'not supported'
         if hasattr(left,'type') and left.type in ['text', 'blob']:
             raise SyntaxError, 'not supported'
@@ -380,7 +381,8 @@ class SQLSet(object):
         if len(tablenames)<1: raise SyntaxError, 'SQLSet: no tables selected'
         if len(tablenames)>1: raise SyntaxError, 'SQLSet: no join in appengine'
         self.colnames=[c.strip() for c in sql_f.split(', ')]
-        if self.sql_w: sql_w=' WHERE '+self.sql_w
+        if self.sql_w=='%s.id>0'%tablenames[0]: sql_w=''
+        elif self.sql_w: sql_w=' WHERE '+self.sql_w       
         else: sql_w=''
         sql_o=''
         if attributes.has_key('left') and attributes['left']: 
