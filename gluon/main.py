@@ -23,7 +23,7 @@ from sql import SQLDB
 import html
 import myregex
 try: import wsgiserver
-except: logging.warning("unable to import wsgiserver")
+except: logging.error("unable to import wsgiserver")
 ### contrib moduels
 import contrib.simplejson
 import contrib.pyrtf
@@ -131,7 +131,7 @@ def wsgibase(environ, responder):
             if not os.path.exists(request.folder):
                 if items==['init','default','index']:
                    items[0]='welcome'
-                   redirect(URL(*items))
+                   redirect(html.URL(*items))
                 raise HTTP(400,error_message,web2py_error='invalid application')
             ###################################################
             # get the GET and POST data -DONE
