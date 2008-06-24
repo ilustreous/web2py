@@ -422,7 +422,7 @@ def ticket():
     """ admin controller function """
     if len(request.args)!=2:
         session.flash=T("invalid ticket")
-        redirect(URL(r=reuqest,f='site'))
+        redirect(URL(r=request,f='site'))
     app=request.args[0]
     ticket=request.args[1]
     e=RestrictedError()
