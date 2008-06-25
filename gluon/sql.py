@@ -280,7 +280,7 @@ class SQLDB(SQLStorage):
                 db._execute("COMMIT PREPARED '%s';"  % keys[i])
         return
     def __init__(self,uri='sqlite://dummy.db'):
-        self._uri=uri
+        self._uri=str(uri)
         self['_lastsql']=''
         self.tables=SQLCallableList()
         pid=thread.get_ident()
@@ -351,6 +351,15 @@ class SQLDB(SQLStorage):
             self._execute=lambda a: self._cursor.execute(a[:-1])  ###
             self._execute("ALTER SESSION SET NLS_DATE_FORMAT = 'YYYY-MM-DD';")
             self._execute("ALTER SESSION SET NLS_TIMESTAMP_FORMAT = 'YYYY-MM-DD HH24:MI:SS';")
+        elif self._uri in ['','None']:
+            class Dummy:
+                lastrowid=1
+                def __getattr__(self,value): return lambda *a,**b: ''
+            self._uri='None'
+            self._dbname='sqlite'
+            self._connection=Dummy()
+            self._cursor=Dummy()
+            self._execute=lambda a: []
         else:
             raise SyntaxError, 'database type not supported'
         self._translator=SQL_DIALECTS[self._dbname]
