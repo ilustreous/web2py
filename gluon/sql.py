@@ -169,9 +169,11 @@ def sqlhtml_validators(field_type,length):
 
 def sql_represent(obj,fieldtype,dbname):    
     if obj is None: return 'NULL'
+    if obj=='' and fieldtype[:2] in ['id','in','re','da','ti','bo']: 
+        return 'NULL'
     if fieldtype=='boolean':
-         if obj and not str(obj)[0].upper()=='F': return "'T'"
-         else: return "'F'"
+        if obj and not str(obj)[0].upper()=='F': return "'T'"
+        else: return "'F'"
     if fieldtype[0]=='i': return str(int(obj))
     elif fieldtype[0]=='r': return str(int(obj))
     elif fieldtype=='double': return str(float(obj))
@@ -598,15 +600,11 @@ class SQLTable(SQLStorage):
             raise SyntaxError, 'invalid field name'
         for fieldname in self.fields:
             if fieldname=='id': continue
-            field=self[fieldname]            
+            field=self[fieldname]     
             ft,fd=field.type,field._db._dbname
             if fields.has_key(fieldname):                
                 fs.append(fieldname)
                 value=fields[fieldname]
-                if value!=None and field.type[:9] in ['integer','reference']:
-                    value=int(value)
-                if value!=None and field.type=='double':
-                    value=float(value)
                 try: vs.append(sql_represent(value.id,ft,fd))
                 except: vs.append(sql_represent(value,ft,fd))
             elif field.default!=None:
@@ -653,7 +651,7 @@ class SQLTable(SQLStorage):
                 colnames=[x[x.find('.')+1:] for x in line]
                 c=[i for i in xrange(len(line)) if colnames[i]!='id']
             else:
-                items=[(colnames[i],line[i]) for i in c]                
+                items=[(colnames[i],line[i]) for i in c]
                 self.insert(**dict(items))
     def on(self,query):
         return SQLJoin(self,query)
@@ -895,7 +893,7 @@ class SQLSet(object):
         if attributes.has_key('groupby') and attributes['groupby']: 
             sql_o+=' GROUP BY %s'% attributes['groupby']
         if attributes.has_key('orderby') and attributes['orderby']: 
-            if attributes['orderby']=='<random>':
+            if str(attributes.get('orderby',''))=='<random>':
                 sql_o+=' ORDER BY '+self._db._translator['random']
             else:
                 sql_o+=' ORDER BY %s'% attributes['orderby']
