@@ -190,6 +190,7 @@ class SQLFORM(FORM):
                     if f!='':
                         newfilename='%s.%s.%s%s'%(self.table._tablename, \
                                     fieldname,str(random.random())[2:],e)
+                        vars['%s_newfilename'%fieldname]=newfilename
                         fields[fieldname]=newfilename
                         if field.uploadfield==True:
                             pathfilename=os.path.join(self.table._db._folder,'../uploads/',newfilename)
