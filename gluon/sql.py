@@ -351,11 +351,10 @@ class SQLDB(SQLStorage):
             self._execute=lambda a: self._cursor.execute(a[:-1])  ###
             self._execute("ALTER SESSION SET NLS_DATE_FORMAT = 'YYYY-MM-DD';")
             self._execute("ALTER SESSION SET NLS_TIMESTAMP_FORMAT = 'YYYY-MM-DD HH24:MI:SS';")
-        elif self._uri in ['','None']:
+        elif self._uri=='None':
             class Dummy:
                 lastrowid=1
                 def __getattr__(self,value): return lambda *a,**b: ''
-            self._uri='None'
             self._dbname='sqlite'
             self._connection=Dummy()
             self._cursor=Dummy()
@@ -379,6 +378,9 @@ class SQLDB(SQLStorage):
         if not tablename in self.tables: self.tables.append(tablename)
         else: raise SyntaxError, "table already defined"
         t=self[tablename]=SQLTable(self,tablename,*fields)
+        if self._uri=='None':
+            args['migrate']=False
+            return t
         sql_locker.acquire()
         try:            
             query = t._create(migrate=args['migrate'])
