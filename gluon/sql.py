@@ -890,7 +890,14 @@ class SQLSet(object):
         if attributes.has_key('groupby') and attributes['groupby']: 
             sql_o+=' GROUP BY %s'% attributes['groupby']
         if attributes.has_key('orderby') and attributes['orderby']: 
-            sql_o+=' ORDER BY %s'% attributes['orderby']
+            if attributes['orderby'] == 'random':
+                if self._db._dbname=='postgres': sql_o+=' ORDER BY RANDOM()'
+                elif self._db._dbname=='mysql': sql_o+=' ORDER BY RAND()'
+                elif self._db._dbname=='oracle': sql_o+=' ORDER BY dbms_random.value'
+                elif self._db._dbname=='mssql': sql_o+=' ORDER BY NEWID()'
+                elif self._db._dbname=='sqlite': sql_o+=' ORDER BY Random()'
+            else:
+                sql_o+=' ORDER BY %s'% attributes['orderby']
         if attributes.has_key('limitby') and attributes['limitby']: 
             ### oracle does not support limitby
             lmin,lmax=attributes['limitby']
