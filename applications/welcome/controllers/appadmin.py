@@ -28,8 +28,10 @@ response.menu=[[T('design'),False,'/admin/default/design/%s' % request.applicati
 def index():
     import types as _types
     _dbs={}
+    try: GQLDB
+    except: GQLDB=SQLDB
     for _key,_value in globals().items():
-        if isinstance(_value,SQLDB):
+        if isinstance(_value,GQLDB):
            tables=_dbs[_key]=[]
            for _tablename in _value.tables:
                tables.append((_key,_tablename))

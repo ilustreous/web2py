@@ -4,7 +4,7 @@ Developed by Massimo Di Pierro <mdipierro@cs.depaul.edu>
 License: GPL v2
 """
 
-__all__=['SQLDB','GQLDB','SQLField'] 
+__all__=['GQLDB','SQLField'] 
 
 import re, sys, os, types, cPickle, datetime, thread, cStringIO, csv, copy, socket, logging
 import gluon.validators as validators
@@ -94,8 +94,6 @@ class GQLDB(SQLStorage):
         return t
     def __call__(self,where=''):
         return SQLSet(self,where)
-
-SQLDB=GQLDB
 
 class SQLALL(object):
     def __init__(self,table):
