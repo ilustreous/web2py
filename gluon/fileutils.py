@@ -23,8 +23,10 @@ def listdir(path,expression='^.+$',drop=True,add_dirs=False):
     else: n=0
     regex=re.compile(expression)
     items=[]
-    for root,dirs,files in os.walk(path):
-        if root.startswith('.'): continue
+    for root,dirs,files in os.walk(path, topdown=True):
+        for dir in dirs[:]:
+           if dir.startswith('.'):
+              dirs.remove(dir)
         if add_dirs: items.append(root[n:])
         for file in files:           
            if regex.match(file) and not file.startswith('.'):
