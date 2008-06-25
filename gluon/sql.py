@@ -68,7 +68,8 @@ SQL_DIALECTS={'sqlite':{'boolean':'CHAR(1)',
                       'is null':'IS NULL',
                       'is not null':'IS NOT NULL',
                       'extract':"web2py_extract('%(name)s',%(field)s)",
-                      'left join':'LEFT JOIN'},
+                      'left join':'LEFT JOIN',
+                      'random':'Random()'},
             'mysql':{'boolean':'CHAR(1)',
                       'string':'VARCHAR(%(length)s)',
                       'text':'TEXT',
@@ -87,7 +88,8 @@ SQL_DIALECTS={'sqlite':{'boolean':'CHAR(1)',
                       'is null':'IS NULL',
                       'is not null':'IS NOT NULL',
                       'extract':'EXTRACT(%(name)s FROM %(field)s)',
-                      'left join':'LEFT JOIN'},
+                      'left join':'LEFT JOIN',
+                      'random':'RAND()'},
             'postgres':{'boolean':'CHAR(1)',
                       'string':'VARCHAR(%(length)s)',
                       'text':'TEXT',
@@ -106,7 +108,8 @@ SQL_DIALECTS={'sqlite':{'boolean':'CHAR(1)',
                       'is null':'IS NULL',
                       'is not null':'IS NOT NULL',
                       'extract':'EXTRACT(%(name)s FROM %(field)s)',
-                      'left join':'LEFT JOIN'},
+                      'left join':'LEFT JOIN',
+                      'random':'RANDOM()'},
             'oracle':{'boolean':'CHAR(1)',
                       'string':'VARCHAR2(%(length)s)',
                       'text':'CLOB',
@@ -125,7 +128,8 @@ SQL_DIALECTS={'sqlite':{'boolean':'CHAR(1)',
                       'is null':'IS NULL',
                       'is not null':'IS NOT NULL',
                       'extract':'EXTRACT(%(name)s FROM %(field)s)',
-                      'left join':'LEFT OUTER JOIN'},
+                      'left join':'LEFT OUTER JOIN',
+                      'random':'dbms_random.value'},
              'mssql':{'boolean':'bit',
                       'string':'varchar(%(length)s)',
                       'text':'text',
@@ -143,7 +147,8 @@ SQL_DIALECTS={'sqlite':{'boolean':'CHAR(1)',
                       'upper':'UPPER(%(field)s)',
                       'is null':'IS NULL',
                       'is not null':'IS NOT NULL',
-                      'extract':' DATEPART(%(name)s , %(field)s)'}
+                      'extract':' DATEPART(%(name)s , %(field)s)',
+                      'random':'NEWID()'}
               }
 
 def sqlhtml_validators(field_type,length):
@@ -890,12 +895,8 @@ class SQLSet(object):
         if attributes.has_key('groupby') and attributes['groupby']: 
             sql_o+=' GROUP BY %s'% attributes['groupby']
         if attributes.has_key('orderby') and attributes['orderby']: 
-            if attributes['orderby'] == 'random':
-                if self._db._dbname=='postgres': sql_o+=' ORDER BY RANDOM()'
-                elif self._db._dbname=='mysql': sql_o+=' ORDER BY RAND()'
-                elif self._db._dbname=='oracle': sql_o+=' ORDER BY dbms_random.value'
-                elif self._db._dbname=='mssql': sql_o+=' ORDER BY NEWID()'
-                elif self._db._dbname=='sqlite': sql_o+=' ORDER BY Random()'
+            if attributes['orderby']=='<random>':
+                sql_o+=' ORDER BY '+self._db._translator['random']
             else:
                 sql_o+=' ORDER BY %s'% attributes['orderby']
         if attributes.has_key('limitby') and attributes['limitby']: 
