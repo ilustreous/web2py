@@ -658,9 +658,9 @@ class SQLTable(SQLStorage):
     def _truncate(self):
         t = self._tablename
         if self._db._dbname=='sqlite':
-            return ["DELETE FROM %s;" % (t), 
-                    "DELETE FROM sqlite_sequence WHERE name='%s';" % (t)]
-        return ['TRUNCATE TABLE %s;', (t)]
+            return ['DELETE FROM %s;' % t, 
+                    "DELETE FROM sqlite_sequence WHERE name='%s';" % t]
+        return ['TRUNCATE TABLE %s;' % t]
     def truncate(self):
         logfile=open(os.path.join(self._db._folder,'sql.log'),'a')
         queries=self._truncate()
@@ -894,9 +894,9 @@ class SQLSet(object):
             sql_o+=' GROUP BY %s'% attributes['groupby']
         if attributes.has_key('orderby') and attributes['orderby']: 
             if str(attributes.get('orderby',''))=='<random>':
-                sql_o+=' ORDER BY '+self._db._translator['random']
+                sql_o+=' ORDER BY %s' % self._db._translator['random']
             else:
-                sql_o+=' ORDER BY %s'% attributes['orderby']
+                sql_o+=' ORDER BY %s' % attributes['orderby']
         if attributes.has_key('limitby') and attributes['limitby']: 
             ### oracle does not support limitby
             lmin,lmax=attributes['limitby']
