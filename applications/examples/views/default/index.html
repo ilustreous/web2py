@@ -1,84 +1,29 @@
 {{extend 'layout.html'}}
-{{import os}}
-<style><!--
-.post {
-  font-size: 11pt;
-  color: #444444;
-  padding: 10px;
-  background: #EAF0DE url(/{{=request.application}}/static/turn.jpg) no-repeat right bottom;
-}
-//--></style>
-
-<!-- AddThis Button BEGIN -->
-<div style="text-align:right">
-<script type="text/javascript">addthis_pub  = 'mdipierro';</script>
-<a href="http://www.addthis.com/bookmark.php" onmouseover="return addthis_open(this, '', '[URL]', '[TITLE]')" onmouseout="addthis_close()" onclick="return addthis_sendto()"><img src="http://s9.addthis.com/button1-bm.gif" width="125" height="16" border="0" alt="" /></a><script type="text/javascript" src="http://s7.addthis.com/js/152/addthis_widget.js"></script>
-</div>
-<!-- AddThis Button END -->
 
 <h1>web2py<sup style="font-size:0.5em;">TM</sup> Enterprise Web Framework</h1>
 
-<table width="100%" border="0" cellspacing="20" cellpaddning="0">
-<tr><td align="left" valign="top">
-<div class="post">
-<h3>
+<p><b>
 Free and open source full-stack enterprise framework
 for agile development of secure database-driven web-based applications,
-written and programmable in <a href="http://www.python.org">Python</a>.</h3>
-<br/>
+written and programmable in <a href="http://www.python.org">Python</a>.
 Created by <a href="http://www.cti.depaul.edu/aboutcti/pages/facultyinfo.aspx?id=343">Massimo Di Pierro</a>. &copy; 2007-2008.
-<br/>
-Always backward compatible. Currently {{=open('VERSION','r').read().strip()}}. Please <a href="/{{=request.application}}/default/download">upgrade</a>.
-</div>
+</b></p>
 
-<br/>
+<center><table width="100%"><tr><td class="main_box" width="30%">
+<a href="http://mdp.cti.depaul.edu/examples/static/web2py_comics.pdf"><img src="/{{=request.application}}/static/web2py_comics.jpg"/></a>
+</td><td class="main_box">
+<object type="application/x-shockwave-flash" width="200" height="125" data="http://www.vimeo.com/moogaloop.swf?clip_id=875433&amp;server=www.vimeo.com&amp;fullscreen=1&amp;show_title=1&amp;show_byline=1&amp;show_portrait=0&amp;color="><param name="quality" value="best" /><param name="allowfullscreen" value="true" /><param name="scale" value="showAll" /><param name="movie" value="http://www.vimeo.com/moogaloop.swf?clip_id=875433&amp;server=www.vimeo.com&amp;fullscreen=1&amp;show_title=1&amp;show_byline=1&amp;show_portrait=0&amp;color=" /></object>
+</td><td class="main_box">
+<a href="http://www3.clustrmaps.com/counter/maps.php?url=http://mdp.cti.depaul.edu" id="clustrMapsLink"><img src="http://www3.clustrmaps.com/counter/index2.php?url=http://mdp.cti.depaul.edu" style="border:0px;" alt="Locations of visitors to this page" title="Locations of visitors to this page" id="clustrMapsImg" onError="this.onError=null; this.src='http://www2.clustrmaps.com/images/clustrmaps-back-soon.jpg'; document.getElementById('clustrMapsLink').href='http://www2.clustrmaps.com'" /></a>
+</td></tr></table>
+</center>
 
-<div class="post">
-<b>News:</b>
-Since version 1.30 web2py apps runs on Google App Engine (beta). <a href="http://www.vimeo.com/932708">Here is a video</a>.<br/>
-<b>News:</b>
-<a href="http://mdp.cti.depaul.edu/examples/static/web2py_vs_others.pdf">web2py vs Other Web Frameworks</a>.<br/>
-<b>News:</b>
-Need a new page layout? <a href="https://mdp.cti.depaul.edu/layouts">Try this</a>.<br/>
-<b>News:</b>
-Check out the new <a href="http://www.haokanbu.com/story/32803/">Ulipad shell plugin</a>.
-</div>
-<br/>
-
-<div class="post">
-Our users say: <i>"Easy as pie", "Serious performance", "Very intuitive", "Great documentation", "The best web framework ever"</i>
-</div>
-<br/>
+<center>
+<a style="font-size:2em;" href="http://mdp.cti.depaul.edu/demo_admin">try web2py administrative interface here</a>
+</center>
 
 
-<div class="post">
-
-Start by reading our <a href="http://mdp.cti.depaul.edu/examples/static/cookbook.pdf">Cookbook tutorial</a> then proceed to our <a href="http://mdp.cti.depaul.edu/examples/static/web2py_manual.pdf">draft manual</a>
-
-<br/>
-
-Further readings: 
-<a href="/{{=request.application}}/default/examples">Lots of examples</a> | 
-<a href="/{{=request.application}}/default/api">Complete API</a> |
-<a href="/{{=request.application}}/default/orm">ORM examples</a> |
-<a href="/{{=request.application}}/static/epydoc/index.html">epydocs</a>
-<br/>
-For starting with model design try <a href="https://mdp.cti.depaul.edu/sqldesigner/default/sqldesigner">the interactive model builder</a>
-<br/>
-If you need more you can <a href="http://www.cti.depaul.edu/programs/courses.asp?courseid=438&subject=CSC&section=courses">take an online course</a>.
-
-<br/>
-
-For questions and support please join <a href="http://groups.google.com/group/web2py">our Google Group</a> or ask <a href="http://mdp.cti.depaul.edu/AlterEgo">our automated FAQ, AlterEgo</a>.
-
-<br/>
-Need to setup a Wiki? A Blog? An online store? You can get lots of free ready to use apps <a href="http://mdp.cti.depaul.edu/appliances">here</a>
-</div>
-
-<br/>
-
-
-<div class="post">
+<h2>Features</h2>
 <ul>
 <li>No installation, no configuration, no dependencies. All in one package. You can run it off a USB drive</li>
 <li>Runs on Windows, OSX, Unix/Linux, and Windows CE phones.</li>
@@ -90,30 +35,26 @@ Need to setup a Wiki? A Blog? An online store? You can get lots of free ready to
 <li>Allows you to create apps easily, byte-code compile them, and distribute them in open or closed source under any license you like.</li>
 <li>Faster then the competition, designed for small as well as large projects, includes the ability to upload/download/stream large files, internationalization support, distributed transactions, ...</li>
 </ul>
-</div>
 
-<br/>
+<h2>A taste of web2py</h2>
 
-<div class="post">
-<h2>A taste of web2py</h2><br/>
-
-Consider the following complete application which consists a <b>model</b> (which describes the data representation): <tt>db.py</tt><br/><br/>
+Consider the following complete application which consists a <b>model</b> (which describes the data representation): <tt>db.py</tt>
 {{=CODE("""
 db=SQLDB('sqlite://images.db')
 db.define_table('image',SQLField('file','upload'))
 """.strip(),language='web2py',link='/examples/global/vars/')}}
-<br/>a <b>controller</b> (which describes the application logic and workflow): <tt>images_examples.py</tt><br/><br/>
+a <b>controller</b> (which describes the application logic and workflow): <tt>images_examples.py</tt>
 {{=CODE("""
 def index():
     form=SQLFORM(db.image)
     if form.accepts(request.vars,session): response.flash='image uploaded'
     return dict(form=form)
 """.strip(),language='web2py',link='/examples/global/vars/')}}
-<br/>and a <b>view</b> (which describes the data presentation): <tt>images_examples/index.html</tt>:<br/><br/>
+and a <b>view</b> (which describes the data presentation): <tt>images_examples/index.html</tt>:
 {{=CODE("{"+"{extend 'layout.html'}"+"""}
 <h1>Upload page</h1>
 {"""+"{=form}"+"}",language='html')}}
-<br/>What does it do?
+What does it do?
 <ul>
 <li>Creates the database db in file 'images.db'</li>
 <li>Creates the table 'image' which contains a field called 'file'. If the table exists but does not match the definition it is altered accordingly.</li>
@@ -121,38 +62,8 @@ def index():
 <li>Creates a web page called index with upload form for db.image. Try it <a href="/{{=request.application}}/images_examples/index">here</a></li>
 <li>On upload the file is renamed in a secure way, saved, and the name of the file is stored in a new field db.image record.</li>
 </ul>
-</div>
 
-</td>
-<td align="center" valign="middle">
 
-<div class="post"><center>
-<a style="font-size:3em;" href="http://mdp.cti.depaul.edu/demo_admin">LIVE ONLINE DEMO</a>
-</center></div>
-<br/>
 
-<div class="post"><center>
-<object type="application/x-shockwave-flash" width="200" height="125" data="http://www.vimeo.com/moogaloop.swf?clip_id=875433&amp;server=www.vimeo.com&amp;fullscreen=1&amp;show_title=1&amp;show_byline=1&amp;show_portrait=0&amp;color="><param name="quality" value="best" /><param name="allowfullscreen" value="true" /><param name="scale" value="showAll" /><param name="movie" value="http://www.vimeo.com/moogaloop.swf?clip_id=875433&amp;server=www.vimeo.com&amp;fullscreen=1&amp;show_title=1&amp;show_byline=1&amp;show_portrait=0&amp;color=" /></object>
-<br/><a href="http://www.vimeo.com/875433">short video</a> | <a href="http://www.vimeo.com/428474">long video</a><br/><a href="http://www.vimeo.com/879939">shell.py</a> | <a href="http://www.vimeo.com/876779">some web2py app</a>
-</center></div>
-<br/>
-<div class="post"><center>
-<img src="http://mac.softpedia.com/images/spyward/softpedia_clean_award_f.gif" align="center"/><br/>
-<a href="http://mdp.cti.depaul.edu/examples/default/download">&gt;&gt;&gt; download &lt;&lt;&lt;</a>
-</center></div>
-<br/>
-<div class="post"><center>
-<a href="http://mdp.cti.depaul.edu/examples/static/web2py_comics.pdf"><img src="/{{=request.application}}/static/web2py_comics.jpg"/></a><br/>
-<a href="http://mdp.cti.depaul.edu/examples/static/web2py_comics.pdf">comics and screenshots</a>
-</center></div>
-<br/>
 
-<div class="post"><center>
-<a href="http://www3.clustrmaps.com/counter/maps.php?url=http://mdp.cti.depaul.edu" id="clustrMapsLink"><img src="http://www3.clustrmaps.com/counter/index2.php?url=http://mdp.cti.depaul.edu" style="border:0px;" alt="Locations of visitors to this page" title="Locations of visitors to this page" id="clustrMapsImg" onError="this.onError=null; this.src='http://www2.clustrmaps.com/images/clustrmaps-back-soon.jpg'; document.getElementById('clustrMapsLink').href='http://www2.clustrmaps.com'" /><br/>
-Visitors since Feb 15, 2008</a>
-</center></div>
-</td></tr></table>
 
-<script><!-- 
-$('body').hide().fadeIn('slow'); 
-//--></script>
