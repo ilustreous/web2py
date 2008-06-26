@@ -3,7 +3,8 @@
 import os
 def app_upload_form(sender=request.function):
     form=FORM("upload application: ",INPUT(_type="file",_name="file"),
-              "and rename it: ", INPUT(_type="text",_name="filename",requires=IS_NOT_EMPTY),
+              " or provide application url: ", INPUT(_type="text",_name="appurl",requires=IS_URL()),
+              " and rename it: ", INPUT(_type="text",_name="filename",requires=IS_NOT_EMPTY),
               INPUT(_type="submit",_value="submit"))
     return form
 def app_create_form(sender=request.function):
@@ -27,7 +28,7 @@ def app_create_form(sender=request.function):
 <a href="/{{=request.application}}/default/errors/{{=a}}">errors</a> |
 <a href="/{{=request.application}}/default/cleanup/{{=a}}">cleanup</a> |
 <a href="/{{=request.application}}/default/pack/{{=a}}">pack all</a>
-{{if not os.access('applications/%s/compiled' % a,os.R_OK):}}
+{{if not os.path.exists('applications/%s/compiled' % a):}}
 | <a href="/{{=request.application}}/default/compile_app/{{=a}}">compile</a>
 {{else:}}
 | <a href="/{{=request.application}}/default/pack_compiled/{{=a}}">pack compiled</a> 

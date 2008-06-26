@@ -9,7 +9,7 @@ from gluon.myregex import *
 from gluon.restricted import *
 from gluon.contrib.markdown import WIKI
 from gluon.compileapp import compile_application, remove_compiled_application
-import time,os,sys,re,urllib,socket
+import time,os,sys,re,urllib,socket,md5
 
 
 ############################################################
@@ -119,18 +119,22 @@ def site():
             response.flash=T('new application "%(appname)s" created',dict(appname=appname))
         except:
             response.flash=T('unable to create new application "%(appname)s"',dict(appname=request.vars.filename))
-    elif request.vars.has_key('file') and not request.vars.filename:
+    elif (request.vars.has_key('file') or request.vars.has_key('appurl')) and not request.vars.filename:
         response.flash=T('you must specify a name for the uploaded application')
-    elif request.vars.filename and request.vars.has_key('file'):
-        try:
+    elif request.vars.filename and (request.vars.has_key('file') or request.vars.has_key('appurl')):
+        try:   
             appname=cleanpath(request.vars.filename).replace('.','_')
             tarname=apath('../deposit/%s.tar' % appname)
-            open(tarname,'wb').write(request.vars.file.file.read())
+            if request.vars.appurl is not '':
+               tarfile = urllib.urlopen(request.vars.appurl).read()
+            elif request.vars.file is not '':
+               tarfile = request.vars.file.file.read()
+            open(tarname,'wb').write(tarfile)
             path=apath(appname)
             os.mkdir(path)
             untar(tarname,path)
             fix_newlines(path)
-            response.flash=T('application %(appname)s installed',dict(appname=appname))
+            response.flash=T('application %(appname)s installed with md5sum: %(digest)s',dict(appname=appname,digest=md5.new(tarfile).hexdigest()))
         except:
             response.flash=T('unable to install application "%(appname)s"',dict(appname=request.vars.filename))
     regex=re.compile('^\w+$')
