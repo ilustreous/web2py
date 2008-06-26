@@ -4,10 +4,41 @@
 
 import os, sys, code, logging, doctest, types, re, optparse, glob
 import gluon.main
-import gluon.compileapp
+from gluon.compileapp import build_environment, run_controller_in, run_view_in, run_models_in
 import gluon.fileutils
 from gluon.globals import Request, Response, Session
+from gluon.storage import Storage
 
+
+def exec_environment(pyfile=''):
+    """
+    Environment builder and module loader.
+
+    Builds a web2py environment and optionally executes a Python
+    file into the environment.
+    A Storage dictionary containing the resulting environment is returned.
+    The working directory must be web2py root -- this is the web2py default.
+
+    """
+    from gluon.compileapp import read_pyc
+
+    request=Request()
+    response=Response()
+    session=Session()
+    mo=re.match(r'(|.*/)applications/(?P<appname>[^/]+)',pyfile)
+    if mo:
+        appname=mo.group('appname')
+        request.folder=os.path.join('applications',appname)
+    else:
+        request.folder=''
+    env=build_environment(request,response,session)
+    if pyfile:
+        pycfile=pyfile+'c'
+        if os.path.isfile(pycfile):
+            exec read_pyc(pycfile) in env
+        else:
+            execfile(pyfile,env)
+    return Storage(env)
 
 def env(a, import_models=False, c=None, f=None, dir=''):
     '''
@@ -36,10 +67,10 @@ def env(a, import_models=False, c=None, f=None, dir=''):
     def check_credentials(request,other_application='admin'): return True
     gluon.fileutils.check_credentials = check_credentials
 
-    environment=gluon.compileapp.build_environment(request,response,session)
+    environment=build_environment(request,response,session)
     
     if import_models:
-        gluon.compileapp.run_models_in(environment)
+        run_models_in(environment)
     return environment
 
 def exec_pythonrc():
@@ -130,7 +161,7 @@ def test(testpath, import_models=True, verbose=False):
     if os.path.isfile(testpath):
         mo = re.match(r'(|.*/)applications/(?P<a>[^/]+)', testpath)
         if not mo:
-            die('test file is not in application directory: %s' % testpath)
+             die('test file is not in application directory: %s' % testpath)
         a = mo.group('a')
         c = f = None
         files = [testpath]
