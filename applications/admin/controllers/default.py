@@ -122,6 +122,7 @@ def site():
     elif (request.vars.has_key('file') or request.vars.has_key('appurl')) and not request.vars.filename:
         response.flash=T('you must specify a name for the uploaded application')
     elif request.vars.filename and (request.vars.has_key('file') or request.vars.has_key('appurl')):
+        mkdir=False
         try:   
             appname=cleanpath(request.vars.filename).replace('.','_')
             tarname=apath('../deposit/%s.tar' % appname)
@@ -132,10 +133,16 @@ def site():
             open(tarname,'wb').write(tarfile)
             path=apath(appname)
             os.mkdir(path)
+            mkdir=True
             untar(tarname,path)
             fix_newlines(path)
             response.flash=T('application %(appname)s installed with md5sum: %(digest)s',dict(appname=appname,digest=md5.new(tarfile).hexdigest()))
         except:
+            if mkdir:
+                 for root,dirs,files in os.walk(path,topdown=False):
+                     for name in files: os.remove(os.path.join(root,name))
+                     for name in dirs: os.rmdir(os.path.join(root,name))
+                 os.rmdir(path)
             response.flash=T('unable to install application "%(appname)s"',dict(appname=request.vars.filename))
     regex=re.compile('^\w+$')
     apps=[file for file in os.listdir(apath()) if regex.match(file)]
