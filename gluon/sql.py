@@ -771,6 +771,7 @@ class SQLField(SQLXorable):
     def formatter(self,value):
         if value is None or not self.requires: return value
         if not isinstance(self.requires,(list,tuple)): requires=[self.requires]
+        elif isinstance(self.requires,tuple): requires=list(self.requires)
         else: requires=copy.copy(self.requires)
         requires.reverse()
         for item in requires:
