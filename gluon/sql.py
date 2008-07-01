@@ -129,7 +129,7 @@ SQL_DIALECTS={'sqlite':{'boolean':'CHAR(1)',
                       'time':'CHAR(8)',        
                       'datetime':'DATE',
                       'id':'NUMBER PRIMARY KEY',
-                      'reference':'NUMBER, CONSTRAINT %(field_name)s FOREIGN KEY (%(field_name)s) REFERENCES %(foreign_key)s ON DELETE %(on_delete_action)s',
+                      'reference':'NUMBER, CONSTRAINT %(table_name)s_%(field_name)s__constraint FOREIGN KEY (%(field_name)s) REFERENCES %(foreign_key)s ON DELETE %(on_delete_action)s',
                       'lower':'LOWER(%(field)s)',
                       'upper':'UPPER(%(field)s)',
                       'is null':'IS NULL',
@@ -149,7 +149,7 @@ SQL_DIALECTS={'sqlite':{'boolean':'CHAR(1)',
                       'time':'CHAR(8)',
                       'datetime':'DATETIME',
                       'id':'INT IDENTITY PRIMARY KEY',
-                      'reference':'INT, CONSTRAINT %(field_name)s FOREIGN KEY (%(field_name)s) REFERENCES %(foreign_key)s ON DELETE %(on_delete_action)s',
+                      'reference':'INT, CONSTRAINT %(table_name)s_%(field_name)s__constraint FOREIGN KEY (%(field_name)s) REFERENCES %(foreign_key)s ON DELETE %(on_delete_action)s',
                       'left join':'LEFT OUTER JOIN',
                       'random':'NEWID()'}
               }
@@ -510,7 +510,7 @@ class SQLTable(SQLStorage):
                 if not self._db.has_key(referenced):
                     raise SyntaxError, 'SQLTable: table does not exist'
                 referee=self._db[referenced]
-                ftype=self._db._translator[field.type[:9]] % dict(field_name=field.name,foreign_key=referenced+'(id)',on_delete_action=field.ondelete)
+                ftype=self._db._translator[field.type[:9]] % dict(table_name=self._tablename,field_name=field.name,foreign_key=referenced+'(id)',on_delete_action=field.ondelete)
                 if self._tablename in referee.fields:  ### THIS IS OK
                     raise SyntaxError, 'SQLField: table name has same name as a field in referenced table'
                 self._db[referenced]._referenced_by.append((self._tablename,field.name))
