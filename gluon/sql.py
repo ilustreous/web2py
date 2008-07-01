@@ -25,17 +25,17 @@ try: import sqlite3
 except: 
     try:
         from pysqlite2 import dbapi2 as sqlite3 
-        logging.warning('importing mysqlite3.dbapi2 as sqlite3\n')
+        logging.warning('importing mysqlite3.dbapi2 as sqlite3')
     except:
-        logging.warning('no sqlite3 or dbapi2 driver\n')
+        logging.warning('no sqlite3 or dbapi2 driver')
 try: import MySQLdb
-except: logging.warning('no MySQLdb driver\n')
+except: logging.warning('no MySQLdb driver')
 try: import psycopg2
-except: logging.warning('no psycopg2 driver\n')
+except: logging.warning('no psycopg2 driver')
 try: 
     import cx_Oracle
     logging.warning('support for Oracle is experimental')
-except: logging.warning('no cx_Oracle driver\n')
+except: logging.warning('no cx_Oracle driver')
 try:
     import pyodbc
 except:
