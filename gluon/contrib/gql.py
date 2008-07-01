@@ -263,6 +263,7 @@ def sql_represent(object,fieldtype,dbname):
     if fieldtype=='date':
          if isinstance(object,(datetime.date,datetime.datetime)): object=object.strftime('%Y-%m-%d')
          else: object=str(object)
+    if fieldtype=='datetime':
          if isinstance(object,datetime.datetime): object=object.strftime('%Y-%m-%d %H:%M:%S')
          elif isinstance(object,datetime.date): object=object.strftime('%Y-%m-%d 00:00:00')
          else: object=str(object)
