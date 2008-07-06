@@ -101,6 +101,23 @@ class DIV(object):
         self.vars=Storage()
         self.session=None
         self.formname=None
+    def append(self,value):
+        return self.components.append(value)
+    def insert(self,i,value):
+        return self.components.insert(i,value)
+    def __getitem__(self,i):
+        if isinstance(i,str):
+            try: return self.attributes[i]
+            except KeyError: return None
+        else: return self.components[i]
+    def __setitem__(self,i,value):
+        if isinstance(i,str): self.attributes[i]=value
+        else: self.components[i]=value
+    def __delitem__(self,i):
+        if isinstance(i,str): del self.attributes[i]
+        else: del self.components[i]
+    def __len__(self):
+        return len(self.components)
     def postprocessing(self):
         return
     def rec_clear(self,clear_attributes_value=False):
