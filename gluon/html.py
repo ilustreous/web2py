@@ -198,7 +198,7 @@ class HEAD(DIV): tag='head'
 
 class TITLE(DIV): tag='title'
 
-class META(DIV): tag='meta'
+class META(DIV): tag='meta/'
 
 class LINK(DIV): tag='link/'
 

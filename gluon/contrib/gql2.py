@@ -24,7 +24,7 @@ SQL_DIALECTS={'google':{'boolean':google_db.BooleanProperty,
                         'time':google_db.TimeProperty,        
                         'datetime':google_db.DateTimeProperty,
                         'id':None,
-                        'reference':google_db.ReferenceProperty,
+                        'reference':google_db.IntegerProperty,
                         'lower':None,
                         'upper':None,
                         'is null':'IS NULL',
@@ -263,12 +263,8 @@ class SQLField(SQLXorable):
         return value
     def __str__(self): return '%s.%s' % (self._tablename,self.name)
 
-def obj_represent(object,fieldtype,db):  
-    if fieldtype[:9] =='reference' and object!=None and isinstance(object,int):
-        referee=fieldtype[10:].strip()  
-        model = db[referee]._tableobj
-        object = google_db.Key.from_path(model.kind(), object)
-    elif fieldtype=='date' and object!=None and not isinstance(object,datetime.date):
+def obj_represent(object,fieldtype,db):
+    if fieldtype=='date' and object!=None and not isinstance(object,datetime.date):
         y,m,d=[int(x) for x in str(object).strip().split('-')]
         object=datetime.date(y,m,d)
     elif fieldtype=='time' and object!=None and not isinstance(object,datetime.time):
@@ -297,34 +293,30 @@ class SQLQuery(object):
     set=db(query)
     records=set.select()
     """
-    def __init__(self,left,op=None,right=None):           
+    def __init__(self,left,op=None,right=None):
         if op is None and right is None and isinstance(left,list): 
             self.left = left
-            return   
+            return
         if isinstance(right,(SQLField,SQLXorable)):
-            raise SyntaxError, 'SQLQuery: right side of filter must be a value or entity'      
+            raise SyntaxError, 'SQLQuery: right side of filter must be a value or entity'
         if isinstance(left,SQLField) and left.name=='id':
             if op=='=': 
-                if isinstance(right,google_db.Model):
-                    if left._tablename != right.kind():
-                        raise SyntaxError, 'SQLQuery: incompatible entity: %s' % right.kind()
-                    right = right.key().id()
-                self.get_one=QueryException(tablename=left._tablename,id=int(right))
+                self.get_one=QueryException(tablename=left._tablename,id=long(right))
                 return
-            if op=='>' and str(right)=='0':
+            if op=='>' and long(right)==0L:
                 self.get_all=left._tablename 
                 return
             else:
                 raise SyntaxError, 'not supported'
-        if isinstance(left,SQLField):    
-            # normal filter: field op value  
-            assert_filter_fields(left)                     
+        if isinstance(left,SQLField):
+            # normal filter: field op value
+            assert_filter_fields(left)
             right=obj_represent(right,left.type,left._db)  
             # filter dates/times need to be datetimes for GAE
             right=dateobj_to_datetime(right)
-            self.left = [(left,op,right)]   
-            return    
-        raise SyntaxError, 'not supported'    
+            self.left = [(left,op,right)]
+            return
+        raise SyntaxError, 'not supported'
 
     def __and__(self,other):  
         # concatenate list of filters
@@ -556,7 +548,7 @@ class SQLRows(object):
         """
         serializes the table using sqlhtml.SQLTABLE (if present)
         """
-        return sqlhtml.SQLTABLE(self).xml() 
+        return sqlhtml.SQLTABLE(self).xml()
         
 def test_all():
     """
@@ -564,8 +556,14 @@ def test_all():
      export PYTHONPATH=.:YOUR_PLATFORMS_APPENGINE_PATH
      python gluon/contrib/gql2.py         
 
-    Create a table with all possible field types
+    Create a table with all possible field types       
 
+    >>> import os
+    >>> os.environ['TZ'] = 'UTC'
+    >>> import time
+    >>> if hasattr(time, 'tzset'):
+    ...   time.tzset()
+    >>>
     >>> from google.appengine.api import apiproxy_stub_map 
     >>> from google.appengine.api import datastore_file_stub
     >>> apiproxy_stub_map.apiproxy = apiproxy_stub_map.APIProxyStubMap()       
@@ -603,18 +601,19 @@ def test_all():
 
     >>> db.users.drop() 
 
-    Select many entities (it can be slow)
+    Select many entities
 
     >>> tmp = db.define_table("posts",\
               SQLField('body','text'),\
               SQLField('total','integer'),\
               SQLField('created_at','datetime'))
-    >>> many = 20   #2010 # more than 1000 single fetch limit
-    >>> few = 5 
-    >>> most = many - few 
-    >>> for i in range(many): 
-    ...     f=db.posts.insert(body='',total=i,created_at=datetime.datetime.now()) 
-    >>>   
+    >>> many = 20   #2010 # more than 1000 single fetch limit (it can be slow) 
+    >>> few = 5
+    >>> most = many - few
+    >>> for i in range(many):
+    ...     f=db.posts.insert(body='',\
+                total=i,created_at=datetime.datetime(2008, 7, 6, 14, 15, 42, i))
+    >>> 
     >>> len(db().select(db.posts.ALL)) == many
     True
     >>> len(db().select(db.posts.ALL,limitby=(0,most))) == most
@@ -637,7 +636,7 @@ def test_all():
     >>> db(db.posts.total==few).count()
     1
 
-    >>> db(db.posts.id==many+many).count()
+    >>> db(db.posts.id==2*many).count()
     0
 
     >>> db(db.posts.id==few).count()
@@ -656,6 +655,25 @@ def test_all():
     >>> len(set(db.posts.total<=few).select())
     1
 
+    # test timezones
+    >>> class TZOffset(datetime.tzinfo):
+    ...   def __init__(self,offset=0):
+    ...     self.offset = offset
+    ...   def utcoffset(self, dt): return datetime.timedelta(hours=self.offset)
+    ...   def dst(self, dt): return datetime.timedelta(0)
+    ...   def tzname(self, dt): return 'UTC' + str(self.offset)
+    ... 
+    >>> SERVER_OFFSET = -8
+    >>> 
+    >>> stamp = datetime.datetime(2008, 7, 6, 14, 15, 42, 828201)
+    >>> post_id = db.posts.insert(created_at=stamp)
+    >>> naive_stamp = db(db.posts.id==post_id).select()[0].created_at
+    >>> utc_stamp=naive_stamp.replace(tzinfo=TZOffset()) 
+    >>> server_stamp = utc_stamp.astimezone(TZOffset(SERVER_OFFSET))
+    >>> stamp == naive_stamp
+    True
+    >>> utc_stamp == server_stamp
+    True
     >>> db.posts.drop()
 
     >>> db(db.posts.id>0).count()
@@ -674,7 +692,18 @@ def test_all():
     >>> me=db(db.person.id==person_id).select()[0] # test select
     >>> me.name
     'Massimo'
-    >>> db(db.person.name=='Massimo').update(name='massimo') # test update
+    >>> db(db.person.name=='Massimo').update(name='massimo') # test update   
+    >>> me = db(db.person.id==person_id).select()[0]
+    >>> me.name
+    'massimo'
+    >>> str(me.birth)
+    '1971-12-21'
+
+    # resave date to ensure it comes back the same
+    >>> me=db(db.person.name=='Massimo').update(birth=me.birth) # test update
+    >>> me = db(db.person.id==person_id).select()[0]
+    >>> me.birth
+    datetime.date(1971, 12, 21)
     >>> db(db.person.name=='Marco').delete() # test delete
     >>> len(db().select(db.person.ALL))
     1
@@ -747,11 +776,11 @@ def test_all():
 
     A simple JOIN
 
-    # >>> len(db(db.dog.owner==db.person.id).select())
-    # 1
-    # 
-    # >>> len(db(db.dog.owner==db.person.id).select(left=db.dog))
-    # 1    
+    >>> len(db(db.dog.owner==person_id).select())
+    1
+    
+    >>> len(db(db.dog.owner==me.id).select())
+    1
 
     Drop tables
 
@@ -779,6 +808,8 @@ def test_all():
     ...     papers=db(db.paper.id==authorship.paper_id).select() 
     ...     for paper in papers: print paper.title
     QCD
+     
+
 
     Example of search condition using  belongs
 
