@@ -124,12 +124,12 @@ class DIV(object):
         if hasattr(self,'attributes'):
             if clear_attributes_value:
                 if self.attributes.has_key('default'):
-                     self.attributes['value']=self.attributes['default']
+                     self['value']=self['default']
                 else: 
-                     self.attributes['value']=''
+                     self['value']=''
                 self.postprocessing()
             if self.attributes.has_key('value'):
-                self.attributes['default']=self.attributes['value']        
+                self['default']=self['value']        
         for c in self.components:
             if hasattr(c,'rec_clear'): 
                 c.errors=self.errors
@@ -238,8 +238,8 @@ class P(DIV):
     tag='p'
     def xml(self):
         text=DIV.xml(self)
-        if self.attributes.has_key('cr2br') and self.attributes['cr2br']:
-             text=text.replace('\n','<br/>')
+        if self['cr2br']:
+             text=text.replace('\n','<br />')
         return text
 
 class B(DIV): tag='b'
@@ -273,15 +273,10 @@ class CODE(DIV):
     the counter is used for line numbering, counter can be None or a prompt string.
     """
     def xml(self):
-        if not self.attributes.has_key('language'): language='PYTHON'
-        else: language=self.attributes['language']
-        if not self.attributes.has_key('link'): link=None
-        else: link=self.attributes['link']
-
-        if not self.attributes.has_key('counter'): counter=1
-        else: counter=self.attributes['counter']
-        if not self.attributes.has_key('styles'): styles={}
-        else: styles=self.attributes['styles']
+        language=self['language'] or 'PYTHON'
+        link=self['link']
+        counter=self['counter'] or 1
+        styles=self['styles'] or {}
         return highlight(''.join(self.components),language=language,link=link,counter=counter,styles=styles,attributes=self.attributes)
 
 class LABEL(DIV): tag='label'
@@ -340,13 +335,13 @@ class INPUT(DIV):
         examples:
 
         >>> INPUT(_type='text',_name='name',value='Max').xml()
-        '<input value="Max" type="text" name="name"/>'
+        '<input value="Max" type="text" name="name" />'
         >>> INPUT(_type='checkbox',_name='checkbox',value='on').xml()
-        '<input checked type="checkbox" name="checkbox"/>'
+        '<input type="checkbox" checked="checked" name="checkbox" />'
         >>> INPUT(_type='radio',_name='radio',_value='yes',value='yes').xml()
-        '<input checked value="yes" type="radio" name="radio"/>'
+        '<input value="yes" type="radio" checked="checked" name="radio" />'
         >>> INPUT(_type='radio',_name='radio',_value='no',value='yes').xml()
-        '<input value="no" type="radio" name="radio"/>'
+        '<input value="no" type="radio" name="radio" />'
 
         the input helper takes two special attributes value= and requires=.
 
@@ -362,36 +357,35 @@ class INPUT(DIV):
         """
     tag='input/'
     def postprocessing(self):
-        if self.attributes.has_key('_type') and \
-           self.attributes.has_key('value') and self.attributes['value']!=None:
-            if self.attributes['_type'].lower()=='checkbox':
-               if self.attributes['value']: self.attributes['_checked']=ON
+        if self.attributes.has_key('_type') and self['value']!=None:
+            if self['_type'].lower()=='checkbox':
+               if self['value']: self['_checked']=ON
                elif self.attributes.has_key('_checked'): 
-                   del self.attributes['_checked']
-            elif self.attributes['_type'].lower()=='radio' and \
+                   del self['_checked']
+            elif self['_type'].lower()=='radio' and \
                  self.attributes.has_key('_value'):
-                   if str(self.attributes['value'])==str(self.attributes['_value']):
-                       self.attributes['_checked']=ON
+                   if str(self['value'])==str(self['_value']):
+                       self['_checked']=ON
                    elif self.attributes.has_key('_checked'): 
-                       del self.attributes['_checked']
-            elif self.attributes['_type']=='text':
-                   self.attributes['_value']=self.attributes['value']
+                       del self['_checked']
+            elif self['_type']=='text':
+                   self['_value']=self['value']
         elif not self.attributes.has_key('_type') and \
-           self.attributes.has_key('value') and self.attributes['value']!=None:
-            self.attributes['_value']=self.attributes['value']
+           self.attributes.has_key('value') and self['value']!=None:
+            self['_value']=self['value']
     def rec_accepts(self,vars):
         if not self.attributes.has_key('_name'): return True
-        name=self.attributes['_name']
+        name=self['_name']
         if vars.has_key(name): value=vars[name]
         elif self.attributes.has_key('value') and \
-           self.attributes['value']!=None: value=self.attributes['value']
+           self['value']!=None: value=self['value']
         else: value=''
-        if isinstance(value,(str,unicode)): self.attributes['value']=value
+        if isinstance(value,(str,unicode)): self['value']=value
         self.postprocessing()
-        if isinstance(value,cgi.FieldStorage): self.attributes['value']=value
-        else: self.attributes['value']=str(value)
+        if isinstance(value,cgi.FieldStorage): self['value']=value
+        else: self['value']=str(value)
         if self.attributes.has_key('requires'):
-            requires=self.attributes['requires']
+            requires=self['requires']
             if not isinstance(requires,(list,tuple)): requires=[requires]
             for validator in requires:                
                 value,errors=validator(value)
@@ -404,7 +398,7 @@ class INPUT(DIV):
         return True
     def xml(self):        
         try:
-            name=self.attributes['_name']
+            name=self['_name']
             return DIV.xml(self)+DIV(self.errors[name],\
                    _class='error',errors=None).xml()
         except: return DIV.xml(self)
@@ -417,12 +411,12 @@ class TEXTAREA(INPUT):
     tag='textarea'
     def postprocessing(self):
         if not self.attributes.has_key('_rows'): 
-            self.attributes['_rows']=10
+            self['_rows']=10
         if not self.attributes.has_key('_cols'):
-            self.attributes['_cols']=40
+            self['_cols']=40
         if self.attributes.has_key('value'):
-            if self.attributes['value']!=None: 
-                self.components=[self.attributes['value']]
+            if self['value']!=None: 
+                self.components=[self['value']]
             else:
                 self.components=[]
 
@@ -435,7 +429,7 @@ class SELECT(INPUT):
     example:
 
     >>> SELECT('yes','no',_name='selector',value='yes',requires=IS_IN_SET(['yes','no'])).xml()
-    '<select name="selector"><option selected value="yes">yes</option><option value="no">no</option></select>'
+    '<select name="selector"><option value="yes" selected="selected">yes</option><option value="no">no</option></select>'
     """
     tag='select'
     def postprocessing(self):
@@ -446,8 +440,8 @@ class SELECT(INPUT):
             else:
                 components.append(OPTION(c,_value=str(c)))
             if self.attributes.has_key('value') and \
-               self.attributes['value']!=None and \
-               str(self.attributes['value'])==str(components[-1].attributes['_value']):
+               self['value']!=None and \
+               str(self['value'])==str(components[-1].attributes['_value']):
                 components[-1].attributes['_selected']=ON
         self.components=components
 
@@ -459,7 +453,7 @@ class FORM(DIV):
    
     >>> form=FORM(INPUT(_name="test",requires=IS_NOT_EMPTY()))
     >>> form.xml()
-    '<form enctype="multipart/form-data" method="post"><input name="test"/></form>'
+    '<form enctype="multipart/form-data" action="" method="post"><input name="test" /></form>'
 
     a FORM is container for INPUT, TEXTAREA, SELECT and other helpers
        
@@ -473,9 +467,9 @@ class FORM(DIV):
     """
     tag='form'
     def postprocessing(self):
-        if not self.attributes.has_key('_action'): self.attributes['_action']=""
-        if not self.attributes.has_key('_method'): self.attributes['_method']="post"
-        if not self.attributes.has_key('_enctype'): self.attributes['_enctype']="multipart/form-data"
+        if not self.attributes.has_key('_action'): self['_action']=""
+        if not self.attributes.has_key('_method'): self['_method']="post"
+        if not self.attributes.has_key('_enctype'): self['_enctype']="multipart/form-data"
     def xml(self):
         newform=FORM(*self.components,**self.attributes)
         c=newform.components
@@ -487,7 +481,7 @@ class FORM(DIV):
            c.append(INPUT(_type='hidden',_name='_formname',\
                           _value=self.formname))
         if self.attributes.has_key('hidden'):
-           hidden=self.attributes['hidden']
+           hidden=self['hidden']
            for key,value in hidden.items():
                c.append(INPUT(_type='hidden',_name=key,_value=value))
         return DIV.xml(newform)
@@ -497,7 +491,7 @@ class BEAUTIFY(DIV):
     example:
 
     >>> BEAUTIFY(['a','b',{'hello':'world'}]).xml()
-    '<div><table><tr><td><div>a</div></td></tr><tr><td><div>b</div></td></tr><tr><td><div><table><tr><td><B><div>hello</div></B></td><td align="top">:</td><td><div>world</div></td></tr></table></div></td></tr></table></div>'
+    '<div><table><tr><td><div>a</div></td></tr><tr><td><div>b</div></td></tr><tr><td><div><table><tr><td><b><div>hello</div></b></td><td align="top">:</td><td><div>world</div></td></tr></table></div></td></tr></table></div>'
 
     turns any list, dictionarie, etc into decent looking html.
     """
@@ -548,34 +542,34 @@ def test():
    
     >>> from validators import *
     >>> print DIV(A('click me',_href=URL(a='a',c='b',f='c')),BR(),HR(),DIV(SPAN("World"),_class='unkown')).xml()
-    <div><a href="/a/b/c">click me</a><br/><hr/><div class="unkown"><span>World</span></div></div>
+    <div><a href="/a/b/c">click me</a><br /><hr /><div class="unkown"><span>World</span></div></div>
     >>> print DIV(UL("doc","cat","mouse")).xml()
-    <div><lu><li>doc</li><li>cat</li><li>mouse</li></lu></div>
+    <div><ul><li>doc</li><li>cat</li><li>mouse</li></ul></div>
     >>> print DIV(UL("doc",LI("cat", _class='felin'),18)).xml()
-    <div><lu><li>doc</li><li class="felin">cat</li><li>18</li></lu></div>
+    <div><ul><li>doc</li><li class="felin">cat</li><li>18</li></ul></div>
     >>> print TABLE(['a','b','c'],TR('d','e','f'),TR(TD(1),TD(2),TD(3))).xml()
     <table><tr><td>a</td><td>b</td><td>c</td></tr><tr><td>d</td><td>e</td><td>f</td></tr><tr><td>1</td><td>2</td><td>3</td></tr></table>
     >>> form=FORM(INPUT(_type='text',_name='myvar',requires=IS_EXPR('int(value)<10')))
     >>> print form.xml()
-    <form enctype="multipart/form-data" method="post"><input type="text" name="myvar"/></form>
+    <form enctype="multipart/form-data" action="" method="post"><input type="text" name="myvar" /></form>
     >>> print form.accepts({'myvar':'34'},formname=None)
     False
     >>> print form.xml()
-    <form enctype="multipart/form-data" method="post"><input value="34" type="text" name="myvar"/><div class="error">invalid expression!</div></form>
+    <form enctype="multipart/form-data" action="" method="post"><input value="34" type="text" name="myvar" /><div class="error">invalid expression!</div></form>
     >>> print form.accepts({'myvar':'4'},formname=None,keepvalues=True)
     True
     >>> print form.xml()
-    <form enctype="multipart/form-data" method="post"><input value="4" type="text" name="myvar"/></form>
+    <form enctype="multipart/form-data" action="" method="post"><input type="text" name="myvar" value="4" /></form>
     >>> form=FORM(SELECT('cat','dog',_name='myvar'))
     >>> print form.accepts({'myvar':'dog'},formname=None)
     True
     >>> print form.xml()
-    <form enctype="multipart/form-data" method="post"><select name="myvar"><option value="cat">cat</option><option selected value="dog">dog</option></select></form>
+    <form enctype="multipart/form-data" action="" method="post"><select name="myvar"><option value="cat">cat</option><option value="dog" selected="selected">dog</option></select></form>
     >>> form=FORM(INPUT(_type='text',_name='myvar',requires=IS_MATCH('^\w+$','only alphanumeric!')))
     >>> print form.accepts({'myvar':'as df'},formname=None)
     False
     >>> print form.xml()
-    <form enctype="multipart/form-data" method="post"><input value="as df" type="text" name="myvar"/><div class="error">only alphanumeric!</div></form>
+    <form enctype="multipart/form-data" action="" method="post"><input value="as df" type="text" name="myvar" /><div class="error">only alphanumeric!</div></form>
 
     >>> session={}
     >>> form=FORM(INPUT(value="Hello World",_name="var",requires=IS_MATCH('^\w+$')))
