@@ -1,6 +1,6 @@
 import os, re, logging
 
-regex_at=re.compile('(?<!\\\\)\$\w+')
+regex_at=re.compile('(?<!\\\\)\$[\w_]+')
 
 def rewrite(wsgibase,URL):
     if not os.path.exists('routes.py'): return wsgibase,URL
@@ -14,7 +14,7 @@ def rewrite(wsgibase,URL):
             if not k[-1]=='$': k='%s$'%k
             if k.find(':')<0: k='^.*:%s' % k[1:]
             for item in regex_at.findall(k):
-                k=k.replace(item,'(?P<%s>\\w+)'%item[1:])
+                k=k.replace(item,'(?P<%s>[\\w_]+)'%item[1:])
             for item in regex_at.findall(v):
                 v=v.replace(item,'\\g<%s>'%item[1:])
             routes_in.append((re.compile(k,re.DOTALL),v))
