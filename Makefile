@@ -4,13 +4,14 @@ clean:
 	rm -r applications/*/compiled     | echo 'none'	
 	find ./ -name '*~' -exec rm {} \; | echo 'none'
 	find ./ -name '#*' -exec rm {} \; | echo 'none'
-	find ./ -name '.*' -exec rm {} \; 
+	find ./gluon/ -name '.*' -exec rm {} \; 
+	find ./applications/ -name '.*' -exec rm {} \; 
 	find ./ -name '*.pyc' -exec rm {} \;
 backup:
 	mv web2py.zip ../web2py.zip.old | echo 'none'
 	cd ..; zip -r web2py.zip web2py
 all:
-	echo 'Version 1.32 ('`date +%Y-%m-%d\ %H:%M:%S`')' > VERSION
+	echo 'Version 1.37 ('`date +%Y-%m-%d\ %H:%M:%S`')' > VERSION
 	### build epydoc
 	rm -r applications/examples/static/epydoc/ | echo 'none'
 	epydoc --config epydoc.conf
@@ -29,7 +30,7 @@ all:
 	rm applications/examples/uploads/*     | echo 'none'        
 	### make admin layout and appadmin the default
 	cp applications/admin/views/layout.html applications/welcome/views
-	cp applications/admin/views/layout.html applications/examples/views
+	#cp applications/admin/views/layout.html applications/examples/views
 	cp applications/admin/views/appadmin.html applications/welcome/views
 	cp applications/admin/views/appadmin.html applications/examples/views
 	cp applications/admin/controllers/appadmin.py applications/welcome/controllers
@@ -65,3 +66,6 @@ rename:
 	find . -name '*.py' -exec grep -l Gluon {} \; | xargs perl -pi~ -e 's/Gluon/web2py/'
 	find . -name *.html -exec grep -l gluon_ {} \; | xargs perl -pi~ -e 's/gluon_/web2py_/' 
 	find . -name '*.py' -exec grep -l gluon_ {} \; | xargs perl -pi~ -e 's/gluon_/web2py_/' 
+
+launchpad:
+	bzr push bzr+ssh://mdipierro@bazaar.launchpad.net/~mdipierro/web2py/devel --use-existing-dir
