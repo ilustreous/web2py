@@ -1,8 +1,8 @@
 <script type="text/javascript" src="/{{=request.application}}/static/jquery.js"></script>
 {{import os
-if os.path.exists(os.path.join(request.folder,'static','ui.datepicker.js')):}}
-<link rel="stylesheet" href="/{{=request.application}}/static/ui.datepicker.css" type="text/css" media="screen" title="core css file" charset="utf-8" />
-<script src="/{{=request.application}}/static/ui.datepicker.js" type="text/javascript" charset="utf-8"></script>
+if os.path.exists(os.path.join(request.folder,'static','calendar.js')):}}
+<link rel="stylesheet" href="/{{=request.application}}/static/calendar.css" type="text/css" media="screen" title="core css file" charset="utf-8" />
+<script src="/{{=request.application}}/static/calendar.js" type="text/javascript" charset="utf-8"></script>
 {{pass}}
 <script type="text/javascript"><!--
 /* Written by Massimo Di Pierro. Here for backward compatibility. */
@@ -26,6 +26,16 @@ $('div.error').hide().slideDown('slow');
 $('#flash').hide().slideDown('slow').attr('onclick','$(this).fadeOut();');
 $('input.integer').attr('onkeyup',"this.value=this.value.reverse().replace(/[^0-9\-]|\-(?=.)/g,'').reverse();");
 $('input.double').attr('onkeyup',"this.value=this.value.reverse().replace(/[^0-9\-\.]|[\-](?=.)|[\.](?=[0-9]*[\.])/g,'').reverse();");
-try {$("input.date").datepicker({dateFormat: '{{=T('yy-mm-dd')}}'});} catch(e) {};
+try {$("input.date").focus( function() {Calendar.setup({
+     inputField: this.id,
+     ifFormat: "{{=T('%Y-%m-%d')}}",
+     showsTime: false,
+}); }); } catch(e) {};
+try { $("input.datetime").focus( function() {Calendar.setup({
+     inputField: this.id,
+     ifFormat: "{{=T('%Y-%m-%d %H:%M:%S')}}",
+     showsTime: true,
+     timeFormat: "24",
+}); }); } catch(e) {};
 });
 //--></script>
