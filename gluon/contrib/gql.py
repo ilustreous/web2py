@@ -1,6 +1,6 @@
 """
 This file is part of web2py Web Framework (Copyrighted, 2007)
-Developed by Massimo Di Pierro <mdipierro@cs.depaul.edu>
+Developed by Massimo Di Pierro <mdipierro@cs.depaul.edu> and Robin B <robi123@gmail.com>
 License: GPL v2
 """
 
@@ -35,7 +35,20 @@ SQL_DIALECTS={'google':{'boolean':google_db.BooleanProperty,
 def cleanup(text):
     if re.compile('[^0-9a-zA-Z_]').findall(text):
         raise SyntaxError, 'only [0-9a-zA-Z_] allowed in table and field names'
-    return text
+    return text   
+
+def assert_filter_fields(*fields):
+    for field in fields:
+        if isinstance(field,(SQLField,SQLXorable)) and field.type in ['text', 'blob']:
+            raise SyntaxError, 'AppEngine does not index by: %s' % (field.type) 
+
+def dateobj_to_datetime(object):                         
+    # convert dates,times to datetimes for AppEngine
+    if isinstance(object, datetime.date):
+        object = datetime.datetime(object.year, object.month, object.day) 
+    if isinstance(object, datetime.time):
+        object = datetime.datetime(1970, 1, 1, object.hour, object.minute, object.second, object.microsecond)
+    return object    
 
 def sqlhtml_validators(field_type,length):
     v={'boolean':[],
@@ -76,7 +89,6 @@ class GQLDB(SQLStorage):
        db=GQLDB()
        db.define_table('tablename',SQLField('fieldname1'),
                                    SQLField('fieldname2'))
-
     """
     def __init__(self):
         self._dbname='gql'
@@ -98,9 +110,6 @@ class GQLDB(SQLStorage):
 class SQLALL(object):
     def __init__(self,table):
         self.table=table
-    def __str__(self):
-        s=['%s.%s'%(self.table._tablename,name) for name in self.table.fields]
-        return ', '.join(s)
 
 class SQLTable(SQLStorage):
     """
@@ -126,8 +135,6 @@ class SQLTable(SQLStorage):
             field._table=self
             field._db=self._db
         self.ALL=SQLALL(self)
-    def __str__(self):
-        return self._tablename
     def _create(self):
         fields=[]
         myfields={}
@@ -160,30 +167,35 @@ class SQLTable(SQLStorage):
         # nothing to do, here for backward compatility
         pass
     def drop(self): 
-        # nothing to do, here for backward compatility
-        pass
-    def insert(self,**fields):
+        # nothing to do, here for backward compatility     
+        self._db(self.id>0).delete()
+    def insert(self,**fields):  
         for field in self.fields:
             if not fields.has_key(field) and self[field].default!=None:
-                fields[field]=self[field].default
+                fields[field]=self[field].default       
+            if fields.has_key(field):
+                fields[field] = obj_represent(fields[field], self[field].type, self._db) 
+
         tmp=self._tableobj(**fields)
         tmp.put()
         return tmp.key().id()
     def __str__(self):
-        return self._tablename
+        return self._tablename 
 
 class SQLXorable(object):
     def __init__(self,name,type='string',db=None):
         self.name,self.type,self._db=name,type,db
-    def __str__(self): 
+    def __str__(self):
         return self.name
-    def __or__(self,other): # for use in sortby
-        return SQLXorable(str(self)+', '+str(other),self.type,None)
+    def __or__(self,other): # for use in sortby    
+        assert_filter_fields(self,other)
+        return SQLXorable(self.name+'|'+other.name,None,None)    
     def __invert__(self):
-        return SQLXorable(str(self)+' DESC',self.type,None)
+        assert_filter_fields(self)   
+        return SQLXorable('-'+self.name,self.type,None)
     # for use in SQLQuery
     def __eq__(self,value): return SQLQuery(self,'=',value)
-    def __ne__(self,value): return SQLQuery(self,'<>',value)
+    def __ne__(self,value): return SQLQuery(self,'!=',value)
     def __lt__(self,value): return SQLQuery(self,'<',value)
     def __le__(self,value): return SQLQuery(self,'<=',value)
     def __gt__(self,value): return SQLQuery(self,'>',value)
@@ -251,28 +263,22 @@ class SQLField(SQLXorable):
         return value
     def __str__(self): return '%s.%s' % (self._tablename,self.name)
 
-def sql_represent(object,fieldtype,dbname):    
-    if object is None: return ''
-    if fieldtype=='boolean':
-         if object and not str(object)[0].upper()=='F': return "TRUE"
-         else: return "FALSE"
-    if fieldtype[0]=='i': return str(int(object))
-    elif fieldtype[0]=='r': return str(int(object))
-    elif fieldtype=='double': return str(float(object))
-    if isinstance(object,unicode): object=object.encode('utf-8')
-    if fieldtype=='date':
-         if isinstance(object,(datetime.date,datetime.datetime)): object=object.strftime('%Y-%m-%d')
-         else: object=str(object)
-    if fieldtype=='datetime':
-         if isinstance(object,datetime.datetime): object=object.strftime('%Y-%m-%d %H:%M:%S')
-         elif isinstance(object,datetime.date): object=object.strftime('%Y-%m-%d 00:00:00')
-         else: object=str(object)
-         if dbname=='oracle': return "to_date('%s','yyyy-mm-dd hh24:mi:ss')" % object
-    elif fieldtype=='time':
-         if isinstance(object,datetime.time): object=object.strftime('%H:%M:%S')
-         else: object=str(object)
-    else: object=str(object)
-    return "'%s'" % object.replace("'","''")  ### escape
+def obj_represent(object,fieldtype,db):
+    if fieldtype=='date' and object!=None and not isinstance(object,datetime.date):
+        y,m,d=[int(x) for x in str(object).strip().split('-')]
+        object=datetime.date(y,m,d)
+    elif fieldtype=='time' and object!=None and not isinstance(object,datetime.time):
+        time_items=[int(x) for x in str(object).strip().split(':')[:3]]
+        if len(time_items)==3: h,mi,s=time_items
+        else: h,mi,s=time_items+[0]
+        object=datetime.time(h,mi,s)
+    elif fieldtype=='datetime' and object!=None and not isinstance(object,datetime.datetime):
+        y,m,d=[int(x) for x in str(object)[:10].strip().split('-')]
+        time_items=[int(x) for x in str(object)[11:].strip().split(':')[:3]]
+        if len(time_items)==3: h,mi,s=time_items
+        else: h,mi,s=time_items+[0]
+        object=datetime.datetime(y,m,d,h,mi,s) 
+    return object
 
 class QueryException:
     def __init__(self,**a): self.__dict__=a
@@ -287,56 +293,39 @@ class SQLQuery(object):
     set=db(query)
     records=set.select()
     """
-    def __init__(self,left,op=None,right=None):        
-        if not isinstance(left,str) and left.name=='id':
-            if op=='=':
-                self.sql=QueryException(tablename=left._tablename,id=int(right))
-                return
-            elif op=='>' and str(left)=='0': pass
-            else: raise SyntaxError, 'not supported'
-        if hasattr(left,'type') and left.type in ['text', 'blob']:
-            raise SyntaxError, 'not supported'
-        if op is None and right is None: self.sql=left
-        elif right is None:
+    def __init__(self,left,op=None,right=None):
+        if op is None and right is None and isinstance(left,list): 
+            self.left = left
+            return
+        if isinstance(right,(SQLField,SQLXorable)):
+            raise SyntaxError, 'SQLQuery: right side of filter must be a value or entity'
+        if isinstance(left,SQLField) and left.name=='id':
             if op=='=': 
-                self.sql='%s %s' % (left,left._db._translator['is null'])
-            elif op=='<>':
-                self.sql='%s %s' % (left,left._db._translator['is not null'])
-            else: raise SyntaxError, 'do not know what to do'
-        elif op==' IN ':
-            if hasattr(right,'__iter__'):
-                r=','.join([sql_represent(i,left.type,left._db) for i in right])
-                self.sql='%s%s(%s)'%(left,op,r)
-            else: raise SyntaxError, 'do not know what to do'
-        elif isinstance(right,(SQLField,SQLXorable)):
-            self.sql='%s%s%s' % (left,op,right)
-        else:
-            right=sql_represent(right,left.type,left._db._dbname)
-            self.sql='%s%s%s' % (left,op,right)
-    def __and__(self,other): return SQLQuery('%s AND %s'%(self,other))
+                self.get_one=QueryException(tablename=left._tablename,id=long(right))
+                return
+            if op=='>' and long(right)==0L:
+                self.get_all=left._tablename 
+                return
+            else:
+                raise SyntaxError, 'not supported'
+        if isinstance(left,SQLField):
+            # normal filter: field op value
+            assert_filter_fields(left)
+            right=obj_represent(right,left.type,left._db)  
+            # filter dates/times need to be datetimes for GAE
+            right=dateobj_to_datetime(right)
+            self.left = [(left,op,right)]
+            return
+        raise SyntaxError, 'not supported'
+
+    def __and__(self,other):  
+        # concatenate list of filters
+        return SQLQuery(self.left + other.left)
     # def __or__(self,other): return SQLQuery('(%s) OR (%s)'%(self,other))
     # def __invert__(self): return SQLQuery('(NOT %s)'%self)
-    def __str__(self): return str(self.sql)
+    def __str__(self): return str(self.left)
+    
 
-regex_tables=re.compile('(?P<table>[a-zA-Z]\w*)\.')
-regex_quotes=re.compile("'[^']*'")
-
-def parse_tablenames(text):
-    text=regex_quotes.sub('',text)
-    while 1:
-        i=text.find('IN (SELECT ')
-        if i==-1: break
-        k,j,n=1,i+11,len(text)
-        while k and j<n:
-           c=text[j]
-           if c=='(': k+=1
-           elif c==')': k-=1
-           j+=1
-        text=text[:i]+text[j+1:]
-    items=regex_tables.findall(text)
-    tables={}
-    for item in items: tables[item]=True
-    return tables.keys()        
 
 class SQLSet(object):
     """
@@ -353,66 +342,61 @@ class SQLSet(object):
     and take subsets:
        subset=set(db.users.id<5)
     """
-    def __init__(self,db,where=''):
+    def __init__(self,db,where=None):
         self._db=db
-        self._tables=[]
-        if hasattr(where,'sql') and isinstance(where.sql,QueryException):
-            self.sql_w=where.sql
+        self._tables=[] 
+        self.filters=[]    
+        if hasattr(where,'get_all'):
+           self.where=where
+           self._tables.insert(0, where.get_all) 
+        elif hasattr(where,'get_one') and isinstance(where.get_one,QueryException):
+            self.where=where.get_one
         else:
-            # find out wchich tables are involved
-            self.sql_w=str(where)
-            self._tables=parse_tablenames(self.sql_w)
+            # find out which tables are involved 
+            if isinstance(where,SQLQuery):
+                self.filters=where.left
+            self.where=where
+            self._tables = [field._tablename for field,op,val in self.filters]  
     def __call__(self,where):
-        if isinstance(self.sql_w,QueryException) or\
-           isinstance(where,QueryException): raise SyntaxeError
-        if self.sql_w: return SQLSet(self._db,SQLQuery(self.sql_w)&where)
-        else: return SQLSet(self._db,where)
+        if isinstance(self.where,QueryException) or\
+           isinstance(where,QueryException): raise SyntaxError
+        if self.where: return SQLSet(self._db,self.where&where)
+        else: return SQLSet(self._db,where)  
+    def _get_table_or_raise(self):
+        tablenames = list(set(self._tables))   #unique
+        if len(tablenames)<1: raise SyntaxError, 'SQLSet: no tables selected'
+        if len(tablenames)>1: raise SyntaxError, 'SQLSet: no join in appengine'        
+        return self._db[tablenames[0]]._tableobj
     def _select(self,*fields,**attributes):
         valid_attributes=['orderby','groupby','limitby','required',
-                          'default','requires','left']
+                          'default','requires','left']  
         if [key for key in attributes.keys() if not key in valid_attributes]:
             raise SyntaxError, 'invalid select attribute'
-        ### if not fields specified take them all from the requested tables
-        if not fields or not isinstance(fields[0],SQLALL):
-            fields=[self._db[table].ALL for table in self._tables]
-        sql_f=', '.join([str(f) for f in fields])
-        tablenames=parse_tablenames(self.sql_w+' '+sql_f)
-        if len(tablenames)<1: raise SyntaxError, 'SQLSet: no tables selected'
-        if len(tablenames)>1: raise SyntaxError, 'SQLSet: no join in appengine'
-        self.colnames=[c.strip() for c in sql_f.split(', ')]
-        if self.sql_w=='%s.id>0'%tablenames[0]: sql_w=''
-        elif self.sql_w: sql_w=' WHERE '+self.sql_w       
-        else: sql_w=''
-        sql_o=''
+        if fields and isinstance(fields[0],SQLALL):
+            self._tables.insert(0,fields[0].table._tablename)
+        table = self._get_table_or_raise()
+        tablename = table.kind()       
+        query = google_db.Query(table)  
+        for filter in self.filters:
+            left,op,val = filter
+            cond = "%s %s" % (left.name,op)
+            query=query.filter(cond,val)  
         if attributes.has_key('left') and attributes['left']: 
-            join=attributes['left']
-            if not isinstance(join,(tuple,list)): join=[join]
-            join=[str(t) for t in join]
-            excluded=[t for t in tablenames if not t in join]
-            command=self._db._translator['left join']           
-            sql_t='%s %s %s' %(', '.join(excluded),command,', '.join(join))
-        else:
-            sql_t=', '.join(tablenames)
+            raise SyntaxError, "SQLSet: no left join in appengine"
         if attributes.has_key('groupby') and attributes['groupby']: 
-            sql_o+=' GROUP BY %s'% attributes['groupby']
+            raise SyntaxError, "SQLSet: no groupby in appengine"
         if attributes.has_key('orderby') and attributes['orderby']:
-            if attributes['orderby'].type in ['text','blob']:
-                raise SyntaxError, "SQLSet: no orderby '%s' in appengine" \
-                                   % attributes['orderby'].type
-            sql_o+=' ORDER BY %s'% attributes['orderby']
+            assert_filter_fields(attributes['orderby'])
+            orders = attributes['orderby'].name.split("|")   
+            for order in orders:
+                query = query.order(order)
         if attributes.has_key('limitby') and attributes['limitby']: 
-            lmin,lmax=attributes['limitby']
-            sql_o+=' LIMIT %i OFFSET %i' % (lmax-lmin,lmin)
-        tablename=tablenames[0]
-        q='SELECT * FROM %s%s%s'%(sql_t,sql_w,sql_o) 
-        p=None
-        regex_undot=re.compile("^(?P<a>(([^']*'){2})*[^']*)(?P<b>%s\.)(?P<c>.*)$"%tablename)
-        while p!=q:
-           p=q
-           q=regex_undot.sub('\g<a>\g<c>',p)
-        return q,tablename,self._db[tablename].fields
+            lmin,lmax=attributes['limitby']   
+            limit,offset=(lmax-lmin,lmin)  
+            query = query.fetch(limit,offset=offset)     
+        return query,tablename,self._db[tablename].fields
     def _getitem_exception(self):
-        tablename,id=self.sql_w.tablename,self.sql_w.id
+        tablename,id=self.where.tablename,self.where.id
         fields=self._db[tablename].fields
         self.colnames=['%s.%s'%(tablename,t) for t in fields]
         return self._db[tablename]._tableobj.get_by_id(id),fields
@@ -429,12 +413,13 @@ class SQLSet(object):
         """
         Always returns a SQLRows object, even if it may be empty
         """
-        if isinstance(self.sql_w,QueryException): return self._select_except()
+        if isinstance(self.where,QueryException): return self._select_except()
         query,tablename,fields=self._select(*fields,**attributes)
         self.colnames=['%s.%s'%(tablename,t) for t in fields]
         self._db['_lastsql']=query
         r=[]
-        for item in google_db.GqlQuery(query):
+
+        for item in query:
             new_item=[]
             for t in fields:
                 if t=='id': new_item.append(int(item.key().id()))
@@ -442,19 +427,19 @@ class SQLSet(object):
             r.append(new_item)
         return SQLRows(self._db,r,*self.colnames)      
     def count(self):
-        return len(self.select().response)
+        return len(self.select())
     def delete(self):
-        if isinstance(self.sql_w,QueryException):
+        if isinstance(self.where,QueryException):
             item,fields=self._getitem_exception()
             if not item: return
             item.delete()
         else:
             query,tablename,fields=self._select()
-            tableobj=self._db[tablename]._tableobj
-            for item in google_db.GqlQuery(query):
+            tableobj=self._db[tablename]._tableobj 
+            for item in query:
                 tableobj.get_by_id(int(item.key().id())).delete()
     def update(self,**update_fields):
-        if isinstance(self.sql_w,QueryException):
+        if isinstance(self.where,QueryException):
             item,fields=self._getitem_exception()
             if not item: return
             for key,value in update_fields.items():
@@ -463,7 +448,7 @@ class SQLSet(object):
         else:
             query,tablename,fields=self._select()
             tableobj=self._db[tablename]._tableobj
-            for item in google_db.GqlQuery(query):
+            for item in query:
                 for key,value in update_fields.items():
                     setattr(item,key,value)
                 item.put()
@@ -563,18 +548,29 @@ class SQLRows(object):
         """
         serializes the table using sqlhtml.SQLTABLE (if present)
         """
-        return sqlhtml.SQLTABLE(self).xml() 
+        return sqlhtml.SQLTABLE(self).xml()
         
 def test_all():
-    """    
+    """
+    How to run from web2py dir:
+     export PYTHONPATH=.:YOUR_PLATFORMS_APPENGINE_PATH
+     python gluon/contrib/gql2.py         
 
-    Create a table with all possible field types
-    'sqlite://test.db'
-    'mysql://root:none@localhost/test'
-    'postgres://mdipierro:none@localhost/test'
+    Create a table with all possible field types       
 
-    >>> if len(sys.argv)<2: db=GQLDB("sqlite://test.db")
-    >>> if len(sys.argv)>1: db=GQLDB(sys.argv[1])
+    >>> import os
+    >>> os.environ['TZ'] = 'UTC'
+    >>> import time
+    >>> if hasattr(time, 'tzset'):
+    ...   time.tzset()
+    >>>
+    >>> from google.appengine.api import apiproxy_stub_map 
+    >>> from google.appengine.api import datastore_file_stub
+    >>> apiproxy_stub_map.apiproxy = apiproxy_stub_map.APIProxyStubMap()       
+    >>> apiproxy_stub_map.apiproxy.RegisterStub('datastore_v3',\
+            datastore_file_stub.DatastoreFileStub('doctests_your_app_id', '/dev/null', '/dev/null'))
+
+    >>> db=GQLDB()
     >>> tmp=db.define_table('users',\
               SQLField('stringf','string',length=32,required=True),\
               SQLField('booleanf','boolean',default=False),\
@@ -597,9 +593,91 @@ def test_all():
                        datetimef=datetime.datetime(2002,2,2,12,30,15))
     1
 
+    Select all
+
+    # >>> all = db().select(db.users.ALL)
+
     Drop the table   
 
-    >>> db.users.drop()
+    >>> db.users.drop() 
+
+    Select many entities
+
+    >>> tmp = db.define_table("posts",\
+              SQLField('body','text'),\
+              SQLField('total','integer'),\
+              SQLField('created_at','datetime'))
+    >>> many = 20   #2010 # more than 1000 single fetch limit (it can be slow) 
+    >>> few = 5
+    >>> most = many - few
+    >>> for i in range(many):
+    ...     f=db.posts.insert(body='',\
+                total=i,created_at=datetime.datetime(2008, 7, 6, 14, 15, 42, i))
+    >>> 
+    >>> len(db().select(db.posts.ALL)) == many
+    True
+    >>> len(db().select(db.posts.ALL,limitby=(0,most))) == most
+    True
+    >>> len(db().select(db.posts.ALL,limitby=(few,most))) == most - few 
+    True
+    >>> order = ~db.posts.total|db.posts.created_at
+    >>> results = db().select(db.posts.ALL,limitby=(most,most+few),orderby=order)
+    >>> len(results) == few
+    True
+    >>> results[0].total == few - 1
+    True
+    >>> results = db().select(db.posts.ALL,orderby=~db.posts.created_at)
+    >>> results[0].created_at > results[1].created_at
+    True
+    >>> results = db().select(db.posts.ALL,orderby=db.posts.created_at)
+    >>> results[0].created_at < results[1].created_at
+    True
+
+    >>> db(db.posts.total==few).count()
+    1
+
+    >>> db(db.posts.id==2*many).count()
+    0
+
+    >>> db(db.posts.id==few).count()
+    1
+
+    >>> len(db(db.posts.id>0).select()) == many
+    True
+
+    >>> db(db.posts.id>0).count() == many
+    True
+    
+    >>> set=db(db.posts.total>=few)
+    >>> len(set.select())==most
+    True
+
+    >>> len(set(db.posts.total<=few).select())
+    1
+
+    # test timezones
+    >>> class TZOffset(datetime.tzinfo):
+    ...   def __init__(self,offset=0):
+    ...     self.offset = offset
+    ...   def utcoffset(self, dt): return datetime.timedelta(hours=self.offset)
+    ...   def dst(self, dt): return datetime.timedelta(0)
+    ...   def tzname(self, dt): return 'UTC' + str(self.offset)
+    ... 
+    >>> SERVER_OFFSET = -8
+    >>> 
+    >>> stamp = datetime.datetime(2008, 7, 6, 14, 15, 42, 828201)
+    >>> post_id = db.posts.insert(created_at=stamp)
+    >>> naive_stamp = db(db.posts.id==post_id).select()[0].created_at
+    >>> utc_stamp=naive_stamp.replace(tzinfo=TZOffset()) 
+    >>> server_stamp = utc_stamp.astimezone(TZOffset(SERVER_OFFSET))
+    >>> stamp == naive_stamp
+    True
+    >>> utc_stamp == server_stamp
+    True
+    >>> db.posts.drop()
+
+    >>> db(db.posts.id>0).count()
+    0
 
     Examples of insert, select, update, delete
 
@@ -614,8 +692,21 @@ def test_all():
     >>> me=db(db.person.id==person_id).select()[0] # test select
     >>> me.name
     'Massimo'
-    >>> db(db.person.name=='Massimo').update(name='massimo') # test update
+    >>> db(db.person.name=='Massimo').update(name='massimo') # test update   
+    >>> me = db(db.person.id==person_id).select()[0]
+    >>> me.name
+    'massimo'
+    >>> str(me.birth)
+    '1971-12-21'
+
+    # resave date to ensure it comes back the same
+    >>> me=db(db.person.name=='Massimo').update(birth=me.birth) # test update
+    >>> me = db(db.person.id==person_id).select()[0]
+    >>> me.birth
+    datetime.date(1971, 12, 21)
     >>> db(db.person.name=='Marco').delete() # test delete
+    >>> len(db().select(db.person.ALL))
+    1
 
     Update a single record
 
@@ -629,46 +720,50 @@ def test_all():
     1
     >>> len(db((db.person.name=='Max')&(db.person.birth<datetime.date(2003,01,01))).select())
     1
-    >>> len(db((db.person.name=='Max')|(db.person.birth<'2003-01-01')).select())
-    1
+
+    # >>> len(db((db.person.name=='Max')|(db.person.birth<'2003-01-01')).select())
+    # 1       
     >>> me=db(db.person.id==person_id).select(db.person.name)[0] 
     >>> me.name
     'Max'
   
-    Examples of search conditions using extract from date/datetime/time      
+    Examples of search conditions using extract from date/datetime/time
 
-    >>> len(db(db.person.birth.month()==12).select())
-    1
-    >>> len(db(db.person.birth.year()>1900).select())
-    1
+    # >>> len(db(db.person.birth.month()==12).select())
+    # 1
+    # >>> len(db(db.person.birth.year()>1900).select())
+    # 1       
 
     Example of usage of NULL
 
     >>> len(db(db.person.birth==None).select()) ### test NULL
     0
-    >>> len(db(db.person.birth!=None).select()) ### test NULL
-    1
+
+    # filter api does not support != yet
+    # >>> len(db(db.person.birth!=None).select()) ### test NULL
+    # 1      
 
     Examples of search consitions using lower, upper, and like
 
-    >>> len(db(db.person.name.upper()=='MAX').select())
-    1
-    >>> len(db(db.person.name.like('%ax')).select())
-    1
-    >>> len(db(db.person.name.upper().like('%AX')).select())
-    1
-    >>> len(db(~db.person.name.upper().like('%AX')).select())
-    0
+    # >>> len(db(db.person.name.upper()=='MAX').select())
+    # 1  
+    # >>> len(db(db.person.name.like('%ax')).select())
+    # 1  
+    # >>> len(db(db.person.name.upper().like('%AX')).select())
+    # 1  
+    # >>> len(db(~db.person.name.upper().like('%AX')).select())
+    # 0   
 
     orderby, groupby and limitby 
 
-    >>> people=db().select(db.person.name,orderby=db.person.name)
+    >>> people=db().select(db.person.ALL,orderby=db.person.name)
     >>> order=db.person.name|~db.person.birth
-    >>> people=db().select(db.person.name,orderby=order)
+    >>> people=db().select(db.person.ALL,orderby=order)
+     
+    # no groupby in appengine
+    # >>> people=db().select(db.person.ALL,orderby=db.person.name,groupby=db.person.name)
     
-    >>> people=db().select(db.person.name,orderby=db.person.name,groupby=db.person.name)
-    
-    >>> people=db().select(db.person.name,orderby=order,limitby=(0,100))
+    >>> people=db().select(db.person.ALL,orderby=order,limitby=(0,100))
 
     Example of one 2 many relation
 
@@ -677,15 +772,14 @@ def test_all():
               SQLField('birth','date'), \
               SQLField('owner',db.person),\
               migrate='test_dog.table')
-    >>> db.dog.insert(name='Snoopy',birth=None,owner=person_id)
-    1
+    >>> dog_id=db.dog.insert(name='Snoopy',birth=None,owner=person_id)
 
     A simple JOIN
 
-    >>> len(db(db.dog.owner==db.person.id).select())
+    >>> len(db(db.dog.owner==person_id).select())
     1
-
-    >>> len(db(db.dog.owner==db.person.id).select(left=db.dog))
+    
+    >>> len(db(db.dog.owner==me.id).select())
     1
 
     Drop tables
@@ -709,30 +803,32 @@ def test_all():
 
     Define a SQLSet
 
-    >>> authored_papers=db((db.author.id==db.authorship.author_id)&\
-                           (db.paper.id==db.authorship.paper_id))
-    >>> rows=authored_papers.select(db.author.name,db.paper.title)
-    >>> for row in rows: print row.author.name, row.paper.title
-    Massimo QCD
+    >>> authorships=db(db.authorship.author_id==aid).select()
+    >>> for authorship in authorships: 
+    ...     papers=db(db.paper.id==authorship.paper_id).select() 
+    ...     for paper in papers: print paper.title
+    QCD
+     
+
 
     Example of search condition using  belongs
 
-    >>> set=(1,2,3)
-    >>> rows=db(db.paper.id.belongs(set)).select(db.paper.ALL)
-    >>> print rows[0].title
-    QCD
+    # >>> set=(1,2,3)
+    # >>> rows=db(db.paper.id.belongs(set)).select(db.paper.ALL)
+    # >>> print rows[0].title
+    # QCD   
 
     Example of search condition using nested select
 
-    >>> nested_select=db()._select(db.authorship.paper_id)
-    >>> rows=db(db.paper.id.belongs(nested_select)).select(db.paper.ALL)
-    >>> print rows[0].title
-    QCD
+    # >>> nested_select=db()._select(db.authorship.paper_id)
+    # >>> rows=db(db.paper.id.belongs(nested_select)).select(db.paper.ALL)
+    # >>> print rows[0].title
+    # QCD       
 
     Output in csv
 
-    >>> str(authored_papers.select(db.author.name,db.paper.title))
-    'author.name,paper.title\\r\\nMassimo,QCD\\r\\n'
+    # >>> str(authored_papers.select(db.author.name,db.paper.title))
+    # 'author.name,paper.title\\r\\nMassimo,QCD\\r\\n'    
 
     Delete all leftover tables
 
