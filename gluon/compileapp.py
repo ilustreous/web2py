@@ -39,7 +39,7 @@ def _TEST():
                 if report: pf='failed'
                 else: pf='passed'
                 html+='<h3 class="%s">Function %s [%s]</h3>'%(pf,key,pf)
-                if report: html+=html.CODE(report,language='web2py',link='/examples/global/vars/').xml()
+                if report: html+=CODE(report,language='web2py',link='/examples/global/vars/').xml()
                 html+='<br/>\n'
             else:
                 html+='<h3 class="nodoctests">Function %s [no doctests]</h3><br/>'%(key)

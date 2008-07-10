@@ -26,20 +26,17 @@ except:
     try:
         from pysqlite2 import dbapi2 as sqlite3 
         logging.warning('importing mysqlite3.dbapi2 as sqlite3')
-    except:
-        logging.warning('no sqlite3 or dbapi2 driver')
+    except: logging.warning('no sqlite3 or dbapi2 driver')
 try: import MySQLdb
 except: logging.warning('no MySQLdb driver')
 try: import psycopg2
 except: logging.warning('no psycopg2 driver')
-try: 
-    import cx_Oracle
-    logging.warning('support for Oracle is experimental')
+try: import cx_Oracle
 except: logging.warning('no cx_Oracle driver')
-try:
-    import pyodbc
-except:
-    logging.warning('no MSSQL driver')
+try: import pyodbc
+except: logging.warning('no MSSQL driver')
+try: import kinterbasdb
+except: logging.warning('no kinterbasdb driver')
 import portalocker
 import validators
 
@@ -151,7 +148,27 @@ SQL_DIALECTS={'sqlite':{'boolean':'CHAR(1)',
                       'id':'INT IDENTITY PRIMARY KEY',
                       'reference':'INT, CONSTRAINT %(table_name)s_%(field_name)s__constraint FOREIGN KEY (%(field_name)s) REFERENCES %(foreign_key)s ON DELETE %(on_delete_action)s',
                       'left join':'LEFT OUTER JOIN',
-                      'random':'NEWID()'}
+                      'random':'NEWID()'},
+            'firebird':{'boolean':'CHAR(1)',
+                      'string':'VARCHAR(%(length)s)',
+                      'text':'BLOB SUB_TYPE 1',
+                      'password':'VARCHAR(%(length)s)',
+                      'blob':'BLOB SUB_TYPE 0',
+                      'upload':'VARCHAR(64)',
+                      'integer':'INTEGER',
+                      'double':'FLOAT',
+                      'date':'DATE',
+                      'time':'TIME',        
+                      'datetime':'TIMESTAMP',
+                      'id':'INTEGER PRIMARY KEY',
+                      'reference':'INTEGER REFERENCES %(foreign_key)s ON DELETE %(on_delete_action)s',
+                      'lower':'LOWER(%(field)s)',
+                      'upper':'UPPER(%(field)s)',
+                      'is null':'IS NULL',
+                      'is not null':'IS NOT NULL',
+                      'extract':'EXTRACT(%(name)s FROM %(field)s)',
+                      'left join':'LEFT JOIN',
+                      'random':'RANDOM()'},
               }
 
 def sqlhtml_validators(field_type,length):
@@ -384,6 +401,22 @@ class SQLDB(SQLStorage):
             self._connection=pyodbc.connect(cnxn)
             self._cursor=self._connection.cursor()
             self._execute=lambda *a,**b: self._cursor.execute(*a,**b)
+        elif self._uri[:11]=='firebird://': 
+            self._dbname='firebird'
+            m=re.compile('^(?P<user>[^:@]+)(\:(?P<passwd>[^@]*))?@(?P<host>[^\:/]+)(\:(?P<port>[0-9]+))?/(?P<db>.+)$').match(self._uri[11:])
+            user=m.group('user')
+            if not user: raise SyntaxError, "User required"
+            passwd=m.group('passwd')
+            if not passwd: passwd=''
+            host=m.group('host')
+            if not host: raise SyntaxError, "Host name required"
+            db=m.group('db')
+            if not db: raise SyntaxError, "Database name required"
+            port=m.group('port')
+            if not port: port='3050'
+            self._connection=kinterbasdb.connect(dsn="%s:%s"%(host,db), user=user, password=passwd)
+            self._cursor=self._connection.cursor()
+            self._execute=lambda *a,**b: self._cursor.execute(*a,**b)
         elif self._uri=='None':
             class Dummy:
                 lastrowid=1
@@ -543,11 +576,16 @@ class SQLTable(SQLStorage):
                           datetime.datetime.today().isoformat())
             logfile.write(query+'\n')
             self._db['_lastsql']=query
-            self._db._execute(query)       
+            self._db._execute(query)
             if self._db._dbname=='oracle':
                 t=self._tablename
                 self._db._execute('CREATE SEQUENCE %s_sequence START WITH 1 INCREMENT BY 1 NOMAXVALUE;' % t)
-                self._db._execute('CREATE OR REPLACE TRIGGER %s_trigger BEFORE INSERT ON %s FOR EACH ROW BEGIN SELECT %s_sequence.nextval INTO :NEW.id FROM DUAL; END;\n' % (t,t,t))             
+                self._db._execute('CREATE OR REPLACE TRIGGER %s_trigger BEFORE INSERT ON %s FOR EACH ROW BEGIN SELECT %s_sequence.nextval INTO :NEW.id FROM DUAL; END;\n' % (t,t,t))
+            elif self._db._dbname=='firebird':
+                t=self._tablename
+                self._db._execute('create generator GENID_%s;' % t)
+                self._db._execute('set generator GENID_%s to 0;' % t)
+                self._db._execute('create trigger trg_id_%s for %s active before insert position 0 as\nbegin\nif(new.id is null) then\nbegin\nnew.id = gen_id(GENID_%s, 1);\nend\nend;\n' % (t,t,t))  
             self._db.commit()
             file=open(self._dbt,'w')
             portalocker.lock(file, portalocker.LOCK_EX)
@@ -568,9 +606,14 @@ class SQLTable(SQLStorage):
             if not key in keys: keys.append(key)
         for key in keys:
             if not sql_fields_old.has_key(key):
-                query='ALTER TABLE %s ADD COLUMN %s %s;' % \
-                      (self._tablename, key, \
-                       sql_fields[key].replace(', ',', ADD '))              
+                if self._db._dbname=='firebird':
+                    query='ALTER TABLE %s ADD %s %s;' % \
+                          (self._tablename, key, \
+                           sql_fields[key].replace(', ',', ADD '))              
+                else:
+                    query='ALTER TABLE %s ADD COLUMN %s %s;' % \
+                          (self._tablename, key, \
+                          sql_fields[key].replace(', ',', ADD '))              
             elif self._db._dbname=='sqlite': query=None
             elif not sql_fields.has_key(key):
                 query='ALTER TABLE %s DROP COLUMN %s;' % \
@@ -607,6 +650,8 @@ class SQLTable(SQLStorage):
         t=self._tablename
         if self._db._dbname=='oracle':
             return ['DROP TABLE %s;' % t,'DROP SEQUENCE %s_sequence;' % t]
+        elif self._db._dbname=='firebird':
+            return ['DROP TABLE %s;' % t,'DROP GENERATOR GENID_%s;' % t]
         return ['DROP TABLE %s;' % t]
     def drop(self):        
         logfile=open(os.path.join(self._db._folder,'sql.log'),'a')
@@ -661,6 +706,9 @@ class SQLTable(SQLStorage):
         elif self._db._dbname=='mssql':
             self._db._execute('SELECT @@IDENTITY;')
             id=int(self._db._cursor.fetchone()[0])
+        elif self._db._dbname=='firebird':
+            self._db._execute("SELECT gen_id(GENID_%s, 0) FROM rdb$database" % self._tablename)
+            id=int(self._db._cursor.fetchone()[0])       
         else:
             id=None
         return id
@@ -936,6 +984,10 @@ class SQLSet(object):
                 if not attributes.has_key('orderby') or not attributes['orderby']:
                     sql_o+=' ORDER BY %s'%', '.join([t+'.id' for t in tablenames])
                 return "SELECT TOP %i %s FROM %s%s%s;" %(lmax+lmin,sql_f,sql_t,sql_w,sql_o)
+            elif self._db._dbname=='firebird':
+                if not attributes.has_key('orderby') or not attributes['orderby']:
+                    sql_o+=' ORDER BY %s'%', '.join([t+'.id' for t in tablenames])
+                return "SELECT FIRST %i SKIP %i %s FROM %s %s %s;"%(lmax-lmin,lmin,sql_f,sql_t,sql_w,sql_o)
             sql_o+=' LIMIT %i OFFSET %i' % (lmax-lmin,lmin)
         return 'SELECT %s FROM %s%s%s;'%(sql_f,sql_t,sql_w,sql_o) 
     def select(self,*fields,**attributes):
@@ -947,14 +999,14 @@ class SQLSet(object):
             self._db._execute(query)
             return self._db._cursor.fetchall()
         if not attributes.has_key('cache'):
-	    query=self._select(*fields,**attributes)
-	    r=response(query)
+            query=self._select(*fields,**attributes)
+            r=response(query)
         else:
-	    cache_model,time_expire=attributes['cache']
-	    del attributes['cache']
-	    query=self._select(*fields,**attributes)       
-	    key=self._db._uri+'/'+query
-	    r=cache_model(key,lambda:response(query),time_expire)
+            cache_model,time_expire=attributes['cache']
+            del attributes['cache']
+            query=self._select(*fields,**attributes)       
+            key=self._db._uri+'/'+query
+            r=cache_model(key,lambda:response(query),time_expire)
         return SQLRows(self._db,r,*self.colnames)      
     def _count(self):
         return self._select('count(*)')
@@ -1092,7 +1144,7 @@ def test_all():
     'mysql://root:none@localhost/test'
     'postgres://mdipierro:none@localhost/test'
     'mssql://web2py:none@A64X2/web2py_test'
-
+    'firebase://user:password@server:3050/database'
 
     >>> if len(sys.argv)<2: db=SQLDB("sqlite://test.db")
     >>> if len(sys.argv)>1: db=SQLDB(sys.argv[1])
