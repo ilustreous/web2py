@@ -1084,16 +1084,16 @@ class SQLRows(object):
                     row[tablename][fieldname]=True
                 else: row[tablename][fieldname]=False
             elif field.type=='date' and value!=None and not isinstance(value,datetime.date):
-                y,m,d=[int(x) for x in str(value).strip().split('-')]
+                y,m,d=[int(x) for x in str(value)[:10].strip().split('-')]
                 row[tablename][fieldname]=datetime.date(y,m,d)
             elif field.type=='time' and value!=None and not isinstance(value,datetime.time):
-                time_items=[int(x) for x in str(value).strip().split(':')[:3]]
+                time_items=[int(x) for x in str(value)[:8].strip().split(':')[:3]]
                 if len(time_items)==3: h,mi,s=time_items
                 else: h,mi,s=time_items+[0]
                 row[tablename][fieldname]=datetime.time(h,mi,s)
             elif field.type=='datetime' and value!=None and not isinstance(value,datetime.datetime):
                 y,m,d=[int(x) for x in str(value)[:10].strip().split('-')]
-                time_items=[int(x) for x in str(value)[11:].strip().split(':')[:3]]
+                time_items=[int(x) for x in str(value)[11:19].strip().split(':')[:3]]
                 if len(time_items)==3: h,mi,s=time_items
                 else: h,mi,s=time_items+[0]
                 row[tablename][fieldname]=datetime.datetime(y,m,d,h,mi,s)
