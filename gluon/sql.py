@@ -1144,7 +1144,7 @@ def test_all():
     'mysql://root:none@localhost/test'
     'postgres://mdipierro:none@localhost/test'
     'mssql://web2py:none@A64X2/web2py_test'
-    'firebase://user:password@server:3050/database'
+    'firebird://user:password@server:3050/database'
 
     >>> if len(sys.argv)<2: db=SQLDB("sqlite://test.db")
     >>> if len(sys.argv)>1: db=SQLDB(sys.argv[1])
