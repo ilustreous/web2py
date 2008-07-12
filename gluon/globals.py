@@ -127,7 +127,7 @@ class Session(Storage):
                 response.session_filename=os.path.join(up(request.folder),masterapp,'sessions',response.session_id)
                 response.session_new=True
         else:
-             table=db.define_table(tablename,
+             table=db.define_table(tablename+'_'+masterapp,
                  SQLField('locked','boolean',default=False),
                  SQLField('client_ip'),
                  SQLField('created_datetime','datetime',default=now),
