@@ -5,7 +5,7 @@
 <meta name="keywords" content="{{=response.keywords}}" />
 <meta name="description" content="{{=response.description}}" />
 <title>{{if response.title:}}{{=response.title}}{{else:}}{{=URL(r=request)}}{{pass}}</title>
-<style>
+<style type="text/css">
 div.fluid { width: 93% !important; }
 div.fixed { width: 93% !important; }
 * { margin: 0em; padding: 0em; }
@@ -87,6 +87,7 @@ table.sortable thead { background-color:#ccc; color:#FF5C1F; font-weight: bold; 
 table.sortable tbody tr.odd td { background-color: #eee;}
 table.sortable tbody tr.even td { background-color: #ddd; }
 table.sortable tbody tr.highlight td { background-color: #FFFF99; }
+.center { text-align: center; }
 </style>
 {{include 'web2py_ajax.html'}}
 </head>
@@ -101,7 +102,7 @@ table.sortable tbody tr.highlight td { background-color: #FFFF99; }
    <div id="menu">
    <ul>
     {{for _name,_active,_link in response.menu:}}
-    <li><a href="{{=_link}}" onmouseover="this.ccc=this.style.backgroundColor;this.style.backgroundColor='white';" onMouseOut="this.style.backgroundColor=this.ccc;" {{if not _active:}}class="inactive"{{pass}}>{{=_name}}</a></li>
+     <li><a href="{{=_link}}" onmouseover="this.ccc=this.style.backgroundColor;this.style.backgroundColor='white';" onmouseout="this.style.backgroundColor=this.ccc;" {{if not _active:}}class="inactive"{{pass}}>{{=_name}}</a></li>
     {{pass}}
    </ul>
    </div>
