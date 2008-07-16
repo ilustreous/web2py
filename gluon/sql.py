@@ -606,14 +606,9 @@ class SQLTable(SQLStorage):
             if not key in keys: keys.append(key)
         for key in keys:
             if not sql_fields_old.has_key(key):
-                if self._db._dbname=='firebird':
-                    query='ALTER TABLE %s ADD %s %s;' % \
+                query='ALTER TABLE %s ADD %s %s;' % \
                           (self._tablename, key, \
-                           sql_fields[key].replace(', ',', ADD '))              
-                else:
-                    query='ALTER TABLE %s ADD COLUMN %s %s;' % \
-                          (self._tablename, key, \
-                          sql_fields[key].replace(', ',', ADD '))              
+                           sql_fields[key].replace(', ',', ADD '))
             elif self._db._dbname=='sqlite': query=None
             elif not sql_fields.has_key(key):
                 query='ALTER TABLE %s DROP COLUMN %s;' % \
