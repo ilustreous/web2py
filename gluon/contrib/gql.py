@@ -263,22 +263,26 @@ class SQLField(SQLXorable):
         return value
     def __str__(self): return '%s.%s' % (self._tablename,self.name)
 
-def obj_represent(object,fieldtype,db):
-    if fieldtype=='date' and object!=None and not isinstance(object,datetime.date):
-        y,m,d=[int(x) for x in str(object).strip().split('-')]
-        object=datetime.date(y,m,d)
-    elif fieldtype=='time' and object!=None and not isinstance(object,datetime.time):
-        time_items=[int(x) for x in str(object).strip().split(':')[:3]]
-        if len(time_items)==3: h,mi,s=time_items
-        else: h,mi,s=time_items+[0]
-        object=datetime.time(h,mi,s)
-    elif fieldtype=='datetime' and object!=None and not isinstance(object,datetime.datetime):
-        y,m,d=[int(x) for x in str(object)[:10].strip().split('-')]
-        time_items=[int(x) for x in str(object)[11:].strip().split(':')[:3]]
-        if len(time_items)==3: h,mi,s=time_items
-        else: h,mi,s=time_items+[0]
-        object=datetime.datetime(y,m,d,h,mi,s) 
-    return object
+def obj_represent(object,fieldtype,db):  
+	if object!=None:
+	    if fieldtype=='date' and not isinstance(object,datetime.date):
+	        y,m,d=[int(x) for x in str(object).strip().split('-')]
+	        object=datetime.date(y,m,d)
+	    elif fieldtype=='time' and not isinstance(object,datetime.time):
+	        time_items=[int(x) for x in str(object).strip().split(':')[:3]]
+	        if len(time_items)==3: h,mi,s=time_items
+	        else: h,mi,s=time_items+[0]
+	        object=datetime.time(h,mi,s)
+	    elif fieldtype=='datetime' and not isinstance(object,datetime.datetime):
+	        y,m,d=[int(x) for x in str(object)[:10].strip().split('-')]
+	        time_items=[int(x) for x in str(object)[11:].strip().split(':')[:3]]
+	        if len(time_items)==3: h,mi,s=time_items
+	        else: h,mi,s=time_items+[0]
+	        object=datetime.datetime(y,m,d,h,mi,s)
+	    elif fieldtype=='integer' and not isinstance(object,long):
+	        object = long(object)
+
+	return object
 
 class QueryException:
     def __init__(self,**a): self.__dict__=a
@@ -399,7 +403,7 @@ class SQLSet(object):
         tablename,id=self.where.tablename,self.where.id
         fields=self._db[tablename].fields
         self.colnames=['%s.%s'%(tablename,t) for t in fields]
-        return self._db[tablename]._tableobj.get_by_id(id),fields
+        return self._db[tablename]._tableobj.get_by_id(long(id)),fields
     def _select_except(self):
         item,fields=self._getitem_exception()
         if not item: return []
@@ -437,7 +441,7 @@ class SQLSet(object):
             query,tablename,fields=self._select()
             tableobj=self._db[tablename]._tableobj 
             for item in query:
-                tableobj.get_by_id(int(item.key().id())).delete()
+                tableobj.get(item.key()).delete()
     def update(self,**update_fields):
         if isinstance(self.where,QueryException):
             item,fields=self._getitem_exception()
@@ -454,7 +458,7 @@ class SQLSet(object):
                 item.put()
 
 def update_record(t,s,id,a):
-    item=s._tableobj.get_by_id(int(id))
+    item=s._tableobj.get_by_id(long(id))
     for key,value in a.items():
        t[key]=value
        setattr(item,key,value)
@@ -463,7 +467,7 @@ def update_record(t,s,id,a):
 class SQLRows(object):
     ### this class still needs some work to care for ID/OID
     """
-    A wrapper for the retun value of a select. It basically represents a table.
+    A wrapper for the return value of a select. It basically represents a table.
     It has an iterator and each row is represented as a dictionary.
     """
     def __init__(self,db,response,*colnames):
@@ -556,7 +560,7 @@ def test_all():
      export PYTHONPATH=.:YOUR_PLATFORMS_APPENGINE_PATH
      python gluon/contrib/gql2.py         
 
-    Create a table with all possible field types       
+    Setup the UTC timezone and database stubs       
 
     >>> import os
     >>> os.environ['TZ'] = 'UTC'
@@ -569,6 +573,8 @@ def test_all():
     >>> apiproxy_stub_map.apiproxy = apiproxy_stub_map.APIProxyStubMap()       
     >>> apiproxy_stub_map.apiproxy.RegisterStub('datastore_v3',\
             datastore_file_stub.DatastoreFileStub('doctests_your_app_id', '/dev/null', '/dev/null'))
+
+        Create a table with all possible field types  
 
     >>> db=GQLDB()
     >>> tmp=db.define_table('users',\
@@ -610,6 +616,8 @@ def test_all():
     >>> many = 20   #2010 # more than 1000 single fetch limit (it can be slow) 
     >>> few = 5
     >>> most = many - few
+    >>> 0 < few < most < many
+    True
     >>> for i in range(many):
     ...     f=db.posts.insert(body='',\
                 total=i,created_at=datetime.datetime(2008, 7, 6, 14, 15, 42, i))
@@ -642,6 +650,8 @@ def test_all():
     >>> db(db.posts.id==few).count()
     1
 
+    >>> db(db.posts.id==str(few)).count()
+    1
     >>> len(db(db.posts.id>0).select()) == many
     True
 
@@ -674,8 +684,22 @@ def test_all():
     True
     >>> utc_stamp == server_stamp
     True
-    >>> db.posts.drop()
+    >>> db(db.posts.id>0).count() == many + 1
+    True
+    >>> db(db.posts.id==post_id).delete()
+    >>> db(db.posts.id>0).count() == many
+    True
 
+    >>> id = db.posts.insert(total='0')   # coerce str to integer 
+    >>> db(db.posts.id==id).delete() 
+    >>> db(db.posts.id > 0).count() == many 
+    True
+    >>> set=db(db.posts.id>0)  
+    >>> set.update(total=0)                # update entire set
+    >>> db(db.posts.total == 0).count() == many 
+    True
+
+    >>> db.posts.drop()
     >>> db(db.posts.id>0).count()
     0
 
@@ -782,6 +806,13 @@ def test_all():
     >>> len(db(db.dog.owner==me.id).select())
     1
 
+    # test a table relation 
+
+    >>> dog = db(db.dog.id==dog_id).select()[0]
+    >>> me = db(db.person.id==dog.owner).select()[0]
+    >>> me.dog.select()[0].name
+    'Snoopy'
+
     Drop tables
 
     >>> db.dog.drop()
@@ -809,7 +840,6 @@ def test_all():
     ...     for paper in papers: print paper.title
     QCD
      
-
 
     Example of search condition using  belongs
 

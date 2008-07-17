@@ -4,5 +4,25 @@ api_version: 1
 runtime: python
 
 handlers:
+
+- url: /(.+)/static/(.+)
+  static_dir: applications/\1/static/\2
+
 - url: .*
-  script: cgihandler.py
+  script: cgihandler.py  
+
+skip_files: |
+ ^(.*/)?(
+ (app\.yaml)|
+ (app\.yml)|
+ (index\.yaml)|
+ (index\.yml)|
+ (#.*#)|
+ (.*~)|
+ (.*\.py[co])|
+ (.*/RCS/.*)|
+ (\..*)|
+ ((admin|examples|welcome)\.tar)|
+ (applications/(admin|examples|welcome)/.*)|
+ )$
+ 
