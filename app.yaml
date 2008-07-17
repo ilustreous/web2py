@@ -23,6 +23,6 @@ skip_files: |
  (.*/RCS/.*)|
  (\..*)|
  ((admin|examples|welcome)\.tar)|
- (applications/(admin|examples|welcome)/.*)|
+ (applications/(admin|examples)/.*)|
  )$
  
