@@ -7,6 +7,7 @@ License: GPL v2
 import sys, cStringIO, cPickle, traceback, copy, cgi, types, time, os
 from random import random
 from html import BEAUTIFY
+from http import HTTP
 
 __all__=['RestrictedError','restricted']
 
@@ -61,5 +62,6 @@ def restricted(code,environment={},layer='Unkown'):
         else: ccode=compile(code.replace('\r\n','\n'),layer,'exec')
         exec ccode in environment
     except Exception, exception:
-        raise RestrictedError(layer,code,'',environment)
+        if isinstance(exception,HTTP): raise
+        else: raise RestrictedError(layer,code,'',environment)
 
