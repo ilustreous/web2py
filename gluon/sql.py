@@ -73,7 +73,8 @@ SQL_DIALECTS={'sqlite':{'boolean':'CHAR(1)',
                       'is not null':'IS NOT NULL',
                       'extract':"web2py_extract('%(name)s',%(field)s)",
                       'left join':'LEFT JOIN',
-                      'random':'Random()'},
+                      'random':'Random()',
+                      'notnull':'NOT NULL DEFAULT %(default)s'},
             'mysql':{'boolean':'CHAR(1)',
                       'string':'VARCHAR(%(length)s)',
                       'text':'TEXT',
@@ -93,7 +94,8 @@ SQL_DIALECTS={'sqlite':{'boolean':'CHAR(1)',
                       'is not null':'IS NOT NULL',
                       'extract':'EXTRACT(%(name)s FROM %(field)s)',
                       'left join':'LEFT JOIN',
-                      'random':'RAND()'},
+                      'random':'RAND()',
+                      'notnull':'NOT NULL DEFAULT %(default)s'},
             'postgres':{'boolean':'CHAR(1)',
                       'string':'VARCHAR(%(length)s)',
                       'text':'TEXT',
@@ -113,7 +115,8 @@ SQL_DIALECTS={'sqlite':{'boolean':'CHAR(1)',
                       'is not null':'IS NOT NULL',
                       'extract':'EXTRACT(%(name)s FROM %(field)s)',
                       'left join':'LEFT JOIN',
-                      'random':'RANDOM()'},
+                      'random':'RANDOM()',
+                      'notnull':'NOT NULL DEFAULT %(default)s'},
             'oracle':{'boolean':'CHAR(1)',
                       'string':'VARCHAR2(%(length)s)',
                       'text':'CLOB',
@@ -133,7 +136,8 @@ SQL_DIALECTS={'sqlite':{'boolean':'CHAR(1)',
                       'is not null':'IS NOT NULL',
                       'extract':'EXTRACT(%(name)s FROM %(field)s)',
                       'left join':'LEFT OUTER JOIN',
-                      'random':'dbms_random.value'},
+                      'random':'dbms_random.value',
+                      'notnull':'DEFAULT %(default)s NOT NULL'},
              'mssql':{'boolean':'BIT',
                       'string':'VARCHAR(%(length)s)',
                       'text':'TEXT',
@@ -148,7 +152,8 @@ SQL_DIALECTS={'sqlite':{'boolean':'CHAR(1)',
                       'id':'INT IDENTITY PRIMARY KEY',
                       'reference':'INT, CONSTRAINT %(table_name)s_%(field_name)s__constraint FOREIGN KEY (%(field_name)s) REFERENCES %(foreign_key)s ON DELETE %(on_delete_action)s',
                       'left join':'LEFT OUTER JOIN',
-                      'random':'NEWID()'},
+                      'random':'NEWID()',
+                      'notnull':'NOT NULL DEFAULT %(default)s'},
             'firebird':{'boolean':'CHAR(1)',
                       'string':'VARCHAR(%(length)s)',
                       'text':'BLOB SUB_TYPE 1',
@@ -168,7 +173,8 @@ SQL_DIALECTS={'sqlite':{'boolean':'CHAR(1)',
                       'is not null':'IS NOT NULL',
                       'extract':'EXTRACT(%(name)s FROM %(field)s)',
                       'left join':'LEFT JOIN',
-                      'random':'RANDOM()'},
+                      'random':'RANDOM()',
+                      'notnull':'DEFAULT %(default)s NOT NULL'}
               }
 
 def sqlhtml_validators(field_type,length):
@@ -441,8 +447,8 @@ class SQLDB(SQLStorage):
         tablename=cleanup(tablename)
         if tablename in dir(self) or tablename[0]=='_':
             raise SyntaxError, 'invalid table name'
-        if not tablename in self.tables: self.tables.append(tablename)
-        else: raise SyntaxError, "table already defined"
+        if tablename in self.tables: 
+            raise SyntaxError, "table already defined"
         t=self[tablename]=SQLTable(self,tablename,*fields)
         if self._uri=='None':
             args['migrate']=False
@@ -454,6 +460,7 @@ class SQLDB(SQLStorage):
             sql_locker.release()
             raise e
         sql_locker.release()
+        self.tables.append(tablename)
         return t
     def __call__(self,where=''):
         return SQLSet(self,where)
@@ -534,6 +541,7 @@ class SQLTable(SQLStorage):
     def _create(self,migrate=True):
         fields=[]
         sql_fields={}
+        sql_fields_aux={}
         for k in self.fields:
             field=self[k]
             if field.type[:9]=='reference':
@@ -555,6 +563,8 @@ class SQLTable(SQLStorage):
                 if field.notnull: ftype+=' NOT NULL'
                 if field.unique: ftype+=' UNIQUE'
             sql_fields[field.name]=ftype
+            if field.default: sql_fields_aux[field.name]=ftype.replace('NOT NULL',self._db._translator['notnull'] % dict(default=sql_represent(field.default,field.type,self._db._dbname)))
+            else: sql_fields_aux[field.name]=ftype
             fields.append('%s %s' % (field.name,ftype))
         other=';'
         if self._db._dbname=='mysql':
@@ -598,9 +608,9 @@ class SQLTable(SQLStorage):
             sql_fields_old=cPickle.load(file)
             file.close()
             if sql_fields!=sql_fields_old:
-                self._migrate(sql_fields,sql_fields_old,logfile)        
+                self._migrate(sql_fields,sql_fields_old,sql_fields_aux,logfile)
         return query
-    def _migrate(self,sql_fields,sql_fields_old,logfile):
+    def _migrate(self,sql_fields,sql_fields_old,sql_fields_aux,logfile):
         keys=sql_fields.keys()
         for key in sql_fields_old.keys():
             if not key in keys: keys.append(key)
@@ -608,15 +618,16 @@ class SQLTable(SQLStorage):
             if not sql_fields_old.has_key(key):
                 query='ALTER TABLE %s ADD %s %s;' % \
                           (self._tablename, key, \
-                           sql_fields[key].replace(', ',', ADD '))
+                           sql_fields_aux[key].replace(', ',', ADD '))
             elif self._db._dbname=='sqlite': query=None
             elif not sql_fields.has_key(key):
                 query='ALTER TABLE %s DROP COLUMN %s;' % \
                       (self._tablename, key)
             elif sql_fields[key]!=sql_fields_old[key]:
+                ### FIX THIS WHEN DIFFRENCES IS ONLY IN DEFAULT
                 # 2
                 t=self._tablename
-                tt=sql_fields[key].replace(', ',', ADD ')
+                tt=sql_fields_aux[key].replace(', ',', ADD ')
                 query='ALTER TABLE %s ADD %s__tmp %s;\n' % (t,key,tt) +\
                       'UPDATE %s SET %s__tmp=%s;\n' % (t,key,key) +\
                       'ALTER TABLE %s DROP COLUMN %s;\n' % (t,key) +\
@@ -630,7 +641,8 @@ class SQLTable(SQLStorage):
                               datetime.datetime.today().isoformat())
                 logfile.write(query+'\n')
                 self._db['_lastsql']=query
-                self._db._execute(query)               
+                self._db._execute(query)
+                self._db.commit()
                 if sql_fields.has_key(key): sql_fields_old[key]=sql_fields[key]
                 else: del sql_fields_old[key]
                 logfile.write('success!\n')
