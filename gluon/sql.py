@@ -280,7 +280,7 @@ class SQLDB(SQLStorage):
     ### this allows gluon to commit/rollback all dbs in this thread
     @staticmethod
     def close_all_instances(action): 
-         """ to close cleanly databases in a multithreaded environment """
+        """ to close cleanly databases in a multithreaded environment """
         sql_locker.acquire()
         pid=thread.get_ident()
         if SQLDB._folders.has_key(pid): 
@@ -289,8 +289,10 @@ class SQLDB(SQLStorage):
             instances=SQLDB._instances[pid]
             while instances: 
                 instance=instances.pop()
+                sql_locker.release()
                 action(instance)
-                instance._connection.close()        
+                instance._connection.close()
+                sql_locker.acquire()
             del SQLDB._instances[pid]
         sql_locker.release()
         return
