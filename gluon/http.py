@@ -42,7 +42,7 @@ defined_status = {
     417: 'EXPECTATION FAILED',
     }
 
-class HTTP(Exception):
+class HTTP:
     def __init__(self,status,body='',**headers):
         self.args=(status,body,headers)
         if status in defined_status:

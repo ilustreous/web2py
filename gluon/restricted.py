@@ -61,7 +61,7 @@ def restricted(code,environment={},layer='Unkown'):
         if type(code)==types.CodeType: ccode=code
         else: ccode=compile(code.replace('\r\n','\n'),layer,'exec')
         exec ccode in environment
+    except HTTP:
+        raise
     except Exception, exception:
-        if isinstance(exception,HTTP): raise
-        else: raise RestrictedError(layer,code,'',environment)
-
+        raise RestrictedError(layer,code,'',environment)

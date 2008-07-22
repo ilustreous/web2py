@@ -23,7 +23,7 @@ try:
      session_db=GQLDB()
      session.connect(request,response,db=session_db)
      hosts=(http_host,)
-except:
+except Exception:
      hosts=(http_host,socket.gethostname(),socket.gethostbyname(http_host))
 
 remote_addr = request.env.remote_addr
@@ -65,7 +65,7 @@ try:
     restricted(open(apath('../parameters_%i.py'%port),'r').read(),_config)
     if not _config.has_key('password') or not _config['password']:
         raise HTTP(200,T('admin disabled because no admin password'))
-except: raise HTTP(200,T('admin disabled because unable to access password file'))
+except Exception: raise HTTP(200,T('admin disabled because unable to access password file'))
 
 ############################################################
 ### session expiration
@@ -96,7 +96,7 @@ def index():
                     version=urllib.urlopen('http://mdp.cti.depaul.edu/examples/default/version').read()
                     myversion=open(apath('../VERSION'),'r').read()
                     if version>myversion: session.flash='A new version of web2py is available, you should upgrade at http://mdp.cti.depaul.edu/examples'
-                except: pass
+                except Exception: pass
             session.last_time=t0
             redirect(send)
         else: response.flash=T('invalid password')
@@ -117,7 +117,7 @@ def site():
             os.mkdir(path)
             untar('welcome.tar',path)
             response.flash=T('new application "%(appname)s" created',dict(appname=appname))
-        except:
+        except Exception:
             response.flash=T('unable to create new application "%(appname)s"',dict(appname=request.vars.filename))
     elif (request.vars.has_key('file') or request.vars.has_key('appurl')) and not request.vars.filename:
         response.flash=T('you must specify a name for the uploaded application')
@@ -137,7 +137,7 @@ def site():
             untar(tarname,path)
             fix_newlines(path)
             response.flash=T('application %(appname)s installed with md5sum: %(digest)s',dict(appname=appname,digest=md5.new(tarfile).hexdigest()))
-        except:
+        except Exception:
             if mkdir:
                  for root,dirs,files in os.walk(path,topdown=False):
                      for name in files: os.remove(os.path.join(root,name))
@@ -154,7 +154,7 @@ def pack():
         app=request.args[0]
         filename=apath('../deposit/%s.tar' % app)
         tar(filename,apath(app),'^[\w\.\-]+$')
-    except:
+    except Exception:
         session.flash=T('internal error')
         redirect(URL(r=request,f='site'))
     response.headers['Content-Type']='application/x-tar'
@@ -167,7 +167,7 @@ def pack_compiled():
         app=request.args[0]
         filename=apath('../deposit/%s.tar' % app)
         tar_compiled(filename,apath(app),'^[\w\.\-]+$')
-    except:
+    except Exception:
         session.flash=T('internal error')
         redirect(URL(r=request,f='site'))
     response.headers['Content-Type']='application/x-tar'
@@ -191,7 +191,7 @@ def uninstall():
             for name in dirs: os.rmdir(os.path.join(root,name))
         os.rmdir(path)
         session.flash=T('application "%(appname)s" uninstalled',dict(appname=app))
-    except:
+    except Exception:
         session.flash=T('unable to uninstall "%(appname)s"',dict(appname=app))
     redirect(URL(r=request,f='site'))
 
@@ -206,7 +206,7 @@ def cleanup():
     files=listdir(apath('%s/cache/' % app),'cache.*',0)
     for file in files: 
         try: os.unlink(file)
-        except: session.flash=T("cache is in use, errors and sessions cleaned")
+        except Exception: session.flash=T("cache is in use, errors and sessions cleaned")
     redirect(URL(r=request,f='site'))
 
 def compile_app():
@@ -239,7 +239,7 @@ def delete():
              redirect(URL(r=request,f=sender))
         os.unlink(apath(filename))
         session.flash=T('file "%(filename)s" deleted',dict(filename=filename))
-    except:
+    except Exception:
         session.flash=T('unable to delete file "%(filename)s"',dict(filename=filename))
     redirect(URL(r=request,f=sender))
 
@@ -275,7 +275,7 @@ def edit():
         data=request.vars.data.replace('\r\n','\n').strip()
         open(apath(filename),'w').write(data)
         response.flash=T("file saved on %(time)s",dict(time=time.ctime()))       
-    except: pass
+    except Exception: pass
     return dict(app=request.args[0],filename=filename,filetype=filetype,data=data)
 
 
@@ -315,7 +315,7 @@ def htmledit():
         data=request.vars.data.replace('\r\n','\n') 
         open(apath(filename),'w').write(data)
         response.flash=T("file saved on %(time)s",dict(time=time.ctime()))       
-    except: pass
+    except Exception: pass
     return dict(app=request.args[0],filename=filename,data=data)
 
 def about():
@@ -416,7 +416,7 @@ def upload_file():
         if not os.path.exists(dirpath): os.makedirs(dirpath)
         open(filename,'w').write(request.vars.file.file.read())
         session.flash=T('file "%(filename)s" uploaded',dict(filename=filename[len(path):]))
-    except: 
+    except Exception: 
         session.flash=T('cannot upload file "%(filename)s"',dict(filename[len(path):]))
     redirect(request.vars.sender)
 
