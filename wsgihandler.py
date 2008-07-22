@@ -7,6 +7,10 @@ Requires apache+mod_wsgi. In httpd.conf put something like:
 
 """
 
+import sys, os
+path=os.path.dirname(os.path.abspath(__file__))
+if not path in sys.path: sys.path.append(path)
+
 import gluon.main
 application=gluon.main.wsgibase
 ## or

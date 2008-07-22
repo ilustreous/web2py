@@ -19,6 +19,10 @@ Put something like this in the lighttpd.conf file:
                     )
 """
 
+import sys,os
+path=os.path.dirname(os.path.abspath(__file__))
+if not path in sys.path: sys.path.append(path)
+
 import gluon.main
 import gluon.contrib.gateways.fcgi as fcgi
 application=gluon.main.wsgibase
