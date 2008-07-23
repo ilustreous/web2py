@@ -29,13 +29,19 @@ $('input.double').attr('onkeyup',"this.value=this.value.reverse().replace(/[^0-9
 try {$("input.date").focus( function() {Calendar.setup({
      inputField: this.id,
      ifFormat: "{{=T('%Y-%m-%d')}}",
-     showsTime: false,
+     showsTime: false
 }); }); } catch(e) {};
 try { $("input.datetime").focus( function() {Calendar.setup({
      inputField: this.id,
      ifFormat: "{{=T('%Y-%m-%d %H:%M:%S')}}",
      showsTime: true,
-     timeFormat: "24",
+     timeFormat: "24"
 }); }); } catch(e) {};
+try { $("input.time").clockpick({
+     starthour : 0,
+     endhour : 23,
+     showminutes : true,
+     military : true
+}); } catch(e) {};
 });
 //--></script>
