@@ -493,7 +493,7 @@ def pickle_SQLDB(db):
             fields.append(dict(fieldname=f.name,type=f.type,
                  length=f.length,default=f.default,required=f.required,
                  requires=f.requires,ondelete=f.ondelete,
-                 notnull=f.notnull,unique=f.notnull),uploadfield=f.uploadfield)
+                 notnull=f.notnull,unique=f.notnull,uploadfield=f.uploadfield))
         tables.append((k._tablename,fields))
     return unpickle_SQLDB, (dict(uri=db._uri,tables=tables),)
 
