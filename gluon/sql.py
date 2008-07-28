@@ -946,7 +946,7 @@ class SQLSet(object):
         else: return SQLSet(self._db,where)
     def _select(self,*fields,**attributes):
         valid_attributes=['orderby','groupby','limitby','required',
-                          'default','requires','left']
+                          'default','requires','left','distinct']
         if [key for key in attributes.keys() if not key in valid_attributes]:
             raise SyntaxError, 'invalid select attribute'
         ### if not fields specified take them all from the requested tables
@@ -958,7 +958,10 @@ class SQLSet(object):
         if self.sql_w: sql_w=' WHERE '+self.sql_w
         else: sql_w=''
         sql_o=''
-        if attributes.has_key('left') and attributes['left']: 
+        sql_s='SELECT'
+        if attributes.get('distinct',False):
+            sql_s+=' DISTINCT'
+        if attributes.get('left',False):
             join=attributes['left']
             command=self._db._translator['left join']           
             if not isinstance(join,(tuple,list)): join=[join]
@@ -973,31 +976,32 @@ class SQLSet(object):
                 sql_t+=' %s %s' %(command,str(t))
         else:
             sql_t=', '.join(tablenames)
-        if attributes.has_key('groupby') and attributes['groupby']: 
+        if attributes.get('groupby',False):
             sql_o+=' GROUP BY %s'% attributes['groupby']
-        if attributes.has_key('orderby') and attributes['orderby']: 
+        if attributes.get('orderby',False):
             if str(attributes.get('orderby',''))=='<random>':
                 sql_o+=' ORDER BY %s' % self._db._translator['random']
             else:
                 sql_o+=' ORDER BY %s' % attributes['orderby']
-        if attributes.has_key('limitby') and attributes['limitby']: 
+        if attributes.get('limitby',False):
             ### oracle does not support limitby
             lmin,lmax=attributes['limitby']
             if self._db._dbname=='oracle':
                 if not attributes.has_key('orderby') or not attributes['orderby']:
                     sql_o+=' ORDER BY %s'%', '.join([t+'.id' for t in tablenames])
-                return "SELECT %s FROM (SELECT _tmp.*, ROWNUM _row FROM (SELECT %s FROM %s%s%s) _tmp WHERE ROWNUM<%i ) WHERE _row>=%i;" %(sql_f,sql_f,sql_t,sql_w,sql_o,lmax,lmin)
+                return "%s %s FROM (SELECT _tmp.*, ROWNUM _row FROM (SELECT %s FROM %s%s%s) _tmp WHERE ROWNUM<%i ) WHERE _row>=%i;" %(sql_s,sql_f,sql_f,sql_t,sql_w,sql_o,lmax,lmin)
             elif self._db._dbname=='mssql':
                 if lmin>0: raise SyntaxError, "Not Supported"
                 if not attributes.has_key('orderby') or not attributes['orderby']:
                     sql_o+=' ORDER BY %s'%', '.join([t+'.id' for t in tablenames])
-                return "SELECT TOP %i %s FROM %s%s%s;" %(lmax+lmin,sql_f,sql_t,sql_w,sql_o)
+                sql_s+="TOP %i" %(lmax+lmin)
             elif self._db._dbname=='firebird':
                 if not attributes.has_key('orderby') or not attributes['orderby']:
                     sql_o+=' ORDER BY %s'%', '.join([t+'.id' for t in tablenames])
-                return "SELECT FIRST %i SKIP %i %s FROM %s %s %s;"%(lmax-lmin,lmin,sql_f,sql_t,sql_w,sql_o)
-            sql_o+=' LIMIT %i OFFSET %i' % (lmax-lmin,lmin)
-        return 'SELECT %s FROM %s%s%s;'%(sql_f,sql_t,sql_w,sql_o) 
+                sql_s+=" FIRST %i SKIP %i" % (lmax-lmin,lmin)
+            else:
+                sql_o+=' LIMIT %i OFFSET %i' % (lmax-lmin,lmin)
+        return '%s %s FROM %s%s%s;'%(sql_s,sql_f,sql_t,sql_w,sql_o) 
     def select(self,*fields,**attributes):
         """
         Always returns a SQLRows object, even if it may be empty
