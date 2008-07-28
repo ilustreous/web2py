@@ -7,7 +7,7 @@ License: GPL v2
 import urllib, random, re, sys, os, shutil, cStringIO
 from html import FORM,INPUT,TEXTAREA,SELECT,OPTION,TABLE,TR,TD,TH,A,B,DIV,LABEL,ON,TAG,THEAD,TBODY,B
 from validators import IS_IN_SET, IS_NOT_IN_DB, CRYPT
-from sql import SQLStorage
+from sql import SQLStorage, SQLDB
 
 table_field=re.compile('[\w_]+\.[\w_]+')
 
@@ -282,3 +282,5 @@ class SQLTABLE(TABLE):
             tbody.append(TR(_class=_class,*row))
         components.append(TBODY(*tbody))
         
+def form_factory(*fields,**attributes):    
+    return SQLFORM(SQLDB(None).define_table('no_table',*fields),**attributes)
