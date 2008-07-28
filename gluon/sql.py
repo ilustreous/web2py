@@ -994,7 +994,7 @@ class SQLSet(object):
                 if lmin>0: raise SyntaxError, "Not Supported"
                 if not attributes.has_key('orderby') or not attributes['orderby']:
                     sql_o+=' ORDER BY %s'%', '.join([t+'.id' for t in tablenames])
-                sql_s+="TOP %i" %(lmax+lmin)
+                sql_s+=" TOP %i" %(lmax+lmin)
             elif self._db._dbname=='firebird':
                 if not attributes.has_key('orderby') or not attributes['orderby']:
                     sql_o+=' ORDER BY %s'%', '.join([t+'.id' for t in tablenames])
