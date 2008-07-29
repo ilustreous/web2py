@@ -47,6 +47,7 @@ class Response(Storage):
         self.body=cStringIO.StringIO()
         self.session_id=None
         self.cookies=Storage()
+        self.postprocessing=[]
         self.keywords=''     # used by the default view layout
         self.description=''  # used by the default view layout
         self.flash=None      # used by the default view layout
