@@ -49,13 +49,15 @@ def reindent(text):
     text='\n'.join(new_lines)
     return text
 
-def replace(regex,text,f):
+def replace(regex,text,f,count=0):
     i=0
     output=[]
     for item in regex.finditer(text):
         output.append(text[i:item.start()])
         output.append(f(item.group()))
         i=item.end()
+        count -= 1
+        if count==0: break
     output.append(text[i:len(text)])
     return ''.join(output)
 
@@ -75,7 +77,7 @@ def parse_template(filename,path='views/',cache='cache/',context=dict()):
         try: parent=open(t,'rb').read()
         except IOError: raise RestrictedError('Processing View '+filename,data,'','Unable to open parent view file: '+t)
         a,b=match.start(),match.end()
-        data=data[0:a]+re_include_nameless.sub(data[b:],parent)
+        data=data[0:a]+replace(re_include_nameless,parent,lambda x: data[b:])
     ##
     # check whether it includes subtemplates
     ##
@@ -85,7 +87,7 @@ def parse_template(filename,path='views/',cache='cache/',context=dict()):
         t=os.path.join(path,eval(match.group('name'),context))
         try: child=open(t,'rb').read()
         except IOError: raise RestrictedError('Processing View '+filename,data,'','Unable to open included view file: '+t)
-        data=re_include.sub(child,data,1)
+        data=replace(re_include,data,lambda x: child,1)
 
     ##
     # now convert to a python expression
