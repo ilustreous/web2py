@@ -57,6 +57,26 @@ class Response(Storage):
         if not escape: self.body.write(str(data))
         else: self.body.write(xmlescape(data))
     def render(self,*a,**b):
+        if len(a)>2: raise SyntaxError
+        elif len(a)==2: view,self._vars=a[0],a[1]
+        elif len(a)==1 and isinstance(a[0],str): view,self._vars=a[0],{}
+        elif len(a)==1 and isinstance(a[0],dict): view,self._vars=None,a[0]
+        else: view,self._vars=None,{}
+        self._vars.update(b)
+        self._view_environment.update(self._vars)
+        if view:
+            import cStringIO
+            obody,oview=self.body,self.view
+            self.body,self.view=cStringIO.StringIO(),view
+            run_view_in(self._view_environment)
+            page=self.body.getvalue()
+            self.body,self.view=obody,oview
+        else:
+            run_view_in(self._view_environment)
+            page=self.body.getvalue()
+        return page
+    """
+    def render(self,*a,**b):
         if len(a)>1 or (len(a)==1 and not hasattr(a[0],'items')):
             raise SyntaxError        
         if len(a): self._vars=a[0] 
@@ -66,6 +86,7 @@ class Response(Storage):
         run_view_in(self._view_environment)
         self.body=self.body.getvalue()
         return self.body
+    """
     def stream(self,stream,chunk_size=10**6,request=None):
         """
         if a controller function
