@@ -142,12 +142,12 @@ class DIV(object):
         self.session=session
         self.formname=formname
         self.rec_clear()
-        form_key='_form_key[%s]' % formname
-        if session!=None and session.has_key(form_key):
-            form_key_value=session[form_key]
-            del session[form_key]
-            if not vars.has_key('_form_key') or \
-               vars['_form_key']!=form_key_value:
+        _formkey='_formkey[%s]' % formname
+        if session!=None and session.has_key(_formkey):
+            _formkey_value=session[_formkey]
+            del session[_formkey]
+            if not vars.has_key('_formkey') or \
+               vars['_formkey']!=_formkey_value:
                 return False
         if formname and formname!=vars._formname: return False
         self.rec_accepts(vars)
@@ -474,9 +474,9 @@ class FORM(DIV):
         newform=FORM(*self.components,**self.attributes)
         c=newform.components
         if self.session!=None:
-           form_key='_form_key[%s]' % self.formname
-           key=self.session[form_key]=str(random.random())[2:]
-           c.append(INPUT(_type='hidden',_name='_form_key',_value=key))
+           _formkey='_formkey[%s]' % self.formname
+           key=self.session[_formkey]=str(random.random())[2:]
+           c.append(INPUT(_type='hidden',_name='_formkey',_value=key))
         if self.formname!=None:
            c.append(INPUT(_type='hidden',_name='_formname',\
                           _value=self.formname))
@@ -574,8 +574,8 @@ def test():
     >>> session={}
     >>> form=FORM(INPUT(value="Hello World",_name="var",requires=IS_MATCH('^\w+$')))
     >>> if form.accepts({},session,formname=None): print 'passed'
-    >>> tmp=form.xml() # form has to be generated or _form_key is not stored
-    >>> if form.accepts({'var':'test ','_form_key':session['_form_key[None]']},session,formname=None): print 'passed'
+    >>> tmp=form.xml() # form has to be generated or _formkey is not stored
+    >>> if form.accepts({'var':'test ','_formkey':session['_formkey[None]']},session,formname=None): print 'passed'
     """
     pass
 
@@ -594,7 +594,7 @@ if form.accepts(vars,session):
 print 'not accepted'
 print form.xml()
 print form.session
-vars['_form_key']=form.session['_form_key']
+vars['_formkey']=form.session['_formkey']
 vars['name']='Massimo'
 vars['password']='Dip'
 if form.accepts(vars,session):
