@@ -2,7 +2,7 @@
 Developed by Robin Bhattacharyya (memecache for GAE)
 
 from gluon.contrib.gae_memcache import MemcacheClient
-cache.ram=cache.disk=MemcacheClient(response)
+cache.ram=cache.disk=MemcacheClient(request)
 """
 
 import time
