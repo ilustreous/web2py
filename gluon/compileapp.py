@@ -174,7 +174,7 @@ def run_controller_in(controller,function,environment):
     response=environment['response']
     if response.postprocessing:
         for p in response.postprocessing:
-            response._vars=p(response._vars)
+            response=p(response)
     if type(response._vars)==types.StringType:
         response.body=response._vars
     elif type(response._vars)==types.GeneratorType:
