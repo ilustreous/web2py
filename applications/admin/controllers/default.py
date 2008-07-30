@@ -30,7 +30,7 @@ remote_addr = request.env.remote_addr
 
 if request.env.http_x_forwarded_for or \
    request.env.wsgi_url_scheme in ['https','HTTPS']:
-    response.secure()
+    session.secure()
 elif not remote_addr in hosts:
     raise HTTP(200,T('Admin is disabled because unsecure channel'))
 
