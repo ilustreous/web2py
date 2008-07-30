@@ -27,11 +27,12 @@ except Exception:
      hosts=(http_host,socket.gethostname(),socket.gethostbyname(http_host))
 
 remote_addr = request.env.remote_addr
-if remote_addr not in hosts:
-    raise HTTP(200,T('Admin is disabled because unsecure channel'))
+
 if request.env.http_x_forwarded_for or \
    request.env.wsgi_url_scheme in ['https','HTTPS']:
-    response.cookies[response.session_id_name]['secure']=True
+    response.secure()
+elif not remote_addr in hosts:
+    raise HTTP(200,T('Admin is disabled because unsecure channel'))
 
 ############################################################
 ### generate menu
