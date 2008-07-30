@@ -10,7 +10,9 @@ from gluon.globals import Request, Response, Session
 from gluon.storage import Storage
 
 
-def exec_environment(pyfile=''):
+def exec_environment(pyfile='',request=Request(),
+                               response=Response(),
+                               session=Session()):
     """
     Environment builder and module loader.
 
@@ -22,9 +24,6 @@ def exec_environment(pyfile=''):
     """
     from gluon.compileapp import read_pyc
 
-    request=Request()
-    response=Response()
-    session=Session()
     mo=re.match(r'(|.*/)applications/(?P<appname>[^/]+)',pyfile)
     if mo:
         appname=mo.group('appname')
