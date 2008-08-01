@@ -19,6 +19,7 @@ def listdir(path,expression='^.+$',drop=True,add_dirs=False):
     like os.listdir() but you can specify a regex patter to filter filed.
     if add_dirs==True the returned items will have the full path.
     """
+    if path[-1:]!='/': path=path+'/'
     if drop: n=len(path)
     else: n=0
     regex=re.compile(expression)
@@ -97,7 +98,7 @@ def tar(file,dir,expression='^.+$'):
     """
     tar=tarfile.TarFile(file,'w')
     for file in listdir(dir,expression,add_dirs=True):
-        tar.add(dir+file,file,False)
+        tar.add(os.path.join(dir,file),file,False)
 
 def untar(file, dir):
     """
@@ -112,11 +113,11 @@ def tar_compiled(file,dir,expression='^.+$'):
     """
     tar=tarfile.TarFile(file,'w')
     for file in listdir(dir,expression,add_dirs=True):
-        if file[:7]=='/models' and file[-3:]=='.py': continue
-        if file[:6]=='/views' and file[-5:]=='.html': continue
-        if file[:12]=='/controllers' and file[-3:]=='.py': continue
-        if file[:8]=='/modules' and file[-3:]=='.py': continue
-        tar.add(dir+file,file,False)
+        if file[:6]=='models' and file[-3:]=='.py': continue
+        if file[:5]=='views' and file[-5:]=='.html': continue
+        if file[:11]=='controllers' and file[-3:]=='.py': continue
+        if file[:7]=='modules' and file[-3:]=='.py': continue
+        tar.add(os.path.join(dir,file),file,False)
 
 def up(path):
     return os.path.dirname(os.path.normpath(path))
