@@ -24,12 +24,13 @@ def exec_environment(pyfile='',request=Request(),
     """
     from gluon.compileapp import read_pyc
 
-    mo=re.match(r'(|.*/)applications/(?P<appname>[^/]+)',pyfile)
-    if mo:
-        appname=mo.group('appname')
-        request.folder=os.path.join('applications',appname)
-    else:
-        request.folder=''
+    if request.folder is None:
+        mo=re.match(r'(|.*/)applications/(?P<appname>[^/]+)',pyfile)
+        if mo:
+            appname=mo.group('appname')
+            request.folder=os.path.join('applications',appname)
+        else:
+            request.folder=''
     env=build_environment(request,response,session)
     if pyfile:
         pycfile=pyfile+'c'
