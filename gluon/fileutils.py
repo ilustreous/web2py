@@ -113,11 +113,14 @@ def tar_compiled(file,dir,expression='^.+$'):
     """
     tar=tarfile.TarFile(file,'w')
     for file in listdir(dir,expression,add_dirs=True):
-        if file[:6]=='models' and file[-3:]=='.py': continue
-        if file[:5]=='views' and file[-5:]=='.html': continue
-        if file[:11]=='controllers' and file[-3:]=='.py': continue
-        if file[:7]=='modules' and file[-3:]=='.py': continue
-        tar.add(os.path.join(dir,file),file,False)
+        filename=os.path.join(dir,file)
+        if os.path.islink(filename): continue
+        if os.path.isfile(filename) and file[-4:]!='.pyc':
+            if file[:6]=='models': continue
+            if file[:5]=='views': continue
+            if file[:11]=='controllers': continue
+            if file[:7]=='modules': continue
+        tar.add(filename,file,False)
 
 def up(path):
     return os.path.dirname(os.path.normpath(path))

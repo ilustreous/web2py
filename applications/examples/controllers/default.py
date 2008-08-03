@@ -8,7 +8,7 @@ response.menu=[
   ['download',request.function=='download','/%s/default/download'%app],
   ['features',request.function=='features','/%s/default/features'%app],
   ['api',request.function=='api','/%s/default/api'%app],
-  ['orm',request.function=='orm','/%s/default/orm'%app],
+  ['dal',request.function=='orm','/%s/default/orm'%app],
   ['examples',request.function=='examples','/%s/default/examples'%app],
   ['license',request.function=='license','/%s/default/license'%app],
   ['thanks',request.function=='thanks','/%s/default/thanks'%app],
