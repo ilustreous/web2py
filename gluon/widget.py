@@ -285,6 +285,7 @@ def console():
     parser.add_option('-L', '--config', dest='config', default='',
                   help='Config file')
     (options, args) = parser.parse_args()
+    if options.config[-3:]=='.py': options.config=options.config[:-3]
     if not os.path.exists('applications'): os.mkdir('applications')
     if not os.path.exists('deposit'): os.mkdir('deposit')
     if not os.path.exists('applications/__init__.py') or options.upgrade=='yes':
