@@ -857,10 +857,10 @@ class SQLField(SQLXorable):
         s=self._db._translator["extract"] % dict(name='hour',field=str(self))
         return SQLXorable(s,'integer',self._db)
     def minutes(self):
-        s=self._db._translator["extract"] % dict(name='minutes',field=str(self))
+        s=self._db._translator["extract"] % dict(name='minute',field=str(self))
         return SQLXorable(s,'integer',self._db)
     def seconds(self):
-        s=self._db._translator["extract"] % dict(name='seconds',field=str(self))
+        s=self._db._translator["extract"] % dict(name='second',field=str(self))
         return SQLXorable(s,'integer',self._db)
     def count(self):
         return 'count(%s)' % str(self)
