@@ -507,12 +507,12 @@ copy_reg.pickle(SQLDB, pickle_SQLDB)
 class SQLALL(object):
     def __init__(self,table): 
         self.table=table
-    def __str__(self): 
+    def __str__(self):
         s=['%s.%s'%(self.table._tablename,name) for name in self.table.fields]
         return ', '.join(s)
 
 class SQLJoin(object):
-    def __init__(self,table,query):
+    def __init__(self,table,query,as=None):
         self.table=table
         self.query=query
     def __str__(self):
@@ -543,7 +543,17 @@ class SQLTable(SQLStorage):
             field._db=self._db
         self.ALL=SQLALL(self)
     def __str__(self):
+        if self._ot: return '%s AS %s' % (self._ot,self._tablename)
         return self._tablename
+    def with_alias(self,alias):
+        other=copy.copy(self)
+        other['_ot']=other._tablename
+        other['ALL']=SQLALL(other)
+        other['_tablename']=alias
+        for fieldname in other.fields:
+            other[fieldname]=copy.copy(other[fieldname])
+            other[fieldname]._tablename=alias
+        return other
     def _create(self,migrate=True):
         fields=[]
         sql_fields={}
@@ -740,7 +750,7 @@ class SQLTable(SQLStorage):
             else:
                 items=[(colnames[i],line[i]) for i in c]
                 self.insert(**dict(items))
-    def on(self,query):
+    def on(self,query,as=None):
         return SQLJoin(self,query)
     def _truncate(self):
         t = self._tablename
@@ -757,8 +767,6 @@ class SQLTable(SQLStorage):
             self._db._execute(query)
         self._db.commit()
         logfile.write('success!\n')
-    def __str__(self):
-        return self._tablename
  
 class SQLXorable(object):
     def __init__(self,name,type='string',db=None):
