@@ -543,7 +543,8 @@ class SQLTable(SQLStorage):
             field._db=self._db
         self.ALL=SQLALL(self)
     def __str__(self):
-        if self._ot: return '%s AS %s' % (self._ot,self._tablename)
+        if self.has_key('_ot'):
+            return '%s AS %s' % (self._ot,self._tablename)
         return self._tablename
     def with_alias(self,alias):
         other=copy.copy(self)
