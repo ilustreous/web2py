@@ -990,9 +990,9 @@ class SQLSet(object):
             join=attributes['left']
             command=self._db._translator['left join']           
             if not isinstance(join,(tuple,list)): join=[join]
-            joint=[str(t) for t in join if not isinstance(t,SQLJoin)]
+            joint=[t._tablename for t in join if not isinstance(t,SQLJoin)]
             joinon=[t for t in join if isinstance(t,SQLJoin)]
-            joinont=[str(t.table) for t in joinon]
+            joinont=[t.table._tablename for t in joinon]
             excluded=[t for t in tablenames if not t in joint+joinont]
             sql_t=', '.join(excluded)
             if joint:
