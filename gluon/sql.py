@@ -396,19 +396,30 @@ class SQLDB(SQLStorage):
             self._execute("ALTER SESSION SET NLS_TIMESTAMP_FORMAT = 'YYYY-MM-DD HH24:MI:SS';")
         elif self._uri[:8]=='mssql://':
             self._dbname='mssql'
-            m=re.compile('^(?P<user>[^:@]+)(\:(?P<passwd>[^@]*))?@(?P<host>[^\:/]+)(\:(?P<port>[0-9]+))?/(?P<db>.+)$').match(self._uri[8:])
-            user=m.group('user')
-            if not user: raise SyntaxError, "User required"
-            passwd=m.group('passwd')
-            if not passwd: passwd=''
-            host=m.group('host')
-            if not host: raise SyntaxError, "Host name required"
-            db=m.group('db')
-            if not db: raise SyntaxError, "Database name required"
-            port=m.group('port')
-            if not port: port='1433'
-            #Driver={SQL Server};description=web2py;server=A64X2;uid=web2py;database=web2py_test;network=DBMSLPCN
-            cnxn="Driver={SQL Server};server=%s;database=%s;uid=%s;pwd=%s" % (host,db,user,passwd)
+            if '@' not in self._uri[8:]: 
+                try:
+                    m=re.compile('^(?P<dsn>.+)$').match(self._uri[8:])
+                    if not m: raise SyntaxError, "Parsing has no result"
+                    dsn=m.group('dsn')
+                    if not dsn:  raise SyntaxError, "DSN required"
+                except SyntaxError,e:
+                    logging.error("NdGpatch error")
+                    raise e
+                cnxn="DSN=%s" % dsn
+            else:
+                m=re.compile('^(?P<user>[^:@]+)(\:(?P<passwd>[^@]*))?@(?P<host>[^\:/]+)(\:(?P<port>[0-9]+))?/(?P<db>.+)$').match(self._uri[8:])
+                user=m.group('user')
+                if not user: raise SyntaxError, "User required"
+                passwd=m.group('passwd')
+                if not passwd: passwd=''
+                host=m.group('host')
+                if not host: raise SyntaxError, "Host name required"
+                db=m.group('db')
+                if not db: raise SyntaxError, "Database name required"
+                port=m.group('port')
+                if not port: port='1433'
+                #Driver={SQL Server};description=web2py;server=A64X2;uid=web2py;database=web2py_test;network=DBMSLPCN
+                cnxn="Driver={SQL Server};server=%s;database=%s;uid=%s;pwd=%s" % (host,db,user,passwd)
             logging.warning(cnxn)
             self._connection=pyodbc.connect(cnxn)
             self._cursor=self._connection.cursor()
