@@ -6,7 +6,7 @@ License: GPL v2
 
 import urllib, random, re, sys, os, shutil, cStringIO
 from html import FORM,INPUT,TEXTAREA,SELECT,OPTION,TABLE,TR,TD,TH,A,B,DIV,LABEL,ON,TAG,THEAD,TBODY,B
-from validators import IS_IN_SET, IS_NOT_IN_DB, CRYPT
+from validators import IS_IN_SET, IS_NOT_IN_DB, CRYPT, IS_NULL_OR
 from sql import SQLStorage, SQLDB
 
 table_field=re.compile('[\w_]+\.[\w_]+')
@@ -100,11 +100,15 @@ class SQLFORM(FORM):
             elif hasattr(field.requires,'options'):
                 opts=[]
                 for k,v in field.requires.options():
-                     if k==default or (not isinstance(default,(str,unicode)) \
-                                       and k==str(default)):
-                          opts.append(OPTION(v,_value=k,_selected=ON))
-                     else:
-                          opts.append(OPTION(v,_value=k))
+                    opts.append(OPTION(v,_value=k))
+                inp=SELECT(*opts,**dict(_id=field_id,_class=field.type,
+                     _name=fieldname,value=default,requires=field.requires))
+            elif isinstance(field.requires,IS_NULL_OR) and \
+                 hasattr(field.requires.other,'options'):
+                opts=[]
+                for k,v in field.requires.other.options():
+                    opts.append(OPTION(v,_value=k))
+                opts.insert(0,OPTION(_value=""))
                 inp=SELECT(*opts,**dict(_id=field_id,_class=field.type,
                      _name=fieldname,value=default,requires=field.requires))
             elif field.type=='password':
