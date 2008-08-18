@@ -489,6 +489,10 @@ class SQLDB(SQLStorage):
         self['_lastsql']=query
         self._execute(query)
         return self._cursor.fetchall()
+    def _update_referenced_by(self,other):
+        for tablename in self.tables:
+            by=self[tablename]._referenced_by
+            by[:]=[item for item in by if not item[0]==other]
     def __getstate__(self): return dict()
 
 def unpickle_SQLDB(state):
@@ -688,16 +692,17 @@ class SQLTable(SQLStorage):
         elif self._db._dbname=='firebird':
             return ['DROP TABLE %s;' % t,'DROP GENERATOR GENID_%s;' % t]
         return ['DROP TABLE %s;' % t]
-    def drop(self):        
+    def drop(self):
         logfile=open(os.path.join(self._db._folder,'sql.log'),'a')
         queries=self._drop()
         self._db['_lastsql']='\n'.join(queries)
         for query in queries: 
             logfile.write(query+'\n')
             self._db._execute(query)
+        self._db.commit()
         del self._db[self._tablename]
         del self._db.tables[self._db.tables.index(self._tablename)]
-        self._db.commit()
+        self._db._update_referenced_by(self._tablename)
         os.unlink(self._dbt)
         logfile.write('success!\n')
     def _insert(self,**fields):
