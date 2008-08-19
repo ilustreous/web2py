@@ -888,9 +888,13 @@ class SQLField(SQLXorable):
         s=self._db._translator["extract"] % dict(name='second',field=str(self))
         return SQLXorable(s,'integer',self._db)
     def count(self):
-        return 'count(%s)' % str(self)
+        return 'COUNT(%s)' % str(self)
     def sum(self):
-        return 'sum(%s)' % str(self)
+        return 'SUM(%s)' % str(self)
+    def max(self):
+        return 'MAX(%s)' % str(self)
+    def min(self):
+        return 'MIN(%s)' % str(self)
     def __str__(self): return '%s.%s' % (self._tablename,self.name)
 
 class SQLQuery(object):
