@@ -420,7 +420,6 @@ class SQLDB(SQLStorage):
                 if not port: port='1433'
                 #Driver={SQL Server};description=web2py;server=A64X2;uid=web2py;database=web2py_test;network=DBMSLPCN
                 cnxn="Driver={SQL Server};server=%s;database=%s;uid=%s;pwd=%s" % (host,db,user,passwd)
-            logging.warning(cnxn)
             self._connection=pyodbc.connect(cnxn)
             self._cursor=self._connection.cursor()
             self._execute=lambda *a,**b: self._cursor.execute(*a,**b)
