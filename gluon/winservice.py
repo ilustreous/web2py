@@ -10,7 +10,6 @@ import win32service
 import win32event
 import servicemanager
 import _winreg
-from main import HttpServer
 from fileutils import up
 
 __all__=['web2py_windows_service_handler']
@@ -70,7 +69,9 @@ class Web2pyService(Service):
         else:
             opt_mod = self._exe_args_
         options = __import__(opt_mod, [], [], '')
-        self.server = HttpServer(ip=options.ip,port=options.port,password=options.password,
+        from main import HttpServer
+        self.server = HttpServer(ip=options.ip,port=options.port,
+                          password=options.password,
                           pid_filename=options.pid_filename,
                           log_filename=options.log_filename,
                           ssl_certificate=options.ssl_certificate,
