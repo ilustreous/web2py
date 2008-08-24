@@ -474,6 +474,9 @@ class SQLRows(object):
         self._db=db
         self.colnames=colnames
         self.response=response
+    def __nonzero__(self):
+        if len(self.response): return 1
+        return 0
     def __len__(self):
         return len(self.response)
     def __getitem__(self,i):        

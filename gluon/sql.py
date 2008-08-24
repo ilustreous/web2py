@@ -19,7 +19,7 @@ try:
     def hash5(txt): return hashlib.md5(txt).hexdigest()    
 except: 
     import md5
-    def hash5(txt): return md5.new(txt).hexdigest()    
+    def hash5(txt): return md5.new(txt).hexdigest()
 
 try: import sqlite3
 except: 
@@ -1098,6 +1098,9 @@ class SQLRows(object):
         self._db=db
         self.colnames=colnames
         self.response=response
+    def __nonzero__(self):
+        if len(self.response): return 1
+        return 0
     def __len__(self):
         return len(self.response)
     def __getitem__(self,i):        
