@@ -14,11 +14,12 @@ __all__=['A', 'B', 'BEAUTIFY', 'BODY', 'BR', 'CENTER', 'CODE', 'DIV', 'EM', 'EMB
 
 def xmlescape(data,quote=False):
     try: 
-        data=data.xml()
-    except AttributeError:
-        if not isinstance(data,(str,unicode)): data=str(data) 
-        if isinstance(data,unicode): data=data.encode("utf8","xmlcharrefreplace")
-        data=cgi.escape(data,quote)
+        return data.xml()         
+    except AttributeError: pass
+    except TypeError: pass
+    if not isinstance(data,(str,unicode)): data=str(data) 
+    elif isinstance(data,unicode): data=data.encode("utf8","xmlcharrefreplace")
+    data=cgi.escape(data,quote)
     return data
 
 def URL(a=None,c=None,f=None,r=None,args=[],vars={}):
