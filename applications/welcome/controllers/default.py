@@ -1,4 +1,4 @@
-session.forget() # comment or remove if you want to store sessions
+# session.forget() ## uncomment if you do not need sessions
 
 def index():
     response.flash=T('Welcome to web2py')

@@ -78,10 +78,14 @@ class SQLFORM(FORM):
             if default: default=field.formatter(default)
             if labels!=None and labels.has_key(fieldname):
                 label=labels[fieldname]
-            else: 
+            else:
                 label=fieldname.replace('_',' ').capitalize()+': '
             label=LABEL(label,_for=field_id,_id='%s__label'%field_id)
-            if field.type=='text':
+            comment=col3.get(fieldname,'')
+            row_id=field_id+'__row'
+            if hasattr(field,'widget'):
+                imp=field.widget(field,default)
+            elif field.type=='text':
                 inp=TEXTAREA(_type='text',_id=field_id,_class=field.type,
                     _name=fieldname,value=default, requires=field.requires)
             elif field.type=='blob':
@@ -122,7 +126,7 @@ class SQLFORM(FORM):
                 inp=INPUT(_type='text', _id=field_id,_class=field.type,
                       _name=fieldname,value=str(default),
                       requires=field.requires)
-            xfields.append(TR(label,inp,col3.get(fieldname,''),_id=field_id+'__row'))
+            xfields.append(TR(label,inp,comment,_id=row_id))
         if record and linkto:
             if linkto:
                 for rtable,rfield in table._referenced_by:
@@ -173,6 +177,7 @@ class SQLFORM(FORM):
             for fieldname in self.fields:
                 #if not vars.has_key(fieldname): continue
                 if fieldname=='id': continue
+                if not self.table.has_key(fieldname): continue
                 field=self.table[fieldname]
                 if field.type=='boolean':
                     if vars.has_key(fieldname) and vars[fieldname]=='on': 
