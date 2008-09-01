@@ -122,6 +122,15 @@ class SQLTable(SQLStorage):
     db.users.drop()
     """
     def __init__(self,db,tablename,*fields):
+        new_fields=[]
+        for field in fields:
+            if isinstance(field,SQLField):
+                new_fields.append(field)
+            elif isinstance(field,SQLTable):
+                new_fields+=[copy.copy(field[f]) for f in field.fields if f!='id']
+            else:
+                raise SyntaxError, "define_table argument is not a SQLField"
+        fields=new_fields
         self._db=db
         self._tablename=tablename
         self.fields=SQLCallableList()
