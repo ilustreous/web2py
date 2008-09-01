@@ -272,6 +272,8 @@ class SQLField(SQLXorable):
         return value
     def __str__(self): return '%s.%s' % (self._tablename,self.name)
 
+GQLDB.Field=SQLField ### needed in gluon/globals.py session.connect
+
 def obj_represent(object,fieldtype,db):  
 	if object!=None:
 	    if fieldtype=='date' and not isinstance(object,datetime.date):

@@ -150,12 +150,12 @@ class Session(Storage):
                 response.session_new=True
         else:
              table=db.define_table(tablename+'_'+masterapp,
-                 SQLField('locked','boolean',default=False),
-                 SQLField('client_ip'),
-                 SQLField('created_datetime','datetime',default=now),
-                 SQLField('modified_datetime','datetime'),
-                 SQLField('unique_key'),
-                 SQLField('session_data','text'))
+                 db.Field('locked','boolean',default=False),
+                 db.Field('client_ip'),
+                 db.Field('created_datetime','datetime',default=now),
+                 db.Field('modified_datetime','datetime'),
+                 db.Field('unique_key'),
+                 db.Field('session_data','text'))
              try:
                  key=request.cookies[response.session_id_name].value
                  record_id,unique_key=key.split(':')

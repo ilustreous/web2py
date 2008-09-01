@@ -905,6 +905,8 @@ class SQLField(SQLXorable):
         return 'MIN(%s)' % str(self)
     def __str__(self): return '%s.%s' % (self._tablename,self.name)
 
+SQLDB.Field=SQLField # necessary in gluon/globals.py session.connect
+
 class SQLQuery(object):
     """
     a query object necessary to define a set.
@@ -1192,8 +1194,8 @@ class SQLRows(object):
         serializes the table using sqlhtml.SQLTABLE (if present)
         """
         import sqlhtml
-        return sqlhtml.SQLTABLE(self).xml() 
-        
+        return sqlhtml.SQLTABLE(self).xml()         
+
 def test_all():
     """    
 

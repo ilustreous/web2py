@@ -83,7 +83,7 @@ class SQLFORM(FORM):
             label=LABEL(label,_for=field_id,_id='%s__label'%field_id)
             comment=col3.get(fieldname,'')
             row_id=field_id+'__row'
-            if hasattr(field,'widget'):
+            if hasattr(field,'widget') and field.widget:
                 imp=field.widget(field,default)
             elif field.type=='text':
                 inp=TEXTAREA(_type='text',_id=field_id,_class=field.type,
