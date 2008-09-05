@@ -84,7 +84,7 @@ class SQLFORM(FORM):
             comment=col3.get(fieldname,'')
             row_id=field_id+'__row'
             if hasattr(field,'widget') and field.widget:
-                imp=field.widget(field,default)
+                inp=field.widget(field,default)
             elif field.type=='text':
                 inp=TEXTAREA(_type='text',_id=field_id,_class=field.type,
                     _name=fieldname,value=default, requires=field.requires)
