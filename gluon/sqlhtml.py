@@ -267,7 +267,8 @@ class SQLTABLE(TABLE):
                     continue
                 tablename,fieldname=colname.split('.')
                 field=sqlrows._db[tablename][fieldname]
-                if record.has_key(tablename) and isinstance(record,SQLStorage):
+                if record.has_key(tablename) and isinstance(record,SQLStorage)\
+                   and isinstance(record[tablename],SQLStorage):
                     r=record[tablename][fieldname]
                 elif record.has_key(fieldname):
                     r=record[fieldname]
