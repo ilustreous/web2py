@@ -109,10 +109,9 @@ class SQLFORM(FORM):
                      _name=fieldname,value=default,requires=field.requires))
             elif isinstance(field.requires,IS_NULL_OR) and \
                  hasattr(field.requires.other,'options'):
-                opts=[]
+                opts=[OPTION(_value="")]
                 for k,v in field.requires.other.options():
                     opts.append(OPTION(v,_value=k))
-                opts.insert(0,OPTION(_value=""))
                 inp=SELECT(*opts,**dict(_id=field_id,_class=field.type,
                      _name=fieldname,value=default,requires=field.requires))
             elif field.type=='password':
@@ -163,11 +162,9 @@ class SQLFORM(FORM):
             for fieldname in self.fields:
                 field=self.table[fieldname]
                 if field.requires: 
-                    try: field.requires=list(field.requires)
-                    except TypeError: field.requires=[field.requires]
-                for item in field.requires:                    
-                    if hasattr(item,'set_self_id'):
-                        item.set_self_id(self.record_id)
+                    if not isinstance(field.requires,(list,tuple)): requires=[field.requires]
+                else: requires=[]
+                [item.set_self_id(self.record_id) for item in requires if hasattr(item,'set_self_id')]
             ### END
             fields={}
             for key in self.vars.keys(): fields[key]=self.vars[key]            

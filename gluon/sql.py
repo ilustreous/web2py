@@ -275,8 +275,9 @@ class SQLDB(SQLStorage):
 
     """
     ### this allows gluon to comunite a folder for this thread
-    _folders={}   
-    _instances={}    
+    _folders={}
+    _connection_pools={}   
+    _instances={}
     @staticmethod
     def _set_thread_folder(folder):
         sql_locker.acquire()
@@ -284,7 +285,7 @@ class SQLDB(SQLStorage):
         sql_locker.release()
     ### this allows gluon to commit/rollback all dbs in this thread
     @staticmethod
-    def close_all_instances(action): 
+    def close_all_instances(action,really=False): 
         """ to close cleanly databases in a multithreaded environment """
         sql_locker.acquire()
         pid=thread.get_ident()
@@ -296,8 +297,13 @@ class SQLDB(SQLStorage):
                 instance=instances.pop()
                 sql_locker.release()
                 action(instance)
-                instance._connection.close()
+                if really: instance._connection.close()
                 sql_locker.acquire()
+                ### if you want pools recycle this connection
+                if instance._pools:
+                    pool=SQLDB._connection_pools[instance._uri]
+                    if len(pool)<instance._pools:
+                        pool.append(instance._connection)
             del SQLDB._instances[pid]
         sql_locker.release()
         return
@@ -322,8 +328,24 @@ class SQLDB(SQLStorage):
             for i,db in instances:
                 db._execute("COMMIT PREPARED '%s';"  % keys[i])
         return
-    def __init__(self,uri='sqlite://dummy.db'):
+    def _pool_connection(self,f):
+        ### deal with particular case first:
+        if not self._pools:
+            self._connection=f()
+            return
+        uri=self._uri
+        sql_locker.acquire()
+        if not self._connection_pools.has_key(uri):
+            self._connection_pools[uri]=[]
+        if self._connection_pools[uri]:
+            self._connection=self._connection_pools[uri].pop()
+            sql_locker.release()
+        else:
+            sql_locker.release()
+            self._connection=f()
+    def __init__(self,uri='sqlite://dummy.db',pools=0):
         self._uri=str(uri)
+        self._pools=pools
         self['_lastsql']=''
         self.tables=SQLCallableList()
         pid=thread.get_ident()
@@ -337,9 +359,9 @@ class SQLDB(SQLStorage):
             self._dbname='sqlite'
             if uri[9]!='/':
                 dbpath=os.path.join(self._folder,uri[9:])
-                self._connection=sqlite3.Connection(dbpath)
+                self._pool_connection(lambda:sqlite3.Connection(dbpath))
             else:
-                self._connection=sqlite3.Connection(uri[9:])
+                self._pool_connection(lambda:sqlite3.Connection(uri[9:]))
             self._connection.create_function("web2py_extract",2,
                                              sqlite3_web2py_extract)
             self._cursor=self._connection.cursor()
@@ -357,12 +379,12 @@ class SQLDB(SQLStorage):
             if not db: raise SyntaxError, "Database name required"
             port=m.group('port')
             if not port: port='3306'
-            self._connection=MySQLdb.Connection(db=db,
+            self._pool_connection(lambda:MySQLdb.Connection(db=db,
                                                 user=user,
                                                 passwd=passwd,
                                                 host=host,
                                                 port=int(port),
-                                                charset='utf8')
+                                                charset='utf8'))
             self._cursor=self._connection.cursor()
             self._execute=lambda *a,**b: self._cursor.execute(*a,**b)
             self._execute('SET FOREIGN_KEY_CHECKS=0;')
@@ -380,7 +402,7 @@ class SQLDB(SQLStorage):
             port=m.group('port')
             if not port: port='5432'
             msg="dbname='%s' user='%s' host='%s' port=%s password='%s'" % (db,user,host,port,passwd)            
-            self._connection=psycopg2.connect(msg)
+            self._pool_connection(lambda:psycopg2.connect(msg))
             self._cursor=self._connection.cursor()
             self._execute=lambda *a,**b: self._cursor.execute(*a,**b)
             query='BEGIN;'
@@ -389,7 +411,7 @@ class SQLDB(SQLStorage):
             self._execute("SET CLIENT_ENCODING TO 'UNICODE';") ### not completely sure but should work
         elif self._uri[:9]=='oracle://':
             self._dbname='oracle'
-            self._connection=cx_Oracle.connect(self._uri[9:])
+            self._pool_connection(lambda:cx_Oracle.connect(self._uri[9:]))
             self._cursor=self._connection.cursor()
             self._execute=lambda a: self._cursor.execute(a[:-1])  ###
             self._execute("ALTER SESSION SET NLS_DATE_FORMAT = 'YYYY-MM-DD';")
@@ -420,7 +442,7 @@ class SQLDB(SQLStorage):
                 if not port: port='1433'
                 #Driver={SQL Server};description=web2py;server=A64X2;uid=web2py;database=web2py_test;network=DBMSLPCN
                 cnxn="Driver={SQL Server};server=%s;database=%s;uid=%s;pwd=%s" % (host,db,user,passwd)
-            self._connection=pyodbc.connect(cnxn)
+            self._pool_connection(lambda:pyodbc.connect(cnxn))
             self._cursor=self._connection.cursor()
             self._execute=lambda *a,**b: self._cursor.execute(*a,**b)
         elif self._uri[:11]=='firebird://': 
@@ -436,7 +458,7 @@ class SQLDB(SQLStorage):
             if not db: raise SyntaxError, "Database name required"
             port=m.group('port')
             if not port: port='3050'
-            self._connection=kinterbasdb.connect(dsn="%s:%s"%(host,db), user=user, password=passwd)
+            self._pool_connection(lambda:kinterbasdb.connect(dsn="%s:%s"%(host,db), user=user, password=passwd))
             self._cursor=self._connection.cursor()
             self._execute=lambda *a,**b: self._cursor.execute(*a,**b)
         elif self._uri=='None':
@@ -452,8 +474,8 @@ class SQLDB(SQLStorage):
         self._translator=SQL_DIALECTS[self._dbname]
         ### register this instance of SQLDB
         sql_locker.acquire()
-        if self._instances.has_key(pid): self._instances[pid].append(self)
-        else: self._instances[pid]=[self]
+        if not self._instances.has_key(pid): self._instances[pid]=[]
+        self._instances[pid].append(self)
         sql_locker.release()
         pass
     def define_table(self,tablename,*fields,**args):

@@ -3,10 +3,11 @@ from yapo import Yapo
 
 def parse_field(f):
     re.compile('(\w*)')
-    fields=['string','integer','text','double','boolean','upload',
+    fields=['string','integer','text',
+            'double','boolean','upload',
             'date','datetime','time']
-    class A(): pass
-    a=A()
+    class dummy(): pass
+    a=dummy()
     f2,a.field_type,a.unique,a.notnull,a.private,a.nocolumn=[],'string',False,False,False,False
     for x in f.split(): 
         if x in fields: a.field_type=x
@@ -21,31 +22,24 @@ def parse_field(f):
 
 CRUD="""
 
-def render(view,**a):
-   import cStringIO
-   obody,oview=response.body,response.view
-   response.body,response.view=cStringIO.StringIO(),view
-   page=response.render(**a)
-   response.body,response.view=obody,oview
-   return page
 
 def list(table):
    a=request.vars.start or 0
    b=request.vars.stop or a+25
-   orderby=request.vars.oderby or db.table_person.fields[0] ### UNSAFE FIX
+   orderby=request.vars.orderby or db[table].fields[0] ### UNSAFE FIX
    items=db(db[table].id>0).select(orderby=orderby,limitby=(a,b+1))
-   return render('crud/list_%s.html'%table,items=items)
+   return response.render('crud/list_%s.html'%table,items=items)
 
 def create(table,target=None):
    form=SQLFORM(db[table],
                 fields=db[table].exposed,
-                lables=db[table].labels,
+                labels=db[table].labels,
                 upload=URL(r=request,f='download'))
    if form.accepts(request.vars,session):
        session.flash=T("new record inserted")
        if target: redirect(target)
        else: redirect(URL(r=request,f='list_'+table))
-   return render('crud/create_%s.html'%table,form=form)
+   return response.render('crud/create_%s.html'%table,form=form)
 
 def read(table,id,target=None):
    rows=db(db[table].id==id).select()
@@ -53,7 +47,7 @@ def read(table,id,target=None):
        session.flash=T('record not found')
        if target: redirect(target)
        else: redirect(URL(r=request,f='list_'+table))
-   return render('crud/read_%s.html'%table,item=rows[0])
+   return response.render('crud/read_%s.html'%table,item=rows[0])
 
 def edit(table,id,target=None):
    rows=db(db[table].id==id).select()
@@ -63,14 +57,14 @@ def edit(table,id,target=None):
        else: redirect(URL(r=request,f='list_'+table))
    form=SQLFORM(db[table],rows[0],
                 fields=db[table].exposed,
-                lables=db[table].labels,
+                labels=db[table].labels,
                 upload=URL(r=request,f='download'),
                 showid=False,deletable=True)
    if form.accepts(request.vars,session):
        session.flash=T("new record updated")
        if target: redirect(target)
        else: redirect(URL(r=request,f='list_'+table))
-   return render('crud/edit_%s.html'%table,form=form)
+   return response.render('crud/edit_%s.html'%table,form=form)
 
 def delete(table,id,target=None):
    rows=db(db[table].id==id).select()
@@ -79,14 +73,14 @@ def delete(table,id,target=None):
        if target: redirect(target)
        else: redirect(URL(r=request,f='list_'+table))
    if request.vars.confirm=='yes':
-       db(db[table].id==request.args[0]).delete()
+       db(query=db[table].id==id).delete()
        session.flash=T('record deleted')
        if target: redirect(target)
        else: redirect(URL(r=request,f='list_'+table))
    elif request.vars.confirm=='no':
        if target: redirect(target)
        else: redirect(URL(r=request,f='list_'+table))
-   return render('crud/delete_%s.html'%table,item=rows[0])
+   return response.render('crud/delete_%s.html'%table,item=rows[0])
 """
 
 
@@ -208,7 +202,6 @@ are you sure you want to delete this record?
 {{=A('yes',_href=URL(r=request,args=request.args,vars=dict(confirm='yes')))}} or
 {{=A('no',_href=URL(r=request,args=request.args,vars=dict(confirm='no')))}}
 """
-
 
 def build_crud(yapo,path='./'):
     app_name=yapo.name
