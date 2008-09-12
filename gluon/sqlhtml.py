@@ -161,11 +161,10 @@ class SQLFORM(FORM):
             ### THIS IS FOR UNIQUE RECORDS, read IS_NOT_IN_DB            
             for fieldname in self.fields:
                 field=self.table[fieldname]
-                if field.requires: 
-                    requires=field.requires
-                    if not isinstance(requires,(list,tuple)): requires=[requires]
-                else: requires=[]
-                [item.set_self_id(self.record_id) for item in requires if hasattr(item,'set_self_id')]
+                requires=field.requires or []
+                if not isinstance(requires,(list,tuple)): requires=[requires]
+                [item.set_self_id(self.record_id) for item in requires \
+                 if hasattr(item,'set_self_id')]
             ### END
             fields={}
             for key in self.vars.keys(): fields[key]=self.vars[key]            
