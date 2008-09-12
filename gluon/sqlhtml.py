@@ -162,7 +162,8 @@ class SQLFORM(FORM):
             for fieldname in self.fields:
                 field=self.table[fieldname]
                 if field.requires: 
-                    if not isinstance(field.requires,(list,tuple)): requires=[field.requires]
+                    requires=field.requires
+                    if not isinstance(requires,(list,tuple)): requires=[requires]
                 else: requires=[]
                 [item.set_self_id(self.record_id) for item in requires if hasattr(item,'set_self_id')]
             ### END
