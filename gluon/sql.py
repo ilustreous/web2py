@@ -77,9 +77,9 @@ SQL_DIALECTS={'sqlite':{'boolean':'CHAR(1)',
                       'notnull':'NOT NULL DEFAULT %(default)s'},
             'mysql':{'boolean':'CHAR(1)',
                       'string':'VARCHAR(%(length)s)',
-                      'text':'TEXT',
+                      'text':'LONGTEXT',
                       'password':'VARCHAR(%(length)s)',
-                      'blob':'BLOB',
+                      'blob':'LONGBLOB',
                       'upload':'VARCHAR(64)',
                       'integer':'INT',
                       'double':'DOUBLE',
@@ -388,6 +388,7 @@ class SQLDB(SQLStorage):
             self._cursor=self._connection.cursor()
             self._execute=lambda *a,**b: self._cursor.execute(*a,**b)
             self._execute('SET FOREIGN_KEY_CHECKS=0;')
+            self._execute("SET sql_mode='NO_BACKSLASH_ESCAPES';")
         elif self._uri[:11]=='postgres://': 
             self._dbname='postgres'
             m=re.compile('^(?P<user>[^:@]+)(\:(?P<passwd>[^@]*))?@(?P<host>[^\:/]+)(\:(?P<port>[0-9]+))?/(?P<db>.+)$').match(self._uri[11:])

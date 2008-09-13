@@ -4,8 +4,7 @@ Developed by Massimo Di Pierro <mdipierro@cs.depaul.edu>
 License: GPL v2
 """
 
-import sys, cStringIO, cPickle, traceback, copy, cgi, types, time, os
-from random import random
+import sys, cStringIO, cPickle, traceback, copy, cgi, types, time, os, uuid, datetime
 from html import BEAUTIFY
 from http import HTTP
 
@@ -37,7 +36,7 @@ class RestrictedError:
            'code':str(self.code),
            'output':str(self.output),
            'traceback':str(self.traceback)}
-        f=request.env.remote_addr+'.'+str(int(time.time()))+'.'+str(random())[2:]
+        f='%s.%s.%s' % (request.env.get('http_x_forwarded_for', request.env.remote_addr),datetime.datetime.now().strftime('%Y-%m-%d_%H:%M:%S'),uuid.uuid4())
         cPickle.dump(d,open(os.path.join(request.folder,'errors',f),'wb'))
         return '%s/%s' % (a,f)
 

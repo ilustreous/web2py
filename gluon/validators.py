@@ -5,7 +5,7 @@ Thanks to ga2arch for help with IS_IN_DB and IS_NOT_IN_DB on GAE
 License: GPL v2
 """
 
-import os, re, random, copy, sys, types, datetime, time, cgi, hmac
+import os, re, copy, sys, types, datetime, time, cgi, hmac
 try: 
     import hashlib
     have_hashlib=True

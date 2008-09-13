@@ -215,3 +215,17 @@ fixed problem with admin from windows and localhost
 web2py 1.30
 added flv to contenttype
 added support for appengine
+
+web2py 1.31-1.41
+some bug fixes, mostly better appengine support
+mssql support
+firebird support
+widgets support
+connection pools
+
+1.42
+fixed security issue by removing slash escape in mysql
+removed random everywhere
+use uuid for session and tickets
+use http_x_forward_for to figure out the client causing a ticket
+use longtext and longblob for mysql

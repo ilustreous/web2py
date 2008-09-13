@@ -4,12 +4,13 @@ Developed by Massimo Di Pierro <mdipierro@cs.depaul.edu>
 License: GPL v2
 """
 
-import urllib, random, re, sys, os, shutil, cStringIO
+import urllib, re, sys, os, uuid, shutil, cStringIO
 from html import FORM,INPUT,TEXTAREA,SELECT,OPTION,TABLE,TR,TD,TH,A,B,DIV,LABEL,ON,TAG,THEAD,TBODY,B
 from validators import IS_IN_SET, IS_NOT_IN_DB, CRYPT, IS_NULL_OR
 from sql import SQLStorage, SQLDB
 
 table_field=re.compile('[\w_]+\.[\w_]+')
+re_extension=re.compile('\.\w+$')
 
 class SQLFORM(FORM):
     """
@@ -187,15 +188,14 @@ class SQLFORM(FORM):
                 elif field.type=='upload':
                     f=vars[fieldname]
                     if not isinstance(f,(str,unicode)):
-                        try: e=re.compile('\.\w+$').findall(f.filename.strip())[0]
+                        try: e=re_extension.findall(f.filename.strip())[0]
                         except IndexError: e='.txt'
                         source_file=f.file
                     else: 
                         e='.txt' ### DO NOT KNOW WHY THIS HAPPENS!
                         source_file=cStringIO.StringIO(f)
                     if f!='':
-                        newfilename='%s.%s.%s%s'%(self.table._tablename, \
-                                    fieldname,str(random.random())[2:],e)
+                        newfilename='%s.%s.%s%s'%(self.table._tablename,fieldname,uuid.uuid4(),e)
                         vars['%s_newfilename'%fieldname]=newfilename
                         fields[fieldname]=newfilename
                         if field.uploadfield==True:
