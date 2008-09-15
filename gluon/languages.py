@@ -19,7 +19,7 @@ PY_STRING_LITERAL_RE= r'(?<=[^\w]T\()(?P<name>'+ \
 regex_translate=re.compile(PY_STRING_LITERAL_RE,re.DOTALL)
 
 # patter for a valid accept_language
-regex_language=re.compile('[a-zA-Z]{2}(\-[a-zA-Z]{2})?(\-[a-zA-Z]+)?')
+regex_language=re.compile('^[a-zA-Z]{2}(\-[a-zA-Z]{2})?(\-[a-zA-Z]+)?$')
 
 class lazyT(object):
     """ 

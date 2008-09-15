@@ -18,7 +18,7 @@ import sys, cPickle, cStringIO, thread, time, shelve, os, stat, uuid
 import datetime,re,random
 now=datetime.datetime.today()
 
-regex_session_id=re.compile('([0-9:]+\.)+[0-9]+')
+regex_session_id=re.compile('^[\w\.\-]+$')
 
 __all__=['Request','Response','Session']
 
@@ -145,7 +145,7 @@ class Session(Storage):
                      self._unlock(response)
                      response.session_id=None
             if not response.session_id:
-                response.session_id=request.env.remote_addr+'.'+str(int(time.time()))+'.'+str(random.random())[2:]
+                response.session_id='%s.%s' % (request.client,uuid.uuid4())
                 response.session_filename=os.path.join(up(request.folder),masterapp,'sessions',response.session_id)
                 response.session_new=True
         else:

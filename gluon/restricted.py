@@ -36,7 +36,7 @@ class RestrictedError:
            'code':str(self.code),
            'output':str(self.output),
            'traceback':str(self.traceback)}
-        f='%s.%s.%s' % (request.env.get('http_x_forwarded_for', request.env.remote_addr),datetime.datetime.now().strftime('%Y-%m-%d_%H:%M:%S'),uuid.uuid4())
+        f='%s.%s.%s' % (request.client,datetime.datetime.now().strftime('%Y-%m-%d_%H:%M:%S'),uuid.uuid4())
         cPickle.dump(d,open(os.path.join(request.folder,'errors',f),'wb'))
         return '%s/%s' % (a,f)
 

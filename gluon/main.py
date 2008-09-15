@@ -37,12 +37,18 @@ __all__=['wsgibase', 'save_password', 'appfactory', 'HttpServer']
 ### Security Checks: validate URL and session_id here, accept_language is validated in languages
 # pattern to find valid paths in url /application/controller/...
 regex_url=re.compile('(?:^$)|(?:^\w+/?$)|(?:^\w+/\w+/?$)|(?:^(\w+/){2}\w+/?$)|(?:^(\w+/){2}\w+(/[\w\-]+(\.[\w\-]+)*)+$)|(?:^(\w+)/static(/[\w\-]+(\.[\w\-]+)*)+$)')
-# patter used to validate session ids
+# patter used to validate client address
+regex_client=re.compile('^\w+(\.\w+)*\.?')
 
 error_message='<html><body><h1>Invalid request</h1></body></html>'
 error_message_ticket='<html><body><h1>Internal error</h1>Ticket issued: <a href="/admin/default/ticket/%s" target="_blank">%s</a></body></html>'
 
 working_folder=os.getcwd()
+
+def get_client(env):
+    g=regex_client.match(env.get('http_x_forwarded_for',''))
+    if g: return g.group()
+    else: return env.remote_addr
 
 def serve_controller(request,response,session):
     """
@@ -123,6 +129,7 @@ def wsgibase(environ, responder):
             request.application=items[0]
             request.controller=items[1]
             request.function=items[2]
+            request.client=get_client(request.env)
             request.folder=os.path.join(request.env.web2py_path,\
                'applications',request.application)+'/'
             ###################################################
