@@ -14,8 +14,7 @@ from http import HTTP
 from sql import SQLField
 from fileutils import up
 import portalocker
-import sys, cPickle, cStringIO, thread, time, shelve, os, stat, uuid
-import datetime,re,random
+import sys, cPickle, cStringIO, thread, time, shelve, os, stat, uuid, datetime,re
 now=datetime.datetime.today()
 
 regex_session_id=re.compile('^[\w\.\-]+$')
