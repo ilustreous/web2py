@@ -113,10 +113,11 @@ def wsgibase(environ, responder):
             ###################################################
             # serve if a static file
             ###################################################
-            if len(items)>2 and items[1]=='static':
-                static_file=os.path.join(request.env.web2py_path,'applications',\
-                                         items[0],'static','/'.join(items[2:]))
-                response.stream(static_file,request=request)
+            if len(items)>1 and items[1]=='static':
+                 if len(items)<3 or not items[2]: raise HTTP(400,error_message)
+                 static_file=os.path.join(request.env.web2py_path,\
+                    'applications',items[0],'static','/'.join(items[2:]))
+                 response.stream(static_file,request=request)
             ###################################################
             # parse application, controller and function
             ###################################################

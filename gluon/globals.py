@@ -124,7 +124,7 @@ class Session(Storage):
     """
     defines the session object and the default values of its members (None)
     """
-    def connect(self,request,response,db=None,tablename='web2py_session',masterapp=None):
+    def connect(self,request,response,db=None,tablename='web2py_session',masterapp=None,migrate=True):
         self._unlock(response)
         if not masterapp: masterapp=request.application
         response.session_id_name='session_id_%s'%masterapp
@@ -148,13 +148,15 @@ class Session(Storage):
                 response.session_filename=os.path.join(up(request.folder),masterapp,'sessions',response.session_id)
                 response.session_new=True
         else:
+             if masterapp==request.application: table_migrate=migrate
+             else: table_migrate=False
              table=db.define_table(tablename+'_'+masterapp,
                  db.Field('locked','boolean',default=False),
                  db.Field('client_ip'),
                  db.Field('created_datetime','datetime',default=now),
                  db.Field('modified_datetime','datetime'),
                  db.Field('unique_key'),
-                 db.Field('session_data','text'))
+                 db.Field('session_data','text'),migrate=table_migrate)
              try:
                  key=request.cookies[response.session_id_name].value
                  record_id,unique_key=key.split(':')
