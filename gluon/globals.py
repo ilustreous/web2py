@@ -17,7 +17,7 @@ import portalocker
 import sys, cPickle, cStringIO, thread, time, shelve, os, stat, uuid, datetime,re
 now=datetime.datetime.today()
 
-regex_session_id=re.compile('^[\w\.\-]+$')
+regex_session_id=re.compile('^[\w\-]+$')
 
 __all__=['Request','Response','Session']
 
@@ -144,7 +144,7 @@ class Session(Storage):
                      self._unlock(response)
                      response.session_id=None
             if not response.session_id:
-                response.session_id='%s.%s' % (request.client,uuid.uuid4())
+                response.session_id='%s-%s' % (request.client.replace('.','-'),uuid.uuid4())
                 response.session_filename=os.path.join(up(request.folder),masterapp,'sessions',response.session_id)
                 response.session_new=True
         else:
