@@ -2,11 +2,14 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 <head>
+    <meta name="verify-v1" content="QT0matadbp88vY+ch+3bNr7rZxjLWJLQuQ+bgPQ47GI=" /> 
     <meta http-equiv="content-type" content="text/html; charset=utf-8" />
     <meta http-equiv="content-language" content="en" />
     <meta name="robots" content="all,follow" />
+
     <meta name="author" lang="en" content="All: web2py [www.web2py.com]" />
     <meta name="copyright" lang="en" content="All: web2py [www.web2py.com]" />
+
     <meta name="description" content="{{=response.description}}" />
     <meta name="keywords" content="{{=response.keywords}}" />
     
@@ -54,7 +57,7 @@
 <div id="cols">
     <div class="main box">
         <div id="content">
-{{if response.flash:}}<div class="flash">{{=response.flash}}</div>{{pass}}
+{{if response.flash:}}<div id="flash">{{=response.flash}}</div>{{pass}}
 {{include}}        
         </div>
 
@@ -66,7 +69,8 @@
                 <li><a href="http://mdp.cti.depaul.edu/examples/default/download">{{=open('VERSION','r').read().strip()}}</a></li>
                 <li><a href="http://mdp.cti.depaul.edu/examples/default/examples">Examples</a> | <a href="http://mdp.cti.depaul.edu/examples/default/api">API</a> | <a href="http://mdp.cti.depaul.edu/examples/default/orm">ORM</a></li>
                 <li><a href="http://mdp.cti.depaul.edu/examples/static/web2py_vs_others.pdf">Compare</a> | <a href="http://mdp.cti.depaul.edu/AlterEgo/default/show/101">Django</a> | <a href="http://mdp.cti.depaul.edu/AlterEgo/default/show/102">TG</a> | <a href="http://mdp.cti.depaul.edu/AlterEgo/default/show/103">Rails</a> | <a href="http://mdp.cti.depaul.edu/AlterEgo/default/show/106">PHP</a> | <a href="http://mdp.cti.depaul.edu/AlterEgo/default/show/107">Java</a></li>
-                <li><a href="http://mdp.cti.depaul.edu/examples/static/cookbook.pdf">Tutorial</a> | <a href="http://mdp.cti.depaul.edu/examples/static/web2py_manual.pdf">Book</a> | <a href="http://mdp.cti.depaul.edu/examples/static/epydoc/index.html">epydocs</a> </li>
+                <li><a href="http://mdp.cti.depaul.edu/examples/static/cookbook.pdf">Tutorial</a> | <a href="http://he-cda.wiley.com/WileyCDA/Section/id-321954.html">Book</a> | <a href="http://mdp.cti.depaul.edu/examples/static/epydoc/index.html">epydocs</a> </li>
+                <li><a href="http://mdp.cti.depaul.edu/examples/static/web2py_cheatsheet.pdf">Cheat Sheet</a> | <a href="http://mdp.cti.depaul.edu/examples/static/web2py_dependency_graph.pdf">Dependency Graph</a></li>
                 <li><a href="http://www.vimeo.com/875433">Screencast short</a> | <a href="http://www.vimeo.com/428474">long</a> | <a href="http://www.vimeo.com/879939">shell</a> | <a href="http://www.vimeo.com/932708">GAE</a></li>
                 <li><a href="https://mdp.cti.depaul.edu/demo_admin">Online Demo</a></li>
                 <li><a href="http://mdp.cti.depaul.edu/AlterEgo">Interactive FAQ (AlterEgo)</a></li>
@@ -78,9 +82,6 @@
                 <li><a href="http://code.google.com/p/web2py">Development Trunk (svn)</a></li>
             </ul>
 
-<center>
-<img src="http://mac.softpedia.com/images/spyward/softpedia_clean_award_f.gif" align="center"/>
-</center>
             <h3>Contact</h3>
             
             <address>
