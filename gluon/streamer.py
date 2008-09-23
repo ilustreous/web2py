@@ -40,11 +40,14 @@ def stream_file_or_304_or_206(static_file,chunk_size=10**6,request=None,headers=
         if not stop_items or int(stop_items[0])>fsize-1: stop_items=[fsize-1]
         part=(int(start_items[0]),int(stop_items[0]),fsize)
         bytes=part[1]-part[0]+1
+        try: stream=open(static_file,'rb')
+        except IOError: raise HTTP(400)
+        stream.seek(part[0])
         headers['Content-Range']='bytes %i-%i/%i' % part
         headers['Content-Length']='%i' % (bytes)
-        stream=open(static_file,'rb')
-        stream.seek(part[0])
         raise HTTP(206,streamer(stream,chunk_size=chunk_size,bytes=bytes),**headers)
     else:
+        try: stream=open(static_file,'rb')
+        except IOError: raise HTTP(400)
         headers['Content-Length']=fsize
-        raise HTTP(200,streamer(open(static_file,'rb'),chunk_size=chunk_size),**headers)
+        raise HTTP(200,streamer(stream,chunk_size=chunk_size),**headers)
