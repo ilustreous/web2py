@@ -115,7 +115,7 @@ def compile_controllers(folder):
         data=open(path+file,'r').read()
         exposed=regex_expose.findall(data)
         for function in exposed:
-            command=data+'\n\nresponse._vars=%s()' % function
+            command=data+'\n\nresponse._vars=response._caller(%s)' % function
             filename=os.path.join(folder,'compiled/',('controllers/'+file[:-3]).replace('/','_')+'_'+function+'.py')
             open(filename,'w').write(command)
             save_pyc(filename)
@@ -170,7 +170,7 @@ def run_controller_in(controller,function,environment):
         if not function in exposed: 
             raise HTTP(400,error_message % 'invalid function',
                        web2py_error='invalid function')
-        code+='\n\nresponse._vars=%s()' % function        
+        code+='\n\nresponse._vars=response._caller(%s)' % function        
         restricted(code,environment,layer=filename)
     response=environment['response']
     if response.postprocessing:

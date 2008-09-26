@@ -52,6 +52,7 @@ class Response(Storage):
         self.flash=None      # used by the default view layout
         self.menu=None       # used by the default view layout     
         self._vars=None
+        self._caller=lambda f: f()
         self._view_environment=None
     def write(self,data,escape=True):
         if not escape: self.body.write(str(data))
