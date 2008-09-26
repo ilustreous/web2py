@@ -5,8 +5,8 @@ runtime: python
 
 handlers:
 
-- url: /(.+)/static/(.+)
-  static_dir: applications/\1/static/\2
+- url: /(?P<a>.+?)/static/(?P<b>.+)
+  static_dir: applications/\g<a>/static/\g<b>
 
 - url: .*
   script: cgihandler.py  
