@@ -572,12 +572,17 @@ def test_all():
     """
     How to run from web2py dir:
      export PYTHONPATH=.:YOUR_PLATFORMS_APPENGINE_PATH
-     python gluon/contrib/gql2.py         
+     eg. on OSX:
+       echo $PYTHONPATH 
+       .:/Applications/GoogleAppEngineLauncher.app/Contents/Resources/GoogleAppEngine-default.bundle/Contents/Resources/google_appengine
+    python gluon/contrib/gql.py 
 
     Setup the UTC timezone and database stubs       
 
     >>> import os
     >>> os.environ['TZ'] = 'UTC'
+    >>> # dev_server sets APPLICATION_ID, but we are not using dev_server, so manually set it to something
+    >>> os.environ['APPLICATION_ID'] = 'test' 
     >>> import time
     >>> if hasattr(time, 'tzset'):
     ...   time.tzset()
