@@ -1,9 +1,32 @@
-# import sys, os
-# sys.path.insert(0,'')
-# path=os.path.dirname(os.path.abspath(__file__))
-# if not path in sys.path: sys.path.append(path)
-# os.chdir(path)
+import time,os,logging
 import wsgiref.handlers
 import gluon.main
 
-wsgiref.handlers.CGIHandler().run(gluon.main.wsgibase)
+#debug = os.environ.get('SERVER_SOFTWARE','').startswith('Devel')
+debug = True
+
+def log_stats(fun):
+   if debug:
+       def newfun(e,r):
+           t0 = time.time()
+           c0 = time.clock()
+           out = fun(e,r)
+           c1 = time.clock()
+           t1 = time.time()
+           s = """**** Request: %5.0fms/%.0fms (real time/cpu time)""" % \
+             ( (t1-t0) * 1000, (c1-c0) * 1000 )
+           logging.info(s)
+           return out
+       return newfun
+   else:
+       return fun
+
+@log_stats
+def wsgiapp(env,res):
+  return gluon.main.wsgibase(env,res)
+
+def main():
+  wsgiref.handlers.CGIHandler().run(wsgiapp)
+
+if __name__ == '__main__':
+    main() 
