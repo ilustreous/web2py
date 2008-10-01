@@ -1,6 +1,4 @@
-import time,os,logging
-import wsgiref.handlers
-import gluon.main
+import time,os,sys,logging
 
 try:
     import google
@@ -8,9 +6,12 @@ try:
             'AUTH_DOMAIN','SERVER_SOFTWARE']
     is_gae = reduce(lambda a,k: bool(os.environ.get(k,'')) and a, keys, True)
     if is_gae:
-        import sys,cPickle,pickle
+        import cPickle,pickle
         sys.modules['cPickle'] = sys.modules['pickle']
 except: pass
+
+import wsgiref.handlers
+import gluon.main
 
 #debug = os.environ.get('SERVER_SOFTWARE','').startswith('Devel')
 debug = True
