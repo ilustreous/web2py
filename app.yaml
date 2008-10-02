@@ -9,7 +9,7 @@ handlers:
   static_dir: applications/\g<a>/static/\g<b>
 
 - url: .*
-  script: cgihandler.py  
+  script: gaehandler.py  
 
 skip_files: |
  ^(.*/)?(
