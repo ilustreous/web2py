@@ -55,6 +55,7 @@ class SQLFORM(FORM):
                linkto=ULR(r=request,f='table/db/')
         """
         self.table=table
+        self.trows={}
         FORM.__init__(self,*[],**attributes)            
         xfields=[]
         self.fields=fields
@@ -73,14 +74,14 @@ class SQLFORM(FORM):
                                           _id='id__row'))
                     self.record_id=str(record['id'])
                 continue
-            field=self.table[fieldname]            
+            field=self.table[fieldname]
             if record: default=record[fieldname]
             else: default=field.default
             if default: default=field.formatter(default)
             if labels!=None and labels.has_key(fieldname):
                 label=labels[fieldname]
             else:
-                label=fieldname.replace('_',' ').capitalize()+': '
+                label=field.label+': '
             label=LABEL(label,_for=field_id,_id='%s__label'%field_id)
             comment=col3.get(fieldname,'')
             row_id=field_id+'__row'
@@ -126,7 +127,8 @@ class SQLFORM(FORM):
                 inp=INPUT(_type='text', _id=field_id,_class=field.type,
                       _name=fieldname,value=str(default),
                       requires=field.requires)
-            xfields.append(TR(label,inp,comment,_id=row_id))
+            tr=self.trows[fieldname]=TR(label,inp,comment,_id=row_id)
+            xfields.append(tr)
         if record and linkto:
             if linkto:
                 for rtable,rfield in table._referenced_by:
@@ -170,10 +172,14 @@ class SQLFORM(FORM):
             fields={}
             for key in self.vars.keys(): fields[key]=self.vars[key]            
             ret=FORM.accepts(self,vars,session,formname,keepvalues)
-            if not ret: return ret
+            if not ret:
+                for fieldname in self.fields:
+                    field=self.table[fieldname]
+                    if field.widget and vars.has_key(fieldname):
+                         self.trows[fieldname][1][0]=field.widget(field,vars[fieldname])           
+                return ret
             vars=self.vars
             for fieldname in self.fields:
-                #if not vars.has_key(fieldname): continue
                 if fieldname=='id': continue
                 if not self.table.has_key(fieldname): continue
                 field=self.table[fieldname]

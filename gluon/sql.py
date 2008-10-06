@@ -850,7 +850,7 @@ class SQLField(SQLXorable):
 
     example:
 
-    a=SQLField(name,'string',length=32,required=False,default=None,requires=IS_NOT_EMPTY(),notnull=False,unique=False,uploadfield=None)
+    a=SQLField(name,'string',length=32,required=False,default=None,requires=IS_NOT_EMPTY(),notnull=False,unique=False,uploadfield=None,widget=None,label=None)
     
     to be used as argument of SQLDB.define_table
 
@@ -866,8 +866,9 @@ class SQLField(SQLXorable):
     def __init__(self,fieldname,type='string',
                  length=32,default=None,required=False,
                  requires=sqlhtml_validators,ondelete='CASCADE',
-                 notnull=False,unique=False,uploadfield=True):
-        self.name=cleanup(fieldname)
+                 notnull=False,unique=False,uploadfield=True,
+                 widget=None,label=None):
+        self.name=fieldname=cleanup(fieldname)
         if fieldname in dir(SQLTable) or fieldname[0]=='_':
             raise SyntaxError, 'SQLField: invalid field name'
         if isinstance(type,SQLTable): type='reference '+type._tablename
@@ -882,6 +883,10 @@ class SQLField(SQLXorable):
         self.notnull=notnull
         self.unique=unique
         self.uploadfield=uploadfield
+        self.widget=widget
+        self.label=label
+        if self.label==None:
+            self.label=' '.join([x.capitalize() for x in fieldname.split('_')])
         if requires==sqlhtml_validators: requires=sqlhtml_validators(type,length)
         elif requires is None: requires=[]
         self.requires=requires             # list of validators
