@@ -1,3 +1,5 @@
+session.forget()
+
 response.menu=[['home',False,'/%s/default/index'%request.application],
                ['docs',True,'/%s/global/vars'%request.application]]
 
@@ -6,7 +8,7 @@ def vars():
     if not request.args:
         doc,keys,t,c,d,value="Global variables",globals(),None,None,(),None
         title,args='globals()',''
-    else:
+    elif len(request.args)<4:
         args='.'.join(request.args)
         try: doc=eval(args+'.__doc__')
         except: doc="no documentation"
@@ -19,6 +21,7 @@ def vars():
         except: d=None
         title=args
         args+='.'
+    else: raise HTTP(400)
     attributes={}
     for key in keys:
         a=args+key
