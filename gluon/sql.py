@@ -549,7 +549,7 @@ class SQLALL(object):
         return ', '.join(s)
 
 class SQLJoin(object):
-    def __init__(self,table,query,as=None):
+    def __init__(self,table,query):
         self.table=table
         self.query=query
     def __str__(self):
@@ -798,7 +798,7 @@ class SQLTable(SQLStorage):
             else:
                 items=[(colnames[i],line[i]) for i in c]
                 self.insert(**dict(items))
-    def on(self,query,as=None):
+    def on(self,query):
         return SQLJoin(self,query)
     def _truncate(self):
         t = self._tablename
