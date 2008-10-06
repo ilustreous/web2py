@@ -440,10 +440,14 @@ class SELECT(INPUT):
                 components.append(c)
             else:
                 components.append(OPTION(c,_value=str(c)))
+            if not components[-1].attributes.has_key('_value'):
+                components[-1].attributes['_value']=components[-1].components[0]
             if self.attributes.has_key('value') and \
                self['value']!=None and \
                str(self['value'])==str(components[-1].attributes['_value']):
-                components[-1].attributes['_selected']=ON
+                components[-1].attributes['_selected']='selected'
+            else:
+                components[-1].attributes['_selected']=None
         self.components=components
 
 class FIELDSET(DIV): tag='fieldset'
