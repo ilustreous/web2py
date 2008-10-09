@@ -156,7 +156,7 @@ class Session(Storage):
                  db.Field('client_ip'),
                  db.Field('created_datetime','datetime',default=now),
                  db.Field('modified_datetime','datetime'),
-                 db.Field('unique_key'),
+                 db.Field('unique_key',length=64),
                  db.Field('session_data','text'),migrate=table_migrate)
              try:
                  key=request.cookies[response.session_id_name].value
