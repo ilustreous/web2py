@@ -325,31 +325,16 @@ except: pass
 try: import math
 except: pass
 
-try: import md5
-except: pass
-
-try: import mhlib
-except: pass
-
 try: import mimetools
 except: pass
 
 try: import mimetypes
 except: pass
 
-try: import MimeWriter
-except: pass
-
-try: import mimify
-except: pass
-
 try: import mmap
 except: pass
 
 try: import modulefinder
-except: pass
-
-try: import multifile
 except: pass
 
 try: import mutex
@@ -445,13 +430,7 @@ except: pass
 try: import select
 except: pass
 
-try: import sets
-except: pass
-
 try: import sgmllib
-except: pass
-
-try: import sha
 except: pass
 
 try: import shelve
@@ -684,3 +663,33 @@ except: pass
 
 try: import zlib
 except: pass
+
+if sys.version.startswith('2.5'):
+  try: import md5
+  except: pass
+
+  try: import mhlib
+  except: pass
+
+  try: import MimeWriter
+  except: pass
+
+  try: import mimify
+  except: pass
+
+  try: import multifile
+  except: pass
+
+  try: import sha
+  except: pass
+
+  try: import sets
+  except: pass
+
+if sys.version.startswith('2.6'):
+  try: import json
+  except: pass
+
+  try: import multiprocessing
+  except: pass
+

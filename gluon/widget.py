@@ -6,9 +6,8 @@ Developed in Python by Massimo Di Pierro <mdipierro@cs.depaul.edu>
 """
 
 import sys, cStringIO
-
-if sys.version[:3]!='2.5':
-    sys.stderr.write('Warning: web2py requires Python 2.5 but, instead, you are running:\n%s' % sys.version)
+if not sys.version[:3] in ['2.5','2.6']:
+    sys.stderr.write('Warning: web2py requires Python 2.5 or 2.6 but you are running:\n%s' % sys.version)
 
 ProgramName="web2py Enterprise Web Framework"
 ProgramAuthor='Created by Massimo Di Pierro, Copyright 2007-2008'
@@ -58,28 +57,28 @@ def presentation(root):
         dx=root.winfo_screenwidth()
         dy=root.winfo_screenheight()
         dialog=Tkinter.Toplevel(root)
-        dialog.geometry('%ix%i+%i+%i' % (400,300,dx/2-200, dy/2-150))
+        dialog.geometry('%ix%i+%i+%i' % (500,300,dx/2-200, dy/2-150))
         dialog.overrideredirect(1)
         dialog.focus_force()
-        canvas=Tkinter.Canvas(dialog, background='white', width=400, height=300)
+        canvas=Tkinter.Canvas(dialog, background='white', width=500, height=300)
         canvas.pack()      
         root.update()  
         for counter in xrange(5):            
             if counter is 0:
-                canvas.create_text(200,50, text='Welcome to ...',
+                canvas.create_text(250,50, text='Welcome to ...',
                                         font=('Helvetica',12),
                                         anchor=Tkinter.CENTER, fill='#195866')
             elif counter is 1:
-               canvas.create_text(200,130, text=ProgramName,
+               canvas.create_text(250,130, text=ProgramName,
                                         font=('Helvetica',18),
                                         anchor=Tkinter.CENTER, fill='#FF5C1F')
             elif counter is 2:
-                canvas.create_text(200,170,
+                canvas.create_text(250,170,
                                         text=ProgramAuthor,
                                         font=('Helvetica',12),
                                         anchor=Tkinter.CENTER, fill='#195866')
             elif counter is 3:
-                canvas.create_text(200,250, text=ProgramVersion,
+                canvas.create_text(250,250, text=ProgramVersion,
                                         font=('Helvetica',12),
                                         anchor=Tkinter.CENTER, fill='#195866')
             else:
