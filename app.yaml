@@ -6,10 +6,13 @@ runtime: python
 handlers:
 
 - url: /(?P<a>.+?)/static/(?P<b>.+)
-  static_dir: applications/\g<a>/static/\g<b>
+  static_files: applications/\1/static/\2
+  upload: applications/(.+?)/static/(.+)
+  secure: optional
 
 - url: .*
   script: gaehandler.py  
+  secure: optional
 
 skip_files: |
  ^(.*/)?(
