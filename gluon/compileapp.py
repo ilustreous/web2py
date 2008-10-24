@@ -74,8 +74,10 @@ def save_pyc(filename):
 
 def read_pyc(filename):
     data=open(filename,'rb').read()
-    if data[:4]!=imp.get_magic(): 
-        raise SystemError, "compiled code is incompatible"
+    try: magic=imp.get_magic()
+    except: pass
+    else:
+        if data[:4]!=magic: raise SystemError, "compiled code is incompatible"
     return marshal.loads(data[8:]) 
 
 def compile_views(folder):
