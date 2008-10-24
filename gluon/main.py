@@ -23,7 +23,7 @@ from sql import SQLDB
 import html
 import myregex
 try: import wsgiserver
-except: logging.error("unable to import wsgiserver")
+except: logging.warn("unable to import wsgiserver")
 ### contrib moduels
 import contrib.simplejson
 import contrib.pyrtf
