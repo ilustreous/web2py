@@ -22,10 +22,9 @@ skip_files: |
  (index\.yml)|
  (#.*#)|
  (.*~)|
- (.*\.py[co])|
+ (.*\.pyo)|
  (.*/RCS/.*)|
  (\..*)|
  ((admin|examples|welcome)\.tar)|
  (applications/(admin|examples)/.*)|
  )$
- 
