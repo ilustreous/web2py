@@ -176,5 +176,4 @@ def contenttype(filename):
     """
     i=filename.rfind('.')
     if i<0: return 'text/plain'
-    try: return CONTENT_TYPE[filename[i:].lower()]
-    except KeyError: return 'text/plain'
+    return CONTENT_TYPE.get(filename[i:].lower(), 'text/plain')
