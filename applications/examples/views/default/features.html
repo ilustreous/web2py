@@ -16,7 +16,7 @@
 <li>View/Template language with full Python support but with no indentation requirements. Example: 
 {{=CODE("{"+"{extend 'layout.html'}"+"}\n{"+"{for i in range(10):}"+"}hello{"+"{pass}"+"}")}}
 </li>
-<li>Object Relation Mapper (similar to SQLObjects) for interfacing the database in Python without SQL. Works with SQLite3, PostgreSQL, MySQL and Oracle (via cxOracle, experimental). It can do joins, orderby, groupby and limitby. Example:
+<li>Database Abstraction Layer for interfacing the database in Python without SQL. Works with SQLite3, PostgreSQL, MySQL, MSSQL, FireBird, and Oracle. It can do joins, orderby, groupby and limitby. Example:
 {{=CODE("""db.define_table('users',SQLField('name'))
 db().select(db.users.name)""")}}
 </li>
@@ -30,6 +30,7 @@ response.flash='record inserted'""")}}</li>
 <li>Designed for security. URLs are validated, forms are validated, template variables are escaped, SQL is escaped, no client side storage (other than session cookie) and it never exposes application code. FORMs enforce navigation and prevent double submission.</li>
 <li>A powerful and granular cache system can cache in ram/disk/both a single function, a database select, a controller or an entire page.
 <li>Does not require any third party library. Only Python 2.5 standard libraries.</li>
+<li>Runs on Google App Engine</li>
 <li>Includes libraries to read and parse RSS, CSV, JSON and to write RTF.
 <li>Applications can be compiled and distributed without source code</li>
 <li>WGSI compliant.</li>
