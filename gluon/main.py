@@ -236,7 +236,7 @@ def wsgibase(environ, responder):
             session._unlock(response)
             return HTTP(200,error_message_ticket % (ticket,ticket),\
                web2py_error='ticket %s'%ticket).to(responder)
-    except Exception, exception:
+    except:
         ###################################################
         # on application error, rollback database
         ###################################################
