@@ -39,5 +39,6 @@ try { $("input.datetime").focus( function() {Calendar.setup({
 try { $("input.time").clockpick({
      starthour:0, endhour:23, showminutes:true, military:true
 }); } catch(e) {};
+$("input:visible:enabled:first").focus();
 });
 //--></script>
