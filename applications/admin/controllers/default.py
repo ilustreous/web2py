@@ -205,9 +205,9 @@ def cleanup():
     for file in files: os.unlink(file)
     session.flash=T("cache, errors and sessions cleaned")
     files=listdir(apath('%s/cache/' % app),'cache.*',0)
-    for file in files: 
+    for file in files:
         try: os.unlink(file)
-        except Exception: session.flash=T("cache is in use, errors and sessions cleaned")
+        except: session.flash=T("some files could not be removed")
     redirect(URL(r=request,f='site'))
 
 def compile_app():
@@ -275,7 +275,7 @@ def edit():
     try:
         data=request.vars.data.replace('\r\n','\n').strip()
         open(apath(filename),'w').write(data)
-        response.flash=T("file saved on %(time)s",dict(time=time.ctime()))       
+        response.flash=T("file saved on %(time)s",dict(time=time.ctime()))
     except Exception: pass
     return dict(app=request.args[0],filename=filename,filetype=filetype,data=data)
 
