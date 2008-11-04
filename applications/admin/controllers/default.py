@@ -273,7 +273,7 @@ def edit():
     ### check if file is not there 
     data=open(apath(filename),'r').read()
     try:
-        data=request.vars.data.replace('\r\n','\n').strip()
+        data=request.vars.data.replace('\r\n','\n')
         open(apath(filename),'w').write(data)
         response.flash=T("file saved on %(time)s",dict(time=time.ctime()))
     except Exception: pass
