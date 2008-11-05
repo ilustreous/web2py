@@ -17,7 +17,7 @@ from globals import Request, Response, Session
 from compileapp import build_environment, run_models_in, run_controller_in, run_view_in
 from fileutils import listdir, copystream
 from contenttype import contenttype
-from rewrite import rewrite
+from rewrite import rewrite,error_message, error_message_ticket
 from xmlrpc import handler
 from sql import SQLDB
 import html
@@ -39,9 +39,6 @@ __all__=['wsgibase', 'save_password', 'appfactory', 'HttpServer']
 regex_url=re.compile('(?:^$)|(?:^\w+/?$)|(?:^\w+/\w+/?$)|(?:^(\w+/){2}\w+/?$)|(?:^(\w+/){2}\w+(/[\w\-]+(\.[\w\-]+)*)+$)|(?:^(\w+)/static(/[\w\-]+(\.[\w\-]+)*)+$)')
 # patter used to validate client address
 regex_client=re.compile('^\w+(\.\w+)*\.?')
-
-error_message='<html><body><h1>Invalid request</h1></body></html>'
-error_message_ticket='<html><body><h1>Internal error</h1>Ticket issued: <a href="/admin/default/ticket/%s" target="_blank">%s</a></body></html>'
 
 working_folder=os.getcwd()
 
@@ -234,7 +231,7 @@ def wsgibase(environ, responder):
                  ticket='unknown'
                  logging.error(e.traceback)
             session._unlock(response)
-            return HTTP(200,error_message_ticket % (ticket,ticket),\
+            return HTTP(500,error_message_ticket % dict(ticket=ticket),\
                web2py_error='ticket %s'%ticket).to(responder)
     except:
         ###################################################
@@ -248,7 +245,7 @@ def wsgibase(environ, responder):
             ticket='unrecoverable'
             logging.error(e.traceback)
         session._unlock(response)
-        return HTTP(200,error_message_ticket % (ticket,ticket),
+        return HTTP(500,error_message_ticket % dict(ticket=ticket),
                 web2py_error='ticket %s'%ticket).to(responder)
 
 wsgibase,html.URL=rewrite(wsgibase,html.URL)

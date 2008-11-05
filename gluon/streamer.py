@@ -25,7 +25,7 @@ def streamer(file,chunk_size=10**6,bytes=None):
 
 def stream_file_or_304_or_206(static_file,chunk_size=10**6,request=None,headers={},error_message=error_message):
     if not os.path.exists(static_file):
-         raise HTTP(400,error_message,web2py_error='invalid file')
+         raise HTTP(404,error_message,web2py_error='invalid file')
     stat_file=os.stat(static_file)
     fsize=stat_file[stat.ST_SIZE]
     mtime=time.strftime("%a, %d %b %Y %H:%M:%S GMT", time.gmtime(stat_file[stat.ST_MTIME]))

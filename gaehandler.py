@@ -4,6 +4,7 @@ import cPickle,pickle
 sys.modules['cPickle'] = sys.modules['pickle']
 import wsgiref.handlers
 import gluon.main
+mport logging
 
 debug = os.environ.get('SERVER_SOFTWARE','').startswith('Devel')
 
@@ -23,7 +24,9 @@ def log_stats(fun):
    else:
        return fun
 
-@log_stats
+### comment logging and uncomment @log_stats to enable logging of stats on GAE
+logging.basicConfig(level=35) 
+#@log_stats
 def wsgiapp(env,res):
   return gluon.main.wsgibase(env,res)
 
