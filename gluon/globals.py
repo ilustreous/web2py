@@ -157,7 +157,7 @@ class Session(Storage):
                  db.Field('created_datetime','datetime',default=now),
                  db.Field('modified_datetime','datetime'),
                  db.Field('unique_key',length=64),
-                 db.Field('session_data','text'),migrate=table_migrate)
+                 db.Field('session_data','blob'),migrate=table_migrate)
              try:
                  key=request.cookies[response.session_id_name].value
                  record_id,unique_key=key.split(':')
