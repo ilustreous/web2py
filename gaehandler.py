@@ -4,7 +4,7 @@ import cPickle,pickle
 sys.modules['cPickle'] = sys.modules['pickle']
 import wsgiref.handlers
 import gluon.main
-mport logging
+import logging
 
 debug = os.environ.get('SERVER_SOFTWARE','').startswith('Devel')
 
