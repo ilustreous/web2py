@@ -1,6 +1,6 @@
 #! /bin/sh
 ### BEGIN INIT INFO
-# startup script for Ubnutu and Debian Linux servers
+# startup script for Ubuntu and Debian Linux servers
 #
 # To use this file
 # cp ubuntu.sh /etc/init.d/web2py
