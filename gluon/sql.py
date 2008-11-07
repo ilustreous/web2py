@@ -227,7 +227,7 @@ def sql_represent(obj,fieldtype,dbname):
     elif fieldtype=='time':
         if isinstance(obj,datetime.time): obj=obj.strftime('%H:%M:%S')
         else: obj=str(obj)
-    else: obj=str(obj)
+    else: obj=str(obj).decode('utf8').encode('utf8')
     return "'%s'" % obj.replace("'","''")
 
 def cleanup(text):
