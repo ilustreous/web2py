@@ -80,7 +80,7 @@ def serve_controller(request,response,session):
         response.body=response.body.getvalue()
     raise HTTP(200,response.body,**response.headers)
 
-def checkErrorRoute(status, app):
+def check_error_route(status, app):
     """ Unless the error code is redirected, we want to send error messages out
     with HTTP status 200.  Otherwise IE won't display them. """
     
@@ -248,8 +248,8 @@ def wsgibase(environ, responder):
                  ticket='unknown'
                  logging.error(e.traceback)
             session._unlock(response)
-            HTTPstatus = checkErrorRoute(500, items[0])
-            return HTTP(HTTPstatus,error_message_ticket % dict(ticket=ticket),\
+            http_error_status = check_error_route(500, items[0])
+            return HTTP(http_error_status,error_message_ticket % dict(ticket=ticket),\
                web2py_error='ticket %s'%ticket).to(responder)
     except:
         ###################################################
@@ -263,8 +263,8 @@ def wsgibase(environ, responder):
             ticket='unrecoverable'
             logging.error(e.traceback)
         session._unlock(response)
-        HTTPstatus = checkErrorRoute(500, items[0])
-        return HTTP(HTTPstatus,error_message_ticket % dict(ticket=ticket),
+        http_error_status = check_error_route(500, items[0])
+        return HTTP(http_error_status,error_message_ticket % dict(ticket=ticket),
                 web2py_error='ticket %s'%ticket).to(responder)
 
 wsgibase,html.URL=rewrite(wsgibase,html.URL)

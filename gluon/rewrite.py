@@ -71,27 +71,27 @@ def rewrite(wsgibase,URL):
                 self.theRealSlimShady(self.status, self.headers)
         error_map = dict([(x[0], x) for x in error_list])
         error_list = list(error_list)
-        preTranslatedPath = envir['PATH_INFO']
-        respondWrap = responder_wrapper(responder)
-        routedEnviron = filter_in(envir)
-        app = routedEnviron['PATH_INFO'].strip('/').split('/')
+        pre_translated_path = envir['PATH_INFO']
+        respond_wrap = responder_wrapper(responder)
+        routed_environ = filter_in(envir)
+        app = routed_environ['PATH_INFO'].strip('/').split('/')
         if len(app) > 0: app = app[0]
         else: app = 'init'   ### THIS NEEDS FIX
-        data = wsgibase(routedEnviron, respondWrap.storeValues)
-        HTTPStatus = int(respondWrap.status.split()[0])
+        data = wsgibase(routed_environ, respond_wrap.storeValues)
+        http_status = int(respond_wrap.status.split()[0])
         body = data
-        if HTTPStatus >= 400:
+        if http_status >= 400:
             query = regex_iter.search(envir.get('query_string', ''))
             if query: query = query.groupdict()
             else: query = {}
             code = query.get('code')
-            ticket = dict(respondWrap.headers).get('web2py_error', 'None None')
+            ticket = dict(respond_wrap.headers).get('web2py_error', 'None None')
             if 'ticket' in ticket: ticket = ticket.split()[1]
             else: ticket = 'None'
             redir = []
-            for handler in [  '%s/%s' % (app, HTTPStatus)
+            for handler in [  '%s/%s' % (app, http_status)
                             , '%s/*' % app
-                            , '*/%s' % HTTPStatus
+                            , '*/%s' % http_status
                             , '*/*'
                             , None ]:
                 if handler and handler in error_map:
@@ -102,7 +102,7 @@ def rewrite(wsgibase,URL):
                     else:
                         redir.append(error_redir)
             redir.sort(lambda x, y: error_list.index(x) - error_list.index(y))
-            if redir and not preTranslatedPath.startswith(redir[0][1]) and HTTPStatus != code:
+            if redir and not pre_translated_path.startswith(redir[0][1]) and http_status != code:
                 redir = redir[0][1]
             elif len(redir) > 1: redir = redir[1][1]
             else: redir = None
@@ -110,13 +110,13 @@ def rewrite(wsgibase,URL):
                 if '?' in redir: url = redir+'&'
                 else: url = redir+'?'
                 url += "code=%s&ticket=%s"
-                url %= (HTTPStatus, ticket)
+                url %= (http_status, ticket)
                 response = HTTP(303
                                 ,'You are being redirected <a href="%s">here</a>.' % url
                                 ,Location=url)
                 return response.to(responder)
                 
-        respondWrap.sendIt()
+        respond_wrap.sendIt()
         return body
     if 'routes_onerror' in symbols:
         wsgibase_new=lambda e, r: handle_errors(e, r, symbols['routes_onerror'])
