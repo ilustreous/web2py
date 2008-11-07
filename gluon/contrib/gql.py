@@ -297,7 +297,7 @@ def obj_represent(object,fieldtype,db):
 	        object=datetime.datetime(y,m,d,h,mi,s)
 	    elif fieldtype=='integer' and not isinstance(object,long):
 	        object = long(object)
-
+            elif isinstance(object,str): object=object.decode('utf8')
 	return object
 
 class QueryException:
