@@ -185,7 +185,7 @@ SQL_DIALECTS={'sqlite':{'boolean':'CHAR(1)',
 def sqlhtml_validators(field_type,length):
     v={'boolean':[],
        'string':validators.IS_LENGTH(length),
-       'text':validators.IS_LENGTH(2**32),
+       'text':validators.IS_LENGTH(2**16),
        'password':validators.IS_LENGTH(length),
        'blob':[],
        'upload':[],
