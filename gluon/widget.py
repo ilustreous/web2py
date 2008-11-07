@@ -27,10 +27,6 @@ try:
 except:
     havetk=False
     
-print ProgramName
-print ProgramAuthor
-print ProgramVersion
-
 from gluon.main import HttpServer, save_password
 from gluon.fileutils import tar, untar
 from optparse import *
@@ -226,7 +222,7 @@ def console():
     parser.description=description
     parser.add_option('-i','--ip',default='127.0.0.1',dest='ip',
                   help='the ip address of the server (127.0.0.1)')
-    parser.add_option('-p','--port',default='8000',dest='port',
+    parser.add_option('-p','--port',default='8000',dest='port', type='int',
                   help='the port for of server (8000)')
     parser.add_option('-a','--password',default='<ask>',dest='password',
                   help='the password to be used for administration'+\
@@ -245,19 +241,19 @@ def console():
     parser.add_option('-l','--log_filename',default='httpserver.log',
                   dest='log_filename',
                   help='file where to log connections')
-    parser.add_option('-n','--numthreads',default='10',
+    parser.add_option('-n','--numthreads',default='10', type='int',
                   dest='numthreads',
                   help='number of threads')
     parser.add_option('-s','--server_name',default=socket.gethostname(),
                   dest='server_name',
                   help='the server name for the web server')
-    parser.add_option('-q','--request_queue_size',default='5',
+    parser.add_option('-q','--request_queue_size',default='5', type='int',
                   dest='request_queue_size',
                   help='max number of queued requests when server unavailable')
-    parser.add_option('-o','--timeout',default='10',
+    parser.add_option('-o','--timeout',default='10', type='int',
                   dest='timeout',
                   help='timeout for individual request')
-    parser.add_option('-z','--shutdown_timeout',default='5',
+    parser.add_option('-z','--shutdown_timeout',default='5', type='int',
                   dest='shutdown_timeout',
                   help='timeout on shutdown of server')
     parser.add_option('-f','--folder',default=os.getcwd(),
@@ -266,6 +262,12 @@ def console():
     parser.add_option('-v', '--verbose',
                   action='store_true', dest='verbose', default=False,
                   help='increase --test verbosity')
+    parser.add_option('-Q', '--quiet', action="store_true",
+                  dest='quiet', default=False,
+                  help='disable all output')
+    parser.add_option('-D', '--debug', 
+                  dest='debuglevel', default=30, type='int',
+                  help='set debug output level (0-100, 0 means all, 100 means none, default is 30)')
     parser.add_option('-S', '--shell',
                   dest='shell', metavar='APPNAME',
                   help='run web2py in interactive shell or IPython(if installed) with specified appname')
@@ -284,6 +286,16 @@ def console():
     parser.add_option('-L', '--config', dest='config', default='',
                   help='Config file')
     (options, args) = parser.parse_args()
+
+    import logging
+    if options.quiet:
+        import StringIO
+        capture = StringIO.StringIO()
+        sys.stdout = capture
+        logging.getLogger().setLevel(logging.CRITICAL+1)
+    else:
+        logging.getLogger().setLevel(options.debuglevel)
+
     if options.config[-3:]=='.py': options.config=options.config[:-3]
     if not os.path.exists('applications'): os.mkdir('applications')
     if not os.path.exists('deposit'): os.mkdir('deposit')
@@ -307,6 +319,10 @@ def console():
 def start():
     ### get command line arguments
     options,args=console()
+    print ProgramName
+    print ProgramAuthor
+    print ProgramVersion
+
     ### if -W install/start/stop web2py as service
     if options.winservice:
         if os.name=='nt': 
