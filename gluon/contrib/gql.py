@@ -421,6 +421,7 @@ class SQLSet(object):
         self.colnames=['%s.%s'%(tablename,t) for t in fields]
         return self._db[tablename]._tableobj.get_by_id(long(id)),fields
     def _select_except(self):
+        if not self.where.id: return SQLRows(self._db,[])
         item,fields=self._getitem_exception()
         if not item: return []
         new_item=[]
