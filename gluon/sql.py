@@ -924,14 +924,15 @@ class SQLField(SQLXorable):
         s=self._db._translator["extract"] % dict(name='second',field=str(self))
         return SQLXorable(s,'integer',self._db)
     def count(self):
-        return 'COUNT(%s)' % str(self)
+        return SQLXorable('COUNT(%s)' % str(self),'integer',self._db)
     def sum(self):
-        return 'SUM(%s)' % str(self)
+        return SQLXorable('SUM(%s)' % str(self),'integer',self._db)
     def max(self):
-        return 'MAX(%s)' % str(self)
+        return SQLXorable('MAX(%s)' % str(self),'integer',self._db)
     def min(self):
-        return 'MIN(%s)' % str(self)
-    def __str__(self): return '%s.%s' % (self._tablename,self.name)
+        return SQLXorable('MIN(%s)' % str(self),'integer',self._db)
+    def __str__(self):
+        return '%s.%s' % (self._tablename,self.name)
 
 SQLDB.Field=SQLField # necessary in gluon/globals.py session.connect
 
@@ -1018,7 +1019,7 @@ class SQLSet(object):
         else: return SQLSet(self._db,where)
     def _select(self,*fields,**attributes):
         valid_attributes=['orderby','groupby','limitby','required',
-                          'default','requires','left','distinct']
+                          'default','requires','left','distinct','having']
         if [key for key in attributes.keys() if not key in valid_attributes]:
             raise SyntaxError, 'invalid select attribute'
         ### if not fields specified take them all from the requested tables
@@ -1050,6 +1051,8 @@ class SQLSet(object):
             sql_t=', '.join(tablenames)
         if attributes.get('groupby',False):
             sql_o+=' GROUP BY %s'% attributes['groupby']
+            if attributes.get('having',False):
+                sql_o+=' HAVING %s'% attributes['having']
         if attributes.get('orderby',False):
             if str(attributes.get('orderby',''))=='<random>':
                 sql_o+=' ORDER BY %s' % self._db._translator['random']
