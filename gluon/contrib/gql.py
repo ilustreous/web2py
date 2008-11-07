@@ -53,7 +53,7 @@ def dateobj_to_datetime(object):
 def sqlhtml_validators(field_type,length):
     v={'boolean':[],
        'string':validators.IS_LENGTH(length),
-       'text':[],
+       'text':validators.IS_LENGTH(2**32),
        'password':validators.IS_LENGTH(length),
        'blob':[],
        'upload':[],

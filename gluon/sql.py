@@ -185,7 +185,7 @@ SQL_DIALECTS={'sqlite':{'boolean':'CHAR(1)',
 def sqlhtml_validators(field_type,length):
     v={'boolean':[],
        'string':validators.IS_LENGTH(length),
-       'text':[],
+       'text':validators.IS_LENGTH(2**32),
        'password':validators.IS_LENGTH(length),
        'blob':[],
        'upload':[],
@@ -227,7 +227,7 @@ def sql_represent(obj,fieldtype,dbname):
     elif fieldtype=='time':
         if isinstance(obj,datetime.time): obj=obj.strftime('%H:%M:%S')
         else: obj=str(obj)
-    else: obj=str(obj).decode('utf8').encode('utf8')
+    else: obj=str(obj)
     return "'%s'" % obj.replace("'","''")
 
 def cleanup(text):
