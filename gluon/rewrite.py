@@ -24,7 +24,7 @@ def rewrite(wsgibase,URL):
     if not os.path.exists('routes.py'): return wsgibase,URL
     logging.warning('URL rewrite is on. configuration in route.py')
     routes_in=[]
-    if symbols.has_key('routes_in'):
+    if 'routes_in' in symbols:
         for k,v in symbols['routes_in']:
             if not k[0]=='^': k='^%s'%k
             if not k[-1]=='$': k='%s$'%k
@@ -35,7 +35,7 @@ def rewrite(wsgibase,URL):
                 v=v.replace(item,'\\g<%s>'%item[1:])
             routes_in.append((re.compile(k,re.DOTALL),v))
     routes_out=[]
-    if symbols.has_key('routes_out'):
+    if 'routes_out' in symbols:
         for k,v in symbols['routes_out']:
             if not k[0]=='^': k='^%s'%k
             if not k[-1]=='$': k='%s$'%k
@@ -86,7 +86,8 @@ def rewrite(wsgibase,URL):
             else: query = {}
             code = query.get('code')
             ticket = dict(respondWrap.headers).get('web2py_error', 'None None')
-            ticket = urllib.quote(ticket.split(' ')[1])
+            if 'ticket' in ticket: ticket = ticket.split()[1]
+            else: ticket = 'None'
             redir = []
             for handler in [  '%s/%s' % (app, HTTPStatus)
                             , '%s/*' % app
@@ -94,7 +95,12 @@ def rewrite(wsgibase,URL):
                             , '*/*'
                             , None ]:
                 if handler and handler in error_map:
-                    redir.append(error_map[handler])
+                    error_redir = error_map[handler]
+                    if error_redir[1] == '!':
+                        redir = []
+                        break
+                    else:
+                        redir.append(error_redir)
             redir.sort(lambda x, y: error_list.index(x) - error_list.index(y))
             if redir and not preTranslatedPath.startswith(redir[0][1]) and HTTPStatus != code:
                 redir = redir[0][1]

@@ -19,8 +19,7 @@ from http import HTTP, redirect
 import os, marshal, imp, types, doctest, logging
 try: import py_compile
 except: logging.warning("unable to import py_compile")
-
-error_message='<html><body><h1>Invalid request</h1>%s</body></html>'
+from rewrite import error_message
 
 TEST_CODE=r"""
 def _TEST():

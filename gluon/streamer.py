@@ -6,11 +6,10 @@ Developed in Python by Massimo Di Pierro <mdipierro@cs.depaul.edu>
 import os,stat,time,re
 from http import HTTP
 from contenttype import contenttype
+from rewrite import error_message
 
 regex_start_range=re.compile('\d+(?=\-)')
 regex_stop_range=re.compile('(?<=\-)\d+')
-
-error_message='<html><body><h1>Invalid request</h1></body></html>'
 
 def streamer(file,chunk_size=10**6,bytes=None):
     offset=0
@@ -43,13 +42,13 @@ def stream_file_or_304_or_206(static_file,chunk_size=10**6,request=None,headers=
         part=(int(start_items[0]),int(stop_items[0]),fsize)
         bytes=part[1]-part[0]+1
         try: stream=open(static_file,'rb')
-        except IOError: raise HTTP(400)
+        except IOError: raise HTTP(404)
         stream.seek(part[0])
         headers['Content-Range']='bytes %i-%i/%i' % part
         headers['Content-Length']='%i' % (bytes)
         raise HTTP(206,streamer(stream,chunk_size=chunk_size,bytes=bytes),**headers)
     else:
         try: stream=open(static_file,'rb')
-        except IOError: raise HTTP(400)
+        except IOError: raise HTTP(404)
         headers['Content-Length']=fsize
         raise HTTP(200,streamer(stream,chunk_size=chunk_size),**headers)

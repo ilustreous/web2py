@@ -17,7 +17,7 @@ from globals import Request, Response, Session
 from compileapp import build_environment, run_models_in, run_controller_in, run_view_in
 from fileutils import listdir, copystream
 from contenttype import contenttype
-from rewrite import rewrite,error_message, error_message_ticket
+from rewrite import rewrite, error_message, error_message_ticket, symbols as rewriteSymbols
 from xmlrpc import handler
 from sql import SQLDB
 import html
@@ -80,6 +80,21 @@ def serve_controller(request,response,session):
         response.body=response.body.getvalue()
     raise HTTP(200,response.body,**response.headers)
 
+def checkErrorRoute(status, app):
+    """ Unless the error code is redirected, we want to send error messages out
+    with HTTP status 200.  Otherwise IE won't display them. """
+    
+    error_list = rewriteSymbols.get('routes_onerror', [])
+    error_map = dict(list(error_list))
+
+    if not error_list: return 200
+    for redir in [x[0] for x in error_list]:
+        if redir.endswith('/%s' % status) and error_map[redir] != '!':
+            return status
+        if (redir == '%s/*' % app or redir == '*/*') and error_map[redir] != '!':
+            return status
+    return 200
+    
 def wsgibase(environ, responder):
     """
     this is the gluon wsgi application. the furst function called when a page
@@ -233,7 +248,8 @@ def wsgibase(environ, responder):
                  ticket='unknown'
                  logging.error(e.traceback)
             session._unlock(response)
-            return HTTP(500,error_message_ticket % dict(ticket=ticket),\
+            HTTPstatus = checkErrorRoute(500, items[0])
+            return HTTP(HTTPstatus,error_message_ticket % dict(ticket=ticket),\
                web2py_error='ticket %s'%ticket).to(responder)
     except:
         ###################################################
@@ -247,7 +263,8 @@ def wsgibase(environ, responder):
             ticket='unrecoverable'
             logging.error(e.traceback)
         session._unlock(response)
-        return HTTP(500,error_message_ticket % dict(ticket=ticket),
+        HTTPstatus = checkErrorRoute(500, items[0])
+        return HTTP(HTTPstatus,error_message_ticket % dict(ticket=ticket),
                 web2py_error='ticket %s'%ticket).to(responder)
 
 wsgibase,html.URL=rewrite(wsgibase,html.URL)

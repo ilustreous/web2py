@@ -21,6 +21,7 @@ routes_out=( ('/init/static/js/(?P<js>[\w\./_-]+)','/js/\g<js>'), )
 routes_onerror = (
      ('*/401' , '/init/default/login')
     ,('init/501' , '/init/default/logout')
+    ,('*/404' , '!')
     ,('test/*' , '/init/default/login2')
     ,('*/*', '/init/default/error')
 )
@@ -141,24 +142,32 @@ class ErrorHandlingRoutesTest(unittest.TestCase):
         self.assertEqual(self.response, ['You are being redirected <a href="/init/default/login?code=401&ticket=None">here</a>.'], "Got wrong response back: %s" % self.response)
 
     def testDefaultErrorHandling(self):
+        codedict = {'/init/static/js/blargh.js': 405 }
+        self.envir = dict( PATH_INFO = "/js/blargh.js"
+                         , REMOTE_ADDR = "localhost"
+                         , CODE_DICT = codedict)
+        self.response = self.wsgibase(self.envir, NullFunction)
+        self.assertEqual(self.response, ['You are being redirected <a href="/init/default/error?code=405&ticket=None">here</a>.'], "Got wrong response back: %s" % self.response)
+
+    def testOverrideErrorHandling(self):
         codedict = {'/init/static/js/blargh.js': 404 }
         self.envir = dict( PATH_INFO = "/js/blargh.js"
                          , REMOTE_ADDR = "localhost"
                          , CODE_DICT = codedict)
         self.response = self.wsgibase(self.envir, NullFunction)
-        self.assertEqual(self.response, ['You are being redirected <a href="/init/default/error?code=404&ticket=None">here</a>.'], "Got wrong response back: %s" % self.response)
+        self.assertEqual(self.response, ['Complete Utter Failure'], "Got wrong response back: %s" % self.response)
 
     def testErrorHandlingError(self):
-        codedict = {'/init/static/js/blargh.js': 404
+        codedict = {'/init/static/js/blargh.js': 405
                     ,'/init/default/error': 500
-                    ,'/init/default/error?code=404&ticket=None' : 500
+                    ,'/init/default/error?code=405&ticket=None' : 500
                     ,'/init/default/error?code=500&ticket=None' : 500
                     ,'/init/static/lastResort.html?code=500&ticket=None' : 404}
         self.envir = dict( PATH_INFO = "/js/blargh.js"
                          , REMOTE_ADDR = "localhost"
                          , CODE_DICT = codedict)
         self.response = self.wsgibase(self.envir, NullFunction)
-        self.assertEqual(self.response, ['You are being redirected <a href="/init/default/error?code=404&ticket=None">here</a>.'], "Got wrong response back: %s" % self.response)
+        self.assertEqual(self.response, ['You are being redirected <a href="/init/default/error?code=405&ticket=None">here</a>.'], "Got wrong response back: %s" % self.response)
         r = self.response[0]
         newURL = r[r.find('href="')+6:r.rfind('">')]
         self.envir = dict( PATH_INFO = newURL
