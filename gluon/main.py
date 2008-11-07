@@ -38,14 +38,16 @@ __all__=['wsgibase', 'save_password', 'appfactory', 'HttpServer']
 # pattern to find valid paths in url /application/controller/...
 regex_url=re.compile('(?:^$)|(?:^\w+/?$)|(?:^\w+/\w+/?$)|(?:^(\w+/){2}\w+/?$)|(?:^(\w+/){2}\w+(/[\w\-]+(\.[\w\-]+)*)+$)|(?:^(\w+)/static(/[\w\-]+(\.[\w\-]+)*)+$)')
 # patter used to validate client address
-regex_client=re.compile('^\w+(\.\w+)*\.?')
+regex_client=re.compile('[\w\-]+(\.[\w\-]+)*\.?')
 
 working_folder=os.getcwd()
 
 def get_client(env):
-    g=regex_client.match(env.get('http_x_forwarded_for',''))
+    g=regex_client.search(env.get('http_x_forwarded_for',''))
     if g: return g.group()
-    else: return env.remote_addr
+    g=regex_client.search(env.get('remote_addr',''))
+    if g: return g.group()
+    return '127.0.0.1'
 
 def serve_controller(request,response,session):
     """
