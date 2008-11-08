@@ -5,6 +5,10 @@ editAreaLoader.init({id: "body",start_highlight: true,allow_resize: "both",allow
 
 <h1>Editing file "{{=filename}}"</h1><br/><br/>
 
+{{if controller:}}
+<div style="text-align:right;">[<a href="{{=controller}}">edit controller</a>]</div>
+{{pass}}
+
 <form action="/{{=request.application}}/default/edit/{{=filename}}" method="post">
 <input type="submit" value="save"/><br/>
 <textarea cols="80" rows="25" id="body" style="width: 100%;" name="data">{{=data}}</textarea>

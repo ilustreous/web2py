@@ -277,8 +277,12 @@ def edit():
         open(apath(filename),'w').write(data)
         response.flash=T("file saved on %(time)s",dict(time=time.ctime()))
     except Exception: pass
-    return dict(app=request.args[0],filename=filename,filetype=filetype,data=data)
-
+    controller=None
+    if filetype=='html' and request.args>=3:
+        filename=os.path.join(request.args[0],'controllers',request.args[2]+'.py')
+        if os.path.exists(apath(filename)):
+            controller=URL(r=request,f='edit',args=[filename])
+    return dict(app=request.args[0],filename=filename,filetype=filetype,data=data,controller=controller)
 
 def edit_language():
     """ admin controller function """
