@@ -199,6 +199,7 @@ def sqlhtml_validators(field_type,length):
     except KeyError: return []
 
 def sql_represent(obj,fieldtype,dbname):    
+    if isinstance(obj,(SQLXorable,SQLField)): return obj
     if obj is None: return 'NULL'
     if obj=='' and fieldtype[:2] in ['id','in','re','da','ti','bo']: 
         return 'NULL'
