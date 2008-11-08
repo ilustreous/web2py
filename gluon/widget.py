@@ -107,7 +107,8 @@ class web2pyDialog(object):
         self.menu.add_cascade(label="Info", menu=helpmenu)
 
         self.root.config(menu=self.menu)
-        self.root.protocol("WM_DELETE_WINDOW", self.quit)
+        if options.taskbar: self.root.protocol("WM_DELETE_WINDOW", lambda: self.quit(True))
+        else: self.root.protocol("WM_DELETE_WINDOW", self.quit)
         sticky=Tkinter.NW
         Tkinter.Label(self.root, text="Choose a password:",justify=Tkinter.LEFT).grid(row=0,column=0,sticky=sticky)
         self.password = Tkinter.Entry(self.root,show='*')
@@ -130,7 +131,25 @@ class web2pyDialog(object):
         self.button_stop=Tkinter.Button(frame,text='stop server',command=self.stop)
         self.button_stop.grid(row=0, column=1)
         self.button_stop.configure(state='disabled')
-
+        if options.taskbar:
+            import contrib.taskbar_widget
+            self.tb=contrib.taskbar_widget.TaskBarIcon("web2py.ico")
+            self.checkTaskBar()
+            if options.password != '<ask>':
+                self.password.insert(0,options.password)
+                self.start()                
+                self.root.withdraw()
+    def checkTaskBar(self):
+        if self.tb.status:            
+            if self.tb.status[0] == self.tb.EnumStatus.KILL:
+                self.quit()
+            elif self.tb.status[0] ==self.tb.EnumStatus.SHOW:
+                self.root.deiconify()
+            elif self.tb.status[0] == self.tb.EnumStatus.RESTART:
+                self.stop()
+                self.start()
+            del self.tb.status[0]
+        self.root.after(1000,self.checkTaskBar)
     def update(self,text):
         try:
             self.text.configure(state='normal')
@@ -142,11 +161,16 @@ class web2pyDialog(object):
             if os.path.exists('applications/%s/__init__.py' % file):
                 url=self.url+'/'+file
                 self.pagesmenu.add_command(label=url, command=lambda u=url:try_start_browser(u))
-    def quit(self):
-        try: self.server.stop()
-        except: pass
-        self.root.destroy()
-        sys.exit()
+    def quit(self,justHide=False):
+        if justHide:
+            self.root.withdraw() 
+        else:
+            try: self.server.stop()
+            except: pass
+            try: self.tb.Destroy()
+            except: pass
+            self.root.destroy()
+            sys.exit()
     def error(self,message):
         tkMessageBox.showerror("web2py start server",message)
         return
@@ -181,7 +205,8 @@ class web2pyDialog(object):
             self.button_start.configure(state='normal')
             return self.error(str(e))
         self.button_stop.configure(state='normal')
-        thread.start_new_thread(start_browser,(ip,port))
+        if not options.taskbar:
+            thread.start_new_thread(start_browser,(ip,port))
         self.password.configure(state='readonly')
         self.ip.configure(state='readonly')
         self.port_number.configure(state='readonly')
@@ -285,6 +310,9 @@ def console():
                   help='-W install|start|stop as windows service')
     parser.add_option('-L', '--config', dest='config', default='',
                   help='Config file')
+    parser.add_option('-t', '--taskbar',
+                  action='store_true', dest='taskbar', default=False,
+                  help='Use web2py gui and run in taskbar (system tray)')
     (options, args) = parser.parse_args()
 
     import logging
@@ -347,9 +375,15 @@ def start():
         except Exception:
             print "Cannot import config file [%s]" % options.config
             sys.exit(1)
-    ### if no passwors provided and havetk start Tk interface
+    ### if no password provided and havetk start Tk interface
+    ### or start interface if we want to put in taskbar (system tray)
+    try: options.taskbar
+    except: options.taskbar = False
+    if options.taskbar and os.name != 'nt':
+        print 'Error: taskbar not supported on this platform'
+        sys.exit(1)
     root=None
-    if options.password=='<ask>' and havetk:
+    if (options.password=='<ask>' and havetk) or (options.taskbar and havetk):
         try: root=Tkinter.Tk()
         except: pass
     if root:
