@@ -837,13 +837,13 @@ class SQLXorable(object):
     def belongs(self,value): return SQLQuery(self,' IN ',value)
     # for use in both SQLQuery and sortby
     def __add__(self,other): 
-        return SQLXorable('%s+%s'%(self,other),'float',None)
+        return SQLXorable('(%s+%s)'%(self,sql_represent(other,self.type,self._db._dbname)),self.type,self._db)
     def __sub__(self,other):
-        return SQLXorable('%s-%s'%(self,other),'float',None)
+        return SQLXorable('(%s-%s)'%(self,sql_represent(other,self.type,self._db._dbname)),self.type,self._db)
     def __mul__(self,other):
-        return SQLXorable('%s*%s'%(self,other),'float',None)
+        return SQLXorable('(%s*%s)'%(self,sql_represent(other,self.type,self._db._dbname)),self.type,self._db)
     def __div__(self,other):
-        return SQLXorable('%s/%s'%(self,other),'float',None)
+        return SQLXorable('(%s/%s)'%(self,sql_represent(other,self.type,self._db._dbname)),self.type,self._db)
 
 class SQLField(SQLXorable):
     """
