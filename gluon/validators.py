@@ -257,7 +257,7 @@ class IS_URL(IS_MATCH):
     INPUT(_type='text',_name='name',requires=IS_URL())
     """
     def __init__(self,error_message='invalid url!'):
-        IS_MATCH.__init__(self,'^(http|HTTP|https|HTTPS|ftp|FTP|file|FILE|rstp|RSTP)\://([\w]+\.)*\w+(:\d+)?(/\w+)*/?(\?[\w/=&\.%]+)?$',error_message)
+        IS_MATCH.__init__(self,'^(http|HTTP|https|HTTPS|ftp|FTP|file|FILE|rstp|RSTP)\://([\w\-]+\.)*\w+(:\d+)?(/[\w\-]+)*/?(\?[\w/=&\.%]+)?$',error_message)
 
 regex_time=re.compile('((?P<h>[0-9]+))([^0-9 ]+(?P<m>[0-9 ]+))?([^0-9ap ]+(?P<s>[0-9]*))?((?P<d>[ap]m))?')
 
