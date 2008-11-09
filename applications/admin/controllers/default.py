@@ -146,7 +146,9 @@ def site():
                  os.rmdir(path)
             response.flash=T('unable to install application "%(appname)s"',dict(appname=request.vars.filename))
     regex=re.compile('^\w+$')
-    apps=[file for file in os.listdir(apath()) if regex.match(file)]
+    apps=[(file.upper(),file) for file in os.listdir(apath()) if regex.match(file)]
+    apps.sort()
+    apps=[item[1] for item in apps]
     return dict(app=None,apps=apps)
 
 def pack():        
@@ -264,7 +266,7 @@ def test():
 
 def edit():
     """ admin controller function """
-    filename='/'.join(request.args)    
+    filename='/'.join(request.args)
     if filename[-3:]=='.py': filetype='python'
     elif filename[-5:]=='.html': filetype='html'
     elif filename[-4:]=='.css': filetype='css'
@@ -273,15 +275,15 @@ def edit():
     ### check if file is not there 
     data=open(apath(filename),'r').read()
     try:
-        data=request.vars.data.replace('\r\n','\n')
+        data=request.vars.data.replace('\r\n','\n').strip()+'\n'
         open(apath(filename),'w').write(data)
         response.flash=T("file saved on %(time)s",dict(time=time.ctime()))
     except Exception: pass
     controller=None
     if filetype=='html' and request.args>=3:
-        filename=os.path.join(request.args[0],'controllers',request.args[2]+'.py')
-        if os.path.exists(apath(filename)):
-            controller=URL(r=request,f='edit',args=[filename])
+        cfilename=os.path.join(request.args[0],'controllers',request.args[2]+'.py')
+        if os.path.exists(apath(cfilename)):
+            controller=URL(r=request,f='edit',args=[cfilename])
     return dict(app=request.args[0],filename=filename,filetype=filetype,data=data,controller=controller)
 
 def edit_language():
@@ -397,12 +399,13 @@ def create_file():
             text=""
         else:
             redirect(request.vars.sender)
-        filename=os.path.join(path,filename)
-        dirpath=os.path.dirname(filename)
+        full_filename=os.path.join(path,filename)
+        dirpath=os.path.dirname(full_filename)
         if not os.path.exists(dirpath): os.makedirs(dirpath)
-        if os.path.exists(filename): raise SyntaxError
-        open(filename,'w').write(text)
-        session.flash=T('file "%(filename)s" created',dict(filename=filename[len(path):]))
+        if os.path.exists(full_filename): raise SyntaxError
+        open(full_filename,'w').write(text)
+        session.flash=T('file "%(filename)s" created',dict(filename=full_filename[len(path):]))
+        redirect(URL(r=request,f='edit',args=[os.path.join(request.vars.location,filename)]))
     except Exception, e:
         session.flash=T('cannot create file')
     redirect(request.vars.sender)
