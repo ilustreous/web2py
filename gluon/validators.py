@@ -120,8 +120,8 @@ class IS_IN_DB(object):
     def __init__(self,dbset,field,label=None,error_message='value not in database!'):
         if hasattr(dbset,'define_table'): self.dbset=dbset()
         else: self.dbset=dbset        
-        ktable,kfield=str(field).split('.')
-        self.field=self.dbset._db[ktable][kfield]
+        self.field=field
+        ktable,kfield=str(self.field).split('.')
         if not label:
             label='%%(%s)s' % kfield
         elif regex1.match(str(label)):
@@ -156,8 +156,10 @@ class IS_IN_DB(object):
         if self.theset: 
             if value in self.theset:
                 return (value,None)
-        else:            
-            if len(self.dbset(self.field==value).select(limitby=(0,1))):
+        else:
+            ktable,kfield=str(self.field).split('.')
+            field=self.dbset._db[ktable][kfield]
+            if len(self.dbset(field==value).select(limitby=(0,1))):
                  return (value,None)
         return (value,self.error_message)         
 
@@ -172,13 +174,14 @@ class IS_NOT_IN_DB(object):
     def __init__(self,dbset,field,error_message='value already in database!'):
         if hasattr(dbset,'define_table'): self.dbset=dbset()
         else: self.dbset=dbset
-        tablename,fieldname=str(field).split('.')
-        self.field=self.dbset._db[tablename][fieldname]
+        self.field=field
         self.error_message=error_message
         self.record_id=0
     def set_self_id(self,id): self.record_id=id
     def __call__(self,value):
-        rows=self.dbset(self.field==value).select(limitby=(0,1))
+        tablename,fieldname=str(self.field).split('.')
+        field=self.dbset._db[tablename][fieldname]
+        rows=self.dbset(field==value).select(limitby=(0,1))
         if len(rows)>0 and str(rows[0].id)!=str(self.record_id): 
             return (value,self.error_message)
         return (value,None)

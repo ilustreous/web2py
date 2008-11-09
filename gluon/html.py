@@ -4,7 +4,7 @@ Developed by Massimo Di Pierro <mdipierro@cs.depaul.edu>
 License: GPL v2
 """
 
-import cgi, re, random, copy, sys, types, urllib, tokenize, keyword, base64
+import cgi, re, random, copy, sys, types, urllib, tokenize, keyword, base64, uuid
 from storage import Storage
 from validators import *
 from highlight import highlight
@@ -101,7 +101,8 @@ class DIV(object):
         self.errors=Storage()
         self.vars=Storage()
         self.session=None
-        self.formname=None
+        self.key=None  ### stores unique key of forms        
+        self.formname=None  ### stores name of forms
     def append(self,value):
         return self.components.append(value)
     def insert(self,i,value):
@@ -124,10 +125,7 @@ class DIV(object):
     def rec_clear(self,clear_attributes_value=False):
         if hasattr(self,'attributes'):
             if clear_attributes_value:
-                if self.attributes.has_key('default'):
-                     self['value']=self['default']
-                else: 
-                     self['value']=''
+                self['value']=self.attributes.get('default','')
                 self.postprocessing()
             if self.attributes.has_key('value'):
                 self['default']=self['value']        
@@ -138,25 +136,9 @@ class DIV(object):
                 c.session=self.session
                 c.formname=self.formname
                 c.rec_clear(clear_attributes_value)
-    def accepts(self,vars,session=None,formname='default',keepvalues=False):
-        self.errors=Storage()
-        self.session=session
-        self.formname=formname
-        self.rec_clear()
-        _formkey='_formkey[%s]' % formname
-        if session!=None and session.has_key(_formkey):
-            _formkey_value=session[_formkey]
-            del session[_formkey]
-            if not vars.has_key('_formkey') or \
-               vars['_formkey']!=_formkey_value:
-                return False
-        if formname and formname!=vars._formname: return False
-        self.rec_accepts(vars)
-        if not len(self.errors) and not keepvalues: self.rec_clear(True)
-        return len(self.errors)==0        
     def rec_accepts(self,vars):
         for c in self.components:            
-            if hasattr(c,'rec_accepts'): c.rec_accepts(vars)            
+            if hasattr(c,'rec_accepts'): c.rec_accepts(vars)
     def _xml(self):
         items=self.attributes.items()
         fa=''
@@ -164,7 +146,7 @@ class DIV(object):
              if key[:1]!='_': continue
              name=key[1:].lower()
              if value is True: value=name
-             elif value is False or value is None: continue  
+             elif value is False or value is None: continue 
              fa+=' %s="%s"'%(name,xmlescape(value,True))
         co=''.join([xmlescape(component) for component in self.components])
         return fa,co
@@ -371,16 +353,13 @@ class INPUT(DIV):
                        del self['_checked']
             elif self['_type']=='text':
                    self['_value']=self['value']
-        elif not self.attributes.has_key('_type') and \
-           self.attributes.has_key('value') and self['value']!=None:
+        elif not self.attributes.has_key('_type') and self.attributes.get('value',None):
             self['_value']=self['value']
     def rec_accepts(self,vars):
         if not self.attributes.has_key('_name'): return True
         name=self['_name']
         if vars.has_key(name): value=vars[name]
-        elif self.attributes.has_key('value') and \
-           self['value']!=None: value=self['value']
-        else: value=''
+        else: value=self.attributes.get('value','')
         if isinstance(value,(str,unicode)): self['value']=value
         self.postprocessing()
         if isinstance(value,cgi.FieldStorage): self['value']=value
@@ -475,20 +454,33 @@ class FORM(DIV):
         if not self.attributes.has_key('_action'): self['_action']=""
         if not self.attributes.has_key('_method'): self['_method']="post"
         if not self.attributes.has_key('_enctype'): self['_enctype']="multipart/form-data"
+
+    def accepts(self,vars,session=None,formname='default',keepvalues=False):
+        self.errors=Storage()
+        self.session=session
+        self.formname=formname
+        self.rec_clear()
+        _formkey='_formkey[%s]' % formname
+        if session!=None and vars._formkey!=session.get(_formkey,None): ret=False
+        elif formname and formname!=vars._formname: ret=False
+        else:
+            self.rec_accepts(vars)
+            ret=True
+        if session!=None: self.key=session[_formkey]=str(uuid.uuid4())
+        else: self.key=None
+        if not ret: return False
+        if not len(self.errors) and not keepvalues: self.rec_clear(True)
+        return len(self.errors)==0
     def xml(self):
         newform=FORM(*self.components,**self.attributes)
         c=newform.components
-        if self.session!=None:
-           _formkey='_formkey[%s]' % self.formname
-           key=self.session[_formkey]=str(random.random())[2:]
-           c.append(INPUT(_type='hidden',_name='_formkey',_value=key))
-        if self.formname!=None:
-           c.append(INPUT(_type='hidden',_name='_formname',\
-                          _value=self.formname))
         if self.attributes.has_key('hidden'):
-           hidden=self['hidden']
-           for key,value in hidden.items():
+           for key,value in self.attributes.get('hidden',{}).items():
                c.append(INPUT(_type='hidden',_name=key,_value=value))
+        if self.key:
+           c.append(INPUT(_type='hidden',_name='_formkey',_value=self.key))
+        if self.formname:
+           c.append(INPUT(_type='hidden',_name='_formname',_value=self.formname))
         return DIV.xml(newform)
 
 class BEAUTIFY(DIV):
