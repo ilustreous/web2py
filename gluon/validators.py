@@ -119,8 +119,9 @@ class IS_IN_DB(object):
     """
     def __init__(self,dbset,field,label=None,error_message='value not in database!'):
         if hasattr(dbset,'define_table'): self.dbset=dbset()
-        else: self.dbset=dbset
+        else: self.dbset=dbset        
         ktable,kfield=str(field).split('.')
+        self.field=self.dbset._db[ktable][kfield]
         if not label:
             label='%%(%s)s' % kfield
         elif regex1.match(str(label)):
@@ -129,7 +130,6 @@ class IS_IN_DB(object):
         if not kfield in ks: ks+=[kfield]
         fields=['%s.%s'%(ktable,k) for k in ks]
         self.fields=fields
-        self.field=field
         self.label=label
         self.ktable=ktable
         self.kfield=kfield
@@ -156,9 +156,8 @@ class IS_IN_DB(object):
         if self.theset: 
             if value in self.theset:
                 return (value,None)
-        else:
-            field=self.dbset._db[self.ktable][self.kfield]
-            if len(self.dbset(field==value).select(limitby=(0,1))):
+        else:            
+            if len(self.dbset(self.field==value).select(limitby=(0,1))):
                  return (value,None)
         return (value,self.error_message)         
 
@@ -173,14 +172,13 @@ class IS_NOT_IN_DB(object):
     def __init__(self,dbset,field,error_message='value already in database!'):
         if hasattr(dbset,'define_table'): self.dbset=dbset()
         else: self.dbset=dbset
-        self.field=field
+        tablename,fieldname=str(field).split('.')
+        self.field=self.dbset._db[tablename][fieldname]
         self.error_message=error_message
         self.record_id=0
     def set_self_id(self,id): self.record_id=id
-    def __call__(self,value):        
-        tablename,fieldname=str(self.field).split('.')
-        db=self.dbset._db        
-        rows=self.dbset(db[tablename][fieldname]==value).select(limitby=(0,1))
+    def __call__(self,value):
+        rows=self.dbset(self.field==value).select(limitby=(0,1))
         if len(rows)>0 and str(rows[0].id)!=str(self.record_id): 
             return (value,self.error_message)
         return (value,None)
@@ -192,8 +190,8 @@ class IS_INT_IN_RANGE(object):
     INPUT(_type='text',_name='name',requires=IS_INT_IN_RANGE(0,10))
     """
     def __init__(self,minimum,maximum,error_message='too small or too large!'):
-        self.minimum=minimum
-        self.maximum=maximum
+        self.minimum=int(minimum)
+        self.maximum=int(maximum)
         self.error_message=error_message
     def __call__(self,value):
         try:
@@ -211,8 +209,8 @@ class IS_FLOAT_IN_RANGE(object):
     INPUT(_type='text',_name='name',requires=IS_FLOAT_IN_RANGE(0,10))
     """
     def __init__(self,minimum,maximum,error_message='too small or too large!'):
-        self.minimum=minimum
-        self.maximum=maximum
+        self.minimum=float(minimum)
+        self.maximum=float(maximum)
         self.error_message=error_message
     def __call__(self,value):        
         try:
