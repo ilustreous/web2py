@@ -137,6 +137,9 @@ class DIV(object):
         # for input, textarea, select, option, deal with 'value' and 'validation'
         if newstatus:
             newstatus=self.validate()
+            self.postprocessing()       
+        elif self.attributes.has_key('old_value'):
+            self['value']=self['old_value']
             self.postprocessing()
         return newstatus
     def validate(self): return True
@@ -345,12 +348,12 @@ class INPUT(DIV):
         ## this only changes value, not _value
         name=self['_name']
         if not name: return True
-        self['old_value']=self['value'] or ''
+        self['old_value']=self['value'] or self['_value'] or ''
         value=self.request_vars.get(name,self['value'] or '')
         if not isinstance(value,cgi.FieldStorage): value=str(value)
         self.latest[name]=self['value']=value
         requires=self['requires']
-        if requires: 
+        if requires:
             if not isinstance(requires,(list,tuple)): requires=[requires]
             for validator in requires:
                 value,errors=validator(value)                
@@ -456,14 +459,13 @@ class FORM(DIV):
         self.vars=Storage()
         self.errors=Storage()
         self.latest=Storage()
-    def accepts(self,vars,session=None,formname='default',keepvalues=True):
-        if not keepvalues: raise SyntaxError, "keepvalues is deprecated"
+    def accepts(self,vars,session=None,formname='default',keepvalues=False):
         self.errors.clear()
         self.request_vars=Storage()
         self.request_vars.update(vars)
         self.session=session
         self.formname=formname
-        self.keepvalues=keepvalues ### deprecated
+        self.keepvalues=keepvalues
         # if this tag is a form and we are in accepting mode (status=True) check formname and formkey
         status=True
         if self.session and self.session.get('_formkey[%s]'%self.formname,None)!=self.request_vars._formkey: status=False
@@ -471,6 +473,7 @@ class FORM(DIV):
         status=self.traverse(status)        
         if session!=None:
             self.formkey=session['_formkey[%s]'%formname]=str(uuid.uuid4())
+        if status and not keepvalues: self.traverse(False)
         return status
     def postprocessing(self):
         if not self.attributes.has_key('_action'): self['_action']=""
