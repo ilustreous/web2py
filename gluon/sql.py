@@ -37,6 +37,8 @@ try: import pyodbc
 except: logging.warning('no MSSQL driver')
 try: import kinterbasdb
 except: logging.warning('no kinterbasdb driver')
+try: import informixdb
+except: logging.warning('no informixdb driver')
 import portalocker
 import validators
 
@@ -179,6 +181,27 @@ SQL_DIALECTS={'sqlite':{'boolean':'CHAR(1)',
                       'extract':'EXTRACT(%(name)s FROM %(field)s)',
                       'left join':'LEFT JOIN',
                       'random':'RANDOM()',
+                      'notnull':'DEFAULT %(default)s NOT NULL'},
+            'informix':{'boolean':'CHAR(1)',
+                      'string':'VARCHAR(%(length)s)',
+                      'text':'BLOB SUB_TYPE 1',
+                      'password':'VARCHAR(%(length)s)',
+                      'blob':'BLOB SUB_TYPE 0',
+                      'upload':'VARCHAR(128)',
+                      'integer':'INTEGER',
+                      'double':'FLOAT',
+                      'date':'DATE',
+                      'time':'CHAR(8)',        
+                      'datetime':'DATETIME',
+                      'id':'SERIAL',
+                      'reference':'INTEGER REFERENCES %(foreign_key)s ON DELETE %(on_delete_action)s',
+                      'lower':'LOWER(%(field)s)',
+                      'upper':'UPPER(%(field)s)',
+                      'is null':'IS NULL',
+                      'is not null':'IS NOT NULL',
+                      'extract':'EXTRACT(%(field)s(%(name)s)',
+                      'left join':'LEFT JOIN',
+                      'random':'RANDOM()',
                       'notnull':'DEFAULT %(default)s NOT NULL'}
               }
 
@@ -219,12 +242,12 @@ def sql_represent(obj,fieldtype,dbname):
     elif fieldtype=='date':
         if isinstance(obj,(datetime.date,datetime.datetime)): obj=obj.strftime('%Y-%m-%d')
         else: obj=str(obj)
-        if dbname=='oracle': return "to_date('%s','yyyy-mm-dd')" % obj
+        if dbname=='oracle' or dbname=='informix': return "to_date('%s','yyyy-mm-dd')" % obj
     elif fieldtype=='datetime':
         if isinstance(obj,datetime.datetime): obj=obj.strftime('%Y-%m-%d %H:%M:%S')
         elif isinstance(obj,datetime.date): obj=obj.strftime('%Y-%m-%d 00:00:00')
         else: obj=str(obj)
-        if dbname=='oracle': return "to_date('%s','yyyy-mm-dd hh24:mi:ss')" % obj
+        if dbname=='oracle' or dbname=='informix': return "to_date('%s','yyyy-mm-dd hh24:mi:ss')" % obj
     elif fieldtype=='time':
         if isinstance(obj,datetime.time): obj=obj.strftime('%H:%M:%S')
         else: obj=str(obj)
@@ -463,6 +486,22 @@ class SQLDB(SQLStorage):
             self._pool_connection(lambda:kinterbasdb.connect(dsn="%s:%s"%(host,db), user=user, password=passwd))
             self._cursor=self._connection.cursor()
             self._execute=lambda *a,**b: self._cursor.execute(*a,**b)
+        elif self._uri[:11]=='informix://': 
+            self._dbname='informix'
+            m=re.compile('^(?P<user>[^:@]+)(\:(?P<passwd>[^@]*))?@(?P<host>[^\:/]+)(\:(?P<port>[0-9]+))?/(?P<db>.+)$').match(self._uri[11:])
+            user=m.group('user')
+            if not user: raise SyntaxError, "User required"
+            passwd=m.group('passwd')
+            if not passwd: passwd=''
+            host=m.group('host')
+            if not host: raise SyntaxError, "Host name required"
+            db=m.group('db')
+            if not db: raise SyntaxError, "Database name required"
+            port=m.group('port')
+            if not port: port='3050'
+            self._pool_connection(lambda:informixdb.connect("%s@%s"%(db,host), user=user, password=passwd))
+            self._cursor=self._connection.cursor()
+            self._execute=lambda a: self._cursor.execute(a[:-1])
         elif self._uri=='None':
             class Dummy:
                 lastrowid=1
@@ -780,6 +819,9 @@ class SQLTable(SQLStorage):
             id=int(self._db._cursor.fetchone()[0])
         elif self._db._dbname=='firebird':
             self._db._execute("SELECT gen_id(GENID_%s, 0) FROM rdb$database" % self._tablename)
+            id=int(self._db._cursor.fetchone()[0])       
+        elif self._db._dbname=='informix':
+            self._db._execute("SELECT LOCAL_SQLCA^.sqlerrd[1]")
             id=int(self._db._cursor.fetchone()[0])       
         else:
             id=None
