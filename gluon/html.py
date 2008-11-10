@@ -97,12 +97,12 @@ class DIV(object):
             raise SyntaxError, '<%s> tags cannot have components' % self.tag
         self.components=list(components)
         self.attributes=attributes
-        self.postprocessing()
-        self.errors=Storage()
-        self.vars=Storage()
-        self.session=None
-        self.key=None  ### stores unique key of forms        
-        self.formname=None  ### stores name of forms
+        self.errors={}
+        self.vars={}
+        self.latest={}
+        self.formname=None
+        self.formkey=None
+        self.postprocessing()  ### needs to be overridden for INPUT, SELECT/OPTION, TEXTAREA
     def append(self,value):
         return self.components.append(value)
     def insert(self,i,value):
@@ -123,16 +123,19 @@ class DIV(object):
     def postprocessing(self):
         return
     def rec_clear(self,clear_attributes_value=False):
-        if hasattr(self,'attributes'):
-            if clear_attributes_value:
-                self['value']=self.attributes.get('default','')
-                self.postprocessing()
-            if self.attributes.has_key('value'):
-                self['default']=self['value']        
+        if clear_attributes_value:
+            self['value']=self.attributes.get('default','')
+            self.postprocessing()
+        name=self.attributes.get('_name',None)
+        if name: self.latest[name]=''
+        if self.attributes.has_key('value'):
+            value=self['default']=self['value']
+            if name: self.latest[name]=value
         for c in self.components:
             if hasattr(c,'rec_clear'): 
                 c.errors=self.errors
                 c.vars=self.vars
+                c.latest=self.latest
                 c.session=self.session
                 c.formname=self.formname
                 c.rec_clear(clear_attributes_value)
@@ -364,6 +367,7 @@ class INPUT(DIV):
         self.postprocessing()
         if isinstance(value,cgi.FieldStorage): self['value']=value
         else: self['value']=str(value)
+        self.latest[name]=self['value']
         if self.attributes.has_key('requires'):
             requires=self['requires']
             if not isinstance(requires,(list,tuple)): requires=[requires]
@@ -376,12 +380,11 @@ class INPUT(DIV):
         self.vars[name]=value                           
         self.postprocessing()
         return True
-    def xml(self):        
-        try:
-            name=self['_name']
-            return DIV.xml(self)+DIV(self.errors[name],\
-                   _class='error',errors=None).xml()
-        except: return DIV.xml(self)
+    def xml(self):
+        name=self.attributes.get('_name',None)
+        if name and self.errors.get(name,None):
+            return DIV.xml(self)+DIV(self.errors[name],_class='error',errors=None).xml()
+        else: return DIV.xml(self)
         
 class TEXTAREA(INPUT): 
     """
@@ -450,11 +453,21 @@ class FORM(DIV):
     in case of errors the form is modified to present the errors to the user.
     """
     tag='form'
+    def __init__(self,*components,**attributes):        
+        self.components=list(components)
+        self.attributes=attributes
+        self.postprocessing()
+        self.errors=Storage()
+        self.vars=Storage()
+        self.latest=Storage()
+        self.session=None
+        self.formkey=None  ### stores unique key of forms        
+        self.formname=None  ### stores name of forms
+        self.postprocessing()
     def postprocessing(self):
         if not self.attributes.has_key('_action'): self['_action']=""
         if not self.attributes.has_key('_method'): self['_method']="post"
         if not self.attributes.has_key('_enctype'): self['_enctype']="multipart/form-data"
-
     def accepts(self,vars,session=None,formname='default',keepvalues=False):
         self.errors=Storage()
         self.session=session
@@ -466,21 +479,24 @@ class FORM(DIV):
         else:
             self.rec_accepts(vars)
             ret=True
-        if session!=None: self.key=session[_formkey]=str(uuid.uuid4())
-        else: self.key=None
+        if session!=None: self.formkey=session[_formkey]=str(uuid.uuid4())
+        else: self.formkey=None
         if not ret: return False
         if not len(self.errors) and not keepvalues: self.rec_clear(True)
         return len(self.errors)==0
-    def xml(self):
-        newform=FORM(*self.components,**self.attributes)
-        c=newform.components
+    def hidden_fields(self):
+        c=[]
         if self.attributes.has_key('hidden'):
            for key,value in self.attributes.get('hidden',{}).items():
                c.append(INPUT(_type='hidden',_name=key,_value=value))
-        if self.key:
-           c.append(INPUT(_type='hidden',_name='_formkey',_value=self.key))
+        if self.formkey:
+           c.append(INPUT(_type='hidden',_name='_formkey',_value=self.formkey))
         if self.formname:
            c.append(INPUT(_type='hidden',_name='_formname',_value=self.formname))
+        return c
+    def xml(self):
+        newform=FORM(*self.components,**self.attributes)
+        c=newform.components+self.hidden_fields()
         return DIV.xml(newform)
 
 class BEAUTIFY(DIV):
