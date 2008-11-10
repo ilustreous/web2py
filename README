@@ -229,3 +229,25 @@ removed random everywhere
 use uuid for session and tickets
 use http_x_forward_for to figure out the client causing a ticket
 use longtext and longblob for mysql
+main now really catches all exceptions
+no more warnings on GAE
+
+1.43-1.48
+html.py rewrite (better support for custom forms) (Bill Ferrett)
+new stickers in examples (thanks Mateusz)
+on windows can run in taskbar (Mark Larsen)
+in admin|edit page link to edit|controller (Nathan Freeze)
+better error codes and routes_onerror (Timothy Farrell)
+DAL support for groupy and having
+DAL support for expressions instead of values
+DAL has experimental Informix support
+fixed bug with non-printable chars in DAL
+'text' fields limited to 2**16 (to avoid mysql problems)
+widget has -quiet and -debug (Attila Csipa)
+web2py_session uses BLOB instead of TEXT
+improved IS_URL
+Runs with python 2.6 (Tim)
+On GAE uses GAE for static files (Robin)
+
+
+
