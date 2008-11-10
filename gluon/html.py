@@ -124,18 +124,13 @@ class DIV(object):
     def postprocessing(self):
         return
     def traverse(self,status):
-        # if this tag is a form and we are in accepting mode (status=True) check formname and formkey
-        if status and self.tag=='form':
-            if self.session and self.session.get('_formkey[%s]'%self.formname,None)!=self.request_vars._formkey: status=False
-            if self.formname!=self.request_vars._formname: status=False
-        # if we are still in accepting mode 
         newstatus=status
         for c in self.components:
             if hasattr(c,'traverse'): 
                 c.vars=self.vars
                 c.request_vars=self.request_vars
                 c.errors=self.errors
-                c.values=self.values
+                c.latest=self.latest
                 c.session=self.session
                 c.formname=self.formname
                 newstatus=c.traverse(status) and newstatus
@@ -275,7 +270,7 @@ class LI(DIV): tag='li'
 
 class UL(DIV): 
     tag='ul'
-    def fixup(self):        
+    def fixup(self):
         components=[]
         for c in self.components:
             if isinstance(c,LI):
@@ -350,9 +345,10 @@ class INPUT(DIV):
         ## this only changes value, not _value
         name=self['_name']
         if not name: return True
+        self['old_value']=self['value'] or ''
         value=self.request_vars.get(name,self['value'] or '')
         if not isinstance(value,cgi.FieldStorage): value=str(value)
-        self.values[name]=self['value']=value
+        self.latest[name]=self['value']=value
         requires=self['requires']
         if requires: 
             if not isinstance(requires,(list,tuple)): requires=[requires]
@@ -366,7 +362,7 @@ class INPUT(DIV):
              self.vars[name]=value
              return True
         return False
-    def postprocessing(self):       
+    def postprocessing(self):
         t=self['_type']
         if not t: t=self['type']='text'
         t=t.lower()
@@ -374,8 +370,10 @@ class INPUT(DIV):
             if self['value']: self['_checked']='checked'
             else: self['_checked']=None
         elif t=='radio':
-            if str(self['value'])==str(self['_value']): self['_checked']='checked'
-            else: self['_checked']=None
+            if str(self['value'])==str(self['_value']):
+                self['_checked']='checked'
+            else:
+                self['_checked']=None
         elif t=='text':
             self['_value']=self['value']
     def xml(self):
@@ -457,16 +455,22 @@ class FORM(DIV):
         self.postprocessing()  ### converts special attributes in components attributes
         self.vars=Storage()
         self.errors=Storage()
-        self.values=Storage()
-    def accepts(self,vars,session=None,formname='default',keepvalues=False):
+        self.latest=Storage()
+    def accepts(self,vars,session=None,formname='default',keepvalues=True):
+        if not keepvalues: raise SyntaxError, "keepvalues is deprecated"
         self.errors.clear()
         self.request_vars=Storage()
         self.request_vars.update(vars)
         self.session=session
         self.formname=formname
-        self.keepvalues=keepvalues
-        status=self.traverse(True)        
-        if session!=None: self.formkey=session['_formkey[%s]'%formname]=str(uuid.uuid4())
+        self.keepvalues=keepvalues ### deprecated
+        # if this tag is a form and we are in accepting mode (status=True) check formname and formkey
+        status=True
+        if self.session and self.session.get('_formkey[%s]'%self.formname,None)!=self.request_vars._formkey: status=False
+        if self.formname!=self.request_vars._formname: status=False
+        status=self.traverse(status)        
+        if session!=None:
+            self.formkey=session['_formkey[%s]'%formname]=str(uuid.uuid4())
         return status
     def postprocessing(self):
         if not self.attributes.has_key('_action'): self['_action']=""
