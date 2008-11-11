@@ -183,8 +183,7 @@ class SQLTable(SQLStorage):
             if not fields.has_key(field) and self[field].default!=None:
                 fields[field]=self[field].default       
             if fields.has_key(field):
-                fields[field] = obj_represent(fields[field], self[field].type, self._db) 
-
+                fields[field] = obj_represent(fields[field], self[field].type, self._db)
         tmp=self._tableobj(**fields)
         tmp.put()
         return tmp.key().id()
@@ -297,6 +296,7 @@ def obj_represent(object,fieldtype,db):
 	        object=datetime.datetime(y,m,d,h,mi,s)
 	    elif fieldtype=='integer' and not isinstance(object,long):
 	        object = long(object)
+            elif fieldtype=='blob': pass
             elif isinstance(object,str): object=object.decode('utf8')
 	return object
 
