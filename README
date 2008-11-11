@@ -250,4 +250,9 @@ Runs with python 2.6 (Tim)
 On GAE uses GAE for static files (Robin)
 
 
+1.49
+fixed a bug with taskbar widget, thanks Mark
+fixed a bug with form.latest
+made many DIV methods private (_)
+
 

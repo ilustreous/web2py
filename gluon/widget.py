@@ -133,18 +133,26 @@ class web2pyDialog(object):
         self.button_stop.configure(state='disabled')
         if options.taskbar:
             import contrib.taskbar_widget
-            self.tb=contrib.taskbar_widget.TaskBarIcon("web2py.ico")
+            self.tb=contrib.taskbar_widget.TaskBarIcon()
             self.checkTaskBar()
             if options.password != '<ask>':
                 self.password.insert(0,options.password)
-                self.start()                
+                self.start()               
                 self.root.withdraw()
+        else: self.tb = None   
     def checkTaskBar(self):
         if self.tb.status:            
-            if self.tb.status[0] == self.tb.EnumStatus.KILL:
+            if self.tb.status[0] == self.tb.EnumStatus.QUIT:
                 self.quit()
-            elif self.tb.status[0] ==self.tb.EnumStatus.SHOW:
-                self.root.deiconify()
+            elif self.tb.status[0] ==self.tb.EnumStatus.TOGGLE:
+                if self.root.state() == "withdrawn":
+                    self.root.deiconify()
+                else:
+                    self.root.withdraw()
+            elif self.tb.status[0] == self.tb.EnumStatus.STOP:
+                self.stop()
+            elif self.tb.status[0] == self.tb.EnumStatus.START:
+                self.start()            
             elif self.tb.status[0] == self.tb.EnumStatus.RESTART:
                 self.stop()
                 self.start()
@@ -210,6 +218,8 @@ class web2pyDialog(object):
         self.password.configure(state='readonly')
         self.ip.configure(state='readonly')
         self.port_number.configure(state='readonly')
+        if self.tb:
+            self.tb.SetServerRunning()   
     def stop(self):
         self.button_start.configure(state='normal')
         self.button_stop.configure(state='disabled')
@@ -217,6 +227,8 @@ class web2pyDialog(object):
         self.ip.configure(state='normal')
         self.port_number.configure(state='normal')
         self.server.stop()
+        if self.tb:
+            self.tb.SetServerStopped()
     def update_canvas(self):
         try:
             t1=os.stat('httpserver.log')[stat.ST_SIZE]
