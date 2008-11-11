@@ -100,8 +100,8 @@ class DIV(object):
         else:
             self.components=list(components)
         self.attributes=attributes
-        self.fixup()
-        self.postprocessing()  ### converts special attributes in components attributes
+        self._fixut()
+        self._postprocessing()  ### converts special attributes in components attributes
     def append(self,value):
         return self.components.append(value)
     def insert(self,i,value):
@@ -119,32 +119,34 @@ class DIV(object):
         else: del self.components[i]
     def __len__(self):
         return len(self.components)
-    def fixup(self):
+    def _fixut(self):
         return
-    def postprocessing(self):
+    def _postprocessing(self):
         return
-    def traverse(self,status):
+    def _traverse(self,status):
         newstatus=status
         for c in self.components:
-            if hasattr(c,'traverse'): 
+            if hasattr(c,'_traverse'): 
                 c.vars=self.vars
                 c.request_vars=self.request_vars
                 c.errors=self.errors
                 c.latest=self.latest
                 c.session=self.session
                 c.formname=self.formname
-                newstatus=c.traverse(status) and newstatus
+                newstatus=c._traverse(status) and newstatus
         # for input, textarea, select, option, deal with 'value' and 'validation'
         if newstatus:
-            newstatus=self.validate()
-            self.postprocessing()       
+            newstatus=self._validate()
+            self._postprocessing()       
         elif self.attributes.has_key('old_value'):
             self['value']=self['old_value']
-            self.postprocessing()
+            self._postprocessing()
+        if self['_name']: self.latest[self['_name']]=self['value']
         return newstatus
-    def validate(self): return True
+    def _validate(self): return True
     def _xml(self):
         items=self.attributes.items()
+        items.sort()
         fa=''
         for key,value in items:
              if key[:1]!='_': continue
@@ -273,7 +275,7 @@ class LI(DIV): tag='li'
 
 class UL(DIV): 
     tag='ul'
-    def fixup(self):
+    def _fixut(self):
         components=[]
         for c in self.components:
             if isinstance(c,LI):
@@ -290,7 +292,7 @@ class TH(DIV): tag='th'
 
 class TR(DIV):
     tag='tr'
-    def fixup(self):
+    def _fixut(self):
         components=[]
         for c in self.components:
             if isinstance(c, (TD, TH)):
@@ -307,7 +309,7 @@ class TFOOT(DIV): tag='tfoot'
 
 class TABLE(DIV): 
     tag='table'
-    def fixup(self):
+    def _fixut(self):
         components=[]
         for c in self.components:
             if isinstance(c,(TR,TBODY,THEAD,TFOOT)):
@@ -323,13 +325,13 @@ class INPUT(DIV):
         examples:
 
         >>> INPUT(_type='text',_name='name',value='Max').xml()
-        '<input value="Max" type="text" name="name" />'
+        '<input name="name" type="text" value="Max" />'
         >>> INPUT(_type='checkbox',_name='checkbox',value='on').xml()
-        '<input type="checkbox" checked="checked" name="checkbox" />'
+        '<input checked="checked" name="checkbox" type="checkbox" />'
         >>> INPUT(_type='radio',_name='radio',_value='yes',value='yes').xml()
-        '<input value="yes" type="radio" checked="checked" name="radio" />'
+        '<input checked="checked" name="radio" type="radio" value="yes" />'
         >>> INPUT(_type='radio',_name='radio',_value='no',value='yes').xml()
-        '<input value="no" type="radio" name="radio" />'
+        '<input name="radio" type="radio" value="no" />'
 
         the input helper takes two special attributes value= and requires=.
 
@@ -344,14 +346,14 @@ class INPUT(DIV):
         value of the field.        
         """
     tag='input/'
-    def validate(self):
+    def _validate(self):
         ## this only changes value, not _value
         name=self['_name']
         if not name: return True
         self['old_value']=self['value'] or self['_value'] or ''
         value=self.request_vars.get(name,self['value'] or '')
         if not isinstance(value,cgi.FieldStorage): value=str(value)
-        self.latest[name]=self['value']=value
+        self['value']=value
         requires=self['requires']
         if requires:
             if not isinstance(requires,(list,tuple)): requires=[requires]
@@ -365,7 +367,7 @@ class INPUT(DIV):
              self.vars[name]=value
              return True
         return False
-    def postprocessing(self):
+    def _postprocessing(self):
         t=self['_type']
         if not t: t=self['type']='text'
         t=t.lower()
@@ -391,7 +393,7 @@ class TEXTAREA(INPUT):
     'bla bla bla ...' will be the content of the textarea field.
     """
     tag='textarea'
-    def postprocessing(self):
+    def _postprocessing(self):
         if not self.attributes.has_key('_rows'): self['_rows']=10
         if not self.attributes.has_key('_cols'): self['_cols']=40
         if self.attributes.has_key('value'):
@@ -409,10 +411,11 @@ class SELECT(INPUT):
     example:
 
     >>> SELECT('yes','no',_name='selector',value='yes',requires=IS_IN_SET(['yes','no'])).xml()
-    '<select name="selector"><option value="yes" selected="selected">yes</option><option value="no">no</option></select>'
+    '<select name="selector"><option selected="selected" value="yes">yes</option><option value="no">no</option></select>'
+
     """
     tag='select'
-    def fixup(self):
+    def _fixut(self):
         components=[]
         for c in self.components:
             if isinstance(c,OPTION):
@@ -420,7 +423,7 @@ class SELECT(INPUT):
             else:
                 components.append(OPTION(c,_value=str(c)))
         self.components=components
-    def postprocessing(self):
+    def _postprocessing(self):
         for c in self.components:
             if c['_value']==self['value']: c['_selected']='selected'
             else: c['_selected']=None
@@ -433,7 +436,7 @@ class FORM(DIV):
    
     >>> form=FORM(INPUT(_name="test",requires=IS_NOT_EMPTY()))
     >>> form.xml()
-    '<form enctype="multipart/form-data" action="" method="post"><input name="test" /></form>'
+    '<form action="" enctype="multipart/form-data" method="post"><input name="test" /></form>'
 
     a FORM is container for INPUT, TEXTAREA, SELECT and other helpers
        
@@ -454,8 +457,8 @@ class FORM(DIV):
         else:
             self.components=list(components)
         self.attributes=attributes
-        self.fixup()
-        self.postprocessing()  ### converts special attributes in components attributes
+        self._fixut()
+        self._postprocessing()  ### converts special attributes in components attributes
         self.vars=Storage()
         self.errors=Storage()
         self.latest=Storage()
@@ -470,12 +473,12 @@ class FORM(DIV):
         status=True
         if self.session and self.session.get('_formkey[%s]'%self.formname,None)!=self.request_vars._formkey: status=False
         if self.formname!=self.request_vars._formname: status=False
-        status=self.traverse(status)        
+        status=self._traverse(status)        
         if session!=None:
             self.formkey=session['_formkey[%s]'%formname]=str(uuid.uuid4())
-        if status and not keepvalues: self.traverse(False)
+        if status and not keepvalues: self._traverse(False)
         return status
-    def postprocessing(self):
+    def _postprocessing(self):
         if not self.attributes.has_key('_action'): self['_action']=""
         if not self.attributes.has_key('_method'): self['_method']="post"
         if not self.attributes.has_key('_enctype'): self['_enctype']="multipart/form-data"
@@ -561,26 +564,25 @@ def test():
     <table><tr><td>a</td><td>b</td><td>c</td></tr><tr><td>d</td><td>e</td><td>f</td></tr><tr><td>1</td><td>2</td><td>3</td></tr></table>
     >>> form=FORM(INPUT(_type='text',_name='myvar',requires=IS_EXPR('int(value)<10')))
     >>> print form.xml()
-    <form enctype="multipart/form-data" action="" method="post"><input type="text" name="myvar" /></form>
+    <form action="" enctype="multipart/form-data" method="post"><input name="myvar" type="text" /></form>
     >>> print form.accepts({'myvar':'34'},formname=None)
     False
     >>> print form.xml()
-    <form enctype="multipart/form-data" action="" method="post"><input value="34" type="text" name="myvar" /><div class="error">invalid expression!</div></form>
+    <form action="" enctype="multipart/form-data" method="post"><input name="myvar" type="text" value="34" /><div class="error">invalid expression!</div></form>
     >>> print form.accepts({'myvar':'4'},formname=None,keepvalues=True)
     True
     >>> print form.xml()
-    <form enctype="multipart/form-data" action="" method="post"><input value="4" type="text" name="myvar" /></form>
+    <form action="" enctype="multipart/form-data" method="post"><input name="myvar" type="text" value="4" /></form>
     >>> form=FORM(SELECT('cat','dog',_name='myvar'))
-    >>> print form.accepts({'myvar':'dog'},formname=None)
+    >>> print form.accepts({'myvar':'dog'},formname=None,keepvalues=True)
     True
     >>> print form.xml()
-    <form enctype="multipart/form-data" action="" method="post"><select name="myvar"><option value="cat">cat</option><option value="dog" selected="selected">dog</option></select></form>
+    <form action="" enctype="multipart/form-data" method="post"><select name="myvar"><option value="cat">cat</option><option selected="selected" value="dog">dog</option></select></form>
     >>> form=FORM(INPUT(_type='text',_name='myvar',requires=IS_MATCH('^\w+$','only alphanumeric!')))
     >>> print form.accepts({'myvar':'as df'},formname=None)
     False
     >>> print form.xml()
-    <form enctype="multipart/form-data" action="" method="post"><input value="as df" type="text" name="myvar" /><div class="error">only alphanumeric!</div></form>
-
+    <form action="" enctype="multipart/form-data" method="post"><input name="myvar" type="text" value="as df" /><div class="error">only alphanumeric!</div></form>
     >>> session={}
     >>> form=FORM(INPUT(value="Hello World",_name="var",requires=IS_MATCH('^\w+$')))
     >>> if form.accepts({},session,formname=None): print 'passed'
