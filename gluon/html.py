@@ -379,7 +379,7 @@ class INPUT(DIV):
                 self['_checked']='checked'
             else:
                 self['_checked']=None
-        elif t=='text':
+        elif t=='text' and self['value']!=None:
             self['_value']=self['value']
     def xml(self):
         name=self.attributes.get('_name',None)
