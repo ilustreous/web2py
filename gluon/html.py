@@ -374,13 +374,16 @@ class INPUT(DIV):
         if t=='checkbox':
             if self['value']: self['_checked']='checked'
             else: self['_checked']=None
-        elif t=='radio':
+        elif t=='radio':            
             if str(self['value'])==str(self['_value']):
                 self['_checked']='checked'
             else:
                 self['_checked']=None
-        elif t=='text' and self['value']!=None:
-            self['_value']=self['value']
+        elif t=='text':
+            if self['value']!=None:
+                self['_value']=self['value']
+            else:
+                self['value']=self['_value']
     def xml(self):
         name=self.attributes.get('_name',None)
         if name and hasattr(self,'errors') and self.errors.get(name,None):
@@ -397,10 +400,9 @@ class TEXTAREA(INPUT):
         if not self.attributes.has_key('_rows'): self['_rows']=10
         if not self.attributes.has_key('_cols'): self['_cols']=40
         if self['value']!=None:
-            if self['value']!=None:
-                self.components=[self['value']]
-            else:
-                self.components=[]
+            self.components=[self['value']]
+        elif self.components:
+            self['value']=self.components[0]
 
 class OPTION(DIV):
     tag='option'
