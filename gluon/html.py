@@ -100,7 +100,7 @@ class DIV(object):
         else:
             self.components=list(components)
         self.attributes=attributes
-        self._fixut()
+        self._fixup()
         self._postprocessing()  ### converts special attributes in components attributes
     def append(self,value):
         return self.components.append(value)
@@ -119,7 +119,7 @@ class DIV(object):
         else: del self.components[i]
     def __len__(self):
         return len(self.components)
-    def _fixut(self):
+    def _fixup(self):
         return
     def _postprocessing(self):
         return
@@ -275,7 +275,7 @@ class LI(DIV): tag='li'
 
 class UL(DIV): 
     tag='ul'
-    def _fixut(self):
+    def _fixup(self):
         components=[]
         for c in self.components:
             if isinstance(c,LI):
@@ -292,7 +292,7 @@ class TH(DIV): tag='th'
 
 class TR(DIV):
     tag='tr'
-    def _fixut(self):
+    def _fixup(self):
         components=[]
         for c in self.components:
             if isinstance(c, (TD, TH)):
@@ -309,7 +309,7 @@ class TFOOT(DIV): tag='tfoot'
 
 class TABLE(DIV): 
     tag='table'
-    def _fixut(self):
+    def _fixup(self):
         components=[]
         for c in self.components:
             if isinstance(c,(TR,TBODY,THEAD,TFOOT)):
@@ -396,13 +396,17 @@ class TEXTAREA(INPUT):
     def _postprocessing(self):
         if not self.attributes.has_key('_rows'): self['_rows']=10
         if not self.attributes.has_key('_cols'): self['_cols']=40
-        if self.attributes.has_key('value'):
+        if self['value']!=None:
             if self['value']!=None:
                 self.components=[self['value']]
             else:
                 self.components=[]
 
-class OPTION(DIV): tag='option'
+class OPTION(DIV):
+    tag='option'
+    def _fixup(self):
+        if not self.attributes.has_key('_value'):
+             self.attributes['_value']=str(self.components[0])
 
 class OBJECT(DIV): tag='object'
 
@@ -415,7 +419,7 @@ class SELECT(INPUT):
 
     """
     tag='select'
-    def _fixut(self):
+    def _fixup(self):
         components=[]
         for c in self.components:
             if isinstance(c,OPTION):
@@ -424,9 +428,10 @@ class SELECT(INPUT):
                 components.append(OPTION(c,_value=str(c)))
         self.components=components
     def _postprocessing(self):
-        for c in self.components:
-            if c['_value']==self['value']: c['_selected']='selected'
-            else: c['_selected']=None
+        if self['value']!=None:
+            for c in self.components:
+                if c['_value']==self['value']: c['_selected']='selected'
+                else: c['_selected']=None
 
 class FIELDSET(DIV): tag='fieldset'
 
@@ -457,7 +462,7 @@ class FORM(DIV):
         else:
             self.components=list(components)
         self.attributes=attributes
-        self._fixut()
+        self._fixup()
         self._postprocessing()  ### converts special attributes in components attributes
         self.vars=Storage()
         self.errors=Storage()
