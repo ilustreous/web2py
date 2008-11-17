@@ -363,6 +363,8 @@ def start():
     print ProgramAuthor
     print ProgramVersion
 
+    from gluon.sql import drivers
+    print "Database drivers available: %s" % ", ".join(drivers)
     ### if -W install/start/stop web2py as service
     if options.winservice:
         if os.name=='nt': 

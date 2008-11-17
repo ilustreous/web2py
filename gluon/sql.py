@@ -14,30 +14,47 @@ import csv, copy, socket, logging, copy_reg, base64
 
 table_field=re.compile('[\w_]+\.[\w_]+')
 
+drivers = []
+
 try:
     import hashlib
-    def hash5(txt): return hashlib.md5(txt).hexdigest()    
-except: 
+    def hash5(txt): return hashlib.md5(txt).hexdigest()
+except:
     import md5
     def hash5(txt): return md5.new(txt).hexdigest()
 
-try: import sqlite3
-except: 
+try:
+    import sqlite3
+    drivers.append('SQLite3')
+except:
     try:
-        from pysqlite2 import dbapi2 as sqlite3 
+        from pysqlite2 import dbapi2 as sqlite3
         logging.warning('importing mysqlite3.dbapi2 as sqlite3')
-    except: logging.warning('no sqlite3 or dbapi2 driver')
-try: import MySQLdb
-except: logging.warning('no MySQLdb driver')
-try: import psycopg2
-except: logging.warning('no psycopg2 driver')
-try: import cx_Oracle
-except: logging.warning('no cx_Oracle driver')
-try: import pyodbc
-except: logging.warning('no MSSQL driver')
-try: import kinterbasdb
-except: logging.warning('no kinterbasdb driver')
-try: import informixdb
+        drivers.append('SQLite2')
+    except: logging.debug('no sqlite3 or dbapi2 driver')
+try:
+    import MySQLdb
+    drivers.append('MySQL')
+except: logging.debug('no MySQLdb driver')
+try:
+    import psycopg2
+    drivers.append('Postgre')
+except: logging.debug('no psycopg2 driver')
+try:
+    import cx_Oracle
+    drivers.append('Oracle')
+except: logging.debug('no cx_Oracle driver')
+try:
+    import pyodbc
+    drivers.append('MSSQL')
+except: logging.debug('no MSSQL driver')
+try:
+    import kinterbasdb
+    drivers.append('Interbase')
+except: logging.debug('no kinterbasdb driver')
+try: 
+    import informixdb
+    drivers.append('Informix')
 except: logging.warning('no informixdb driver')
 import portalocker
 import validators
