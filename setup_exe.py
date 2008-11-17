@@ -10,7 +10,7 @@ import py2exe
 
 APP = ['web2py.py']
 DATA_FILES = ['admin.tar', 'examples.tar', 'welcome.tar',
-              'ABOUT','LICENSE','VERSION','web2py.ico']
+              'ABOUT','LICENSE','VERSION']
 
 setup(
     console=APP,
