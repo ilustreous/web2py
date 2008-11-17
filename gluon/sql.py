@@ -55,7 +55,8 @@ except: logging.debug('no kinterbasdb driver')
 try: 
     import informixdb
     drivers.append('Informix')
-except: logging.warning('no informixdb driver')
+    logging.warning('Informx support is experimental')
+except: logging.debug('no informixdb driver')
 import portalocker
 import validators
 
