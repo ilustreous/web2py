@@ -6,6 +6,7 @@ import os, sys, code, logging, doctest, types, re, optparse, glob
 import gluon.main
 from gluon.compileapp import build_environment, run_controller_in, run_view_in, run_models_in
 import gluon.fileutils
+from gluon.restricted import RestrictedError
 from gluon.globals import Request, Response, Session
 from gluon.storage import Storage
 
@@ -109,7 +110,8 @@ def run(appname, plain=False, import_models=False, startfile=None):
     
     if startfile:
         exec_pythonrc()
-        execfile(startfile, _env)
+        try: execfile(startfile, _env)
+        except RestrictedError, e: print e.traceback
     else:
         if not plain:
             try:
