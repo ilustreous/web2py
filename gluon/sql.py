@@ -1475,6 +1475,7 @@ def test_all():
 
     # >>> SQLDB.distributed_transaction_commit(db)
 
+    >>> db.mynumber.drop()
     >>> db.authorship.drop()
     >>> db.author.drop()
     >>> db.paper.drop()
