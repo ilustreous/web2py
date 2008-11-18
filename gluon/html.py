@@ -432,7 +432,8 @@ class SELECT(INPUT):
     def _postprocessing(self):
         if self['value']!=None:
             for c in self.components:
-                if c['_value']==self['value']: c['_selected']='selected'
+                if self['value'] and str(c['_value'])==str(self['value']):
+                    c['_selected']='selected'
                 else: c['_selected']=None
 
 class FIELDSET(DIV): tag='fieldset'
