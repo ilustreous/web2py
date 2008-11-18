@@ -289,6 +289,8 @@ class SQLStorage(dict):
     """
     a dictionary that let you do d['a'] as well as d.a
     """
+    def __getitem__(self, key): return dict.__getitem__(self,str(key))
+    def __setitem__(self, key,value): dict.__setitem__(self,str(key),value)
     def __getattr__(self, key): return self[key]
     def __setattr__(self, key, value):
         if self.has_key(key):
@@ -1453,6 +1455,16 @@ def test_all():
     >>> rows=db(db.paper.id.belongs(nested_select)).select(db.paper.ALL)
     >>> print rows[0].title
     QCD
+
+    Example of expressions
+
+    >>> mynumber=db.define_table('mynumber',SQLField('x','integer'))
+    >>> db(mynumber.id>0).delete()
+    >>> for i in range(10): tmp=mynumber.insert(x=i)
+    >>> db(mynumber.id>0).select(mynumber.x.sum())[0]._extra[mynumber.x.sum()]
+    45
+    >>> db(mynumber.x+2==5).select(mynumber.x+2)[0]._extra[mynumber.x+2]
+    5
 
     Output in csv
 
