@@ -399,7 +399,14 @@ class SQLDB(SQLStorage):
         else: self._folder=self._folders[pid]=''
         sql_locker.release()
         ### now connect to database
-        if self._uri[:9]=='sqlite://': 
+        if self._uri[:14]=='sqlite:memory:': 
+            self._dbname='sqlite'
+            self._pool_connection(lambda:sqlite3.Connection(':memory:'))
+            self._connection.create_function("web2py_extract",2,
+                                             sqlite3_web2py_extract)
+            self._cursor=self._connection.cursor()
+            self._execute=lambda *a,**b: self._cursor.execute(*a,**b)
+        elif self._uri[:9]=='sqlite://': 
             self._dbname='sqlite'
             if uri[9]!='/':
                 dbpath=os.path.join(self._folder,uri[9:])
