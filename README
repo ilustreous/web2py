@@ -256,3 +256,11 @@ fixed a bug with form.latest
 made many DIV methods private (_)
 
 
+1.50
+Fixed some bugs introduced in 1.49
+
+1.51
+Fixed more bugs introduced in 1.49 (sql _extra and html select)
+support for sqlite:memory:
+
+
