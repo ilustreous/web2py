@@ -45,7 +45,7 @@ def reindent(text):
           line=='break' or line[:6]=='break':
             credit=1
             k-=1
-       if line[-1:]==':': k+=1
+       if line[-1:]==':' and line.strip()[:1]!='#': k+=1
     text='\n'.join(new_lines)
     return text
 
