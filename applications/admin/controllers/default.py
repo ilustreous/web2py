@@ -272,19 +272,73 @@ def edit():
     elif filename[-4:]=='.css': filetype='css'
     elif filename[-3:]=='.js': filetype='js'
     else: filetype='text'
-    ### check if file is not there 
-    data=open(apath(filename),'r').read()
-    try:
-        data=request.vars.data.replace('\r\n','\n').strip()+'\n'
-        open(apath(filename),'w').write(data)
-        response.flash=T("file saved on %(time)s",dict(time=time.ctime()))
-    except Exception: pass
+    ### check if file is not there
+    path=apath(filename)
+    if request.vars.restore and os.path.exists(path+'.bak'):
+        print 'here'
+        data=open(path+'.bak','r').read()
+        data1=open(path,'r').read()
+        file_hash=md5.new(data).hexdigest()
+        open(path,'w').write(data)
+        open(path+".bak",'w').write(data1)
+        response.flash=T('file "%s" restored',filename)
+    else:
+        data=open(path,'r').read()
+        file_hash=md5.new(data).hexdigest()    
+        if request.vars.file_hash and request.vars.file_hash!=file_hash: 
+            session.flash=T("file changed on disk")
+            data=request.vars.data.replace('\r\n','\n').strip()
+            open(path+'.1','w').write(data)
+            redirect(URL(r=request,f='resolve',args=request.args))
+        elif request.vars.data:
+            open(path+'.bak','w').write(data)
+            data=request.vars.data.replace('\r\n','\n').strip()
+            open(path,'w').write(data)
+            file_hash=md5.new(data).hexdigest()    
+            response.flash=T("file saved on %(time)s",dict(time=time.ctime()))
     controller=None
     if filetype=='html' and request.args>=3:
         cfilename=os.path.join(request.args[0],'controllers',request.args[2]+'.py')
         if os.path.exists(apath(cfilename)):
             controller=URL(r=request,f='edit',args=[cfilename])
-    return dict(app=request.args[0],filename=filename,filetype=filetype,data=data,controller=controller)
+    return dict(app=request.args[0],filename=filename,filetype=filetype,data=data,controller=controller,file_hash=file_hash)
+
+def resolve():
+    import difflib
+    filename='/'.join(request.args)
+    if filename[-3:]=='.py': filetype='python'
+    elif filename[-5:]=='.html': filetype='html'
+    elif filename[-4:]=='.css': filetype='css'
+    elif filename[-3:]=='.js': filetype='js'
+    else: filetype='text'
+    ### check if file is not there
+    path=apath(filename)
+    a=open(path,'r').readlines()
+    try: b=open(path+'.1','r').readlines()
+    except IOError:
+        session.flash='Other file, no longer there'
+        redirect(URL(r=request,f='edit',args=request.args))
+    d=difflib.ndiff(a,b)
+    def leading(line):
+        z=''
+        for k,c in enumerate(line):            
+            if c==' ': z+='&nbsp;'
+            elif c==' \t': z+='&nbsp;'
+            elif k==0 and c=='?': pass
+            else: break
+        return XML(z)
+    def getclass(item):
+        if item[0]==' ': return 'normal'
+        if item[0]=='+': return 'plus'
+        if item[0]=='-': return 'minus'
+    if request.vars:
+        c=''.join(*[item[2:] for i,item in enumerate(d) if item[0]==' ' or request.vars.has_key('line%i'%i)])
+        open(path,'w').write(c)
+        session.flash='files merged'
+        redirect(URL(r=request,f='edit',args=request.args))
+    else:
+        diff=TABLE(*[TR(TD('' if not item[:1] in ['+','-'] else INPUT(_type='checkbox',_name='line%i'%i,value=item[0]=='+')),TD(item[0]),TD(leading(item[2:]),TT(item[2:].rstrip())),_class=getclass(item)) for i,item in enumerate(d) if item[0]!='?'])
+    return dict(diff=diff,filename=filename)
 
 def edit_language():
     """ admin controller function """

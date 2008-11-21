@@ -12,4 +12,6 @@ editAreaLoader.init({id: "body",start_highlight: true,allow_resize: "both",allow
 <form action="/{{=request.application}}/default/edit/{{=filename}}" method="post">
 <input type="submit" value="save"/><br/>
 <textarea cols="80" rows="25" id="body" style="width: 100%;" name="data">{{=data}}</textarea>
+<input type="hidden" name="file_hash" value="{{=file_hash}}" />
+<input type="submit" name="restore" value="restore" /><br/>
 </form>
