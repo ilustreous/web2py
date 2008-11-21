@@ -275,7 +275,6 @@ def edit():
     ### check if file is not there
     path=apath(filename)
     if request.vars.restore and os.path.exists(path+'.bak'):
-        print 'here'
         data=open(path+'.bak','r').read()
         data1=open(path,'r').read()
         file_hash=md5.new(data).hexdigest()
