@@ -286,12 +286,12 @@ def edit():
         file_hash=md5.new(data).hexdigest()    
         if request.vars.file_hash and request.vars.file_hash!=file_hash: 
             session.flash=T("file changed on disk")
-            data=request.vars.data.replace('\r\n','\n').strip()
+            data=request.vars.data.replace('\r\n','\n').strip()+'\n'
             open(path+'.1','w').write(data)
             redirect(URL(r=request,f='resolve',args=request.args))
         elif request.vars.data:
             open(path+'.bak','w').write(data)
-            data=request.vars.data.replace('\r\n','\n').strip()
+            data=request.vars.data.replace('\r\n','\n').strip()+'\n'
             open(path,'w').write(data)
             file_hash=md5.new(data).hexdigest()    
             response.flash=T("file saved on %(time)s",dict(time=time.ctime()))
