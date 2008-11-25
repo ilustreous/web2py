@@ -81,7 +81,7 @@ class SQLFORM(FORM):
             if labels!=None and labels.has_key(fieldname):
                 label=labels[fieldname]
             else:
-                label=field.label+': '
+                label=str(field.label)+': '
             label=LABEL(label,_for=field_id,_id='%s__label'%field_id)
             comment=col3.get(fieldname,'')
             row_id=field_id+'__row'

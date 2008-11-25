@@ -257,6 +257,7 @@ def sql_represent(obj,fieldtype,dbname):
     if isinstance(obj,unicode): obj=obj.encode('utf-8')
     if fieldtype=='blob':
         obj=base64.b64encode(str(obj))
+        #if dbname=='postgres': return "'%s'::bytea" % obj.replace("'","''")
     elif fieldtype=='date':
         if isinstance(obj,(datetime.date,datetime.datetime)): obj=obj.strftime('%Y-%m-%d')
         else: obj=str(obj)
@@ -1239,7 +1240,7 @@ class SQLRows(object):
                 row[tablename][fieldname]=rid
                 #row[tablename][fieldname]=SQLSet(self._db[referee].id==rid)
             elif field.type=='blob' and value!=None:
-                row[tablename][fieldname]=base64.b64decode(value)
+                row[tablename][fieldname]=base64.b64decode(str(value))
             elif field.type=='boolean' and value!=None:
                 if value==True or value=='T' or value=='t':
                     row[tablename][fieldname]=True
