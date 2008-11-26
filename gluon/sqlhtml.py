@@ -284,7 +284,8 @@ class SQLTABLE(TABLE):
                     if r: row.append(TD(A('file',_href='%s/%s' % (upload,r))))
                     else: row.append(TD())
                     continue
-                if len(r)>truncate: r=r[:truncate-3]+'...'                
+                ur=unicode(r,'utf8')
+                if len(ur)>truncate: r=ur[:truncate-3].encode('utf8') + '...' 
                 if linkto and field.type=='id':
                     row.append(TD(A(r,_href='%s/%s/%s' % \
                                     (linkto,tablename,r))))
