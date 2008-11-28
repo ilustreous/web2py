@@ -15,7 +15,19 @@ def app_create_form(sender=request.function):
 }}
 
 <h1>Installed applications</h1>
-<div style="text-align:right;">web2py {{=open('VERSION','r').read()}}</div>
+<div style="text-align:right;">
+web2py {{=myversion}}<br />
+{{if session.check_version:}}
+<div id="check_version">
+Checking for upgrades...
+</div>
+<script>ajax('{{=URL(r=request,f='check_version')}}',[],'check_version');</script>{{session.check_version=False}}
+{{else:}}
+<div id="check_version">
+{{=A(T('click to check for upgrades'),_href="javascript:ajax('"+URL(r=request,f='check_version')+"',[],'check_version')")}}
+</div>
+{{pass}}
+</div>
 
 {{for a in apps:}} {{if a==request.application:}}
 <h2><a href="">{{=a}}</a></h2> [ 

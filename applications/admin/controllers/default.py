@@ -92,17 +92,24 @@ def index():
     if request.vars.password:
         if _config['password']==CRYPT()(request.vars.password)[0]:
             session.authorized=True
-            if CHECK_VERSION:
-                try:        
-                    version=urllib.urlopen('http://mdp.cti.depaul.edu/examples/default/version').read()
-                    myversion=open(apath('../VERSION'),'r').read()
-                    if version>myversion: session.flash='A new version of web2py is available, you should upgrade at http://mdp.cti.depaul.edu/examples'
-                except Exception: pass
+            if CHECK_VERSION: session.check_version=True
+            else: session.check_version=False
             session.last_time=t0
             redirect(send)
         else: response.flash=T('invalid password')
     apps=[file for file in os.listdir(apath()) if file.find('.')<0]    
     return dict(apps=apps,send=send)
+
+def check_version():
+    try:
+         myversion=open(apath('../VERSION'),'r').read()
+         version=urllib.urlopen(WEB2PY_VERSION_URL).read()
+         if version>myversion: 
+             return A(T('A new version of web2py is available'),_href=WEB2PY_URL)
+         else:
+             return A(T('web2py is up to date'),_href=WEB2PY_URL)
+    except Exception:
+        return A(T('Unable to check for upgrades'),_href=WEB2PY_URL)
 
 def logout():
     """ admin controller function """
@@ -111,6 +118,7 @@ def logout():
 
 def site():
     """ admin controller function """
+    myversion=open(apath('../VERSION'),'r').read()
     if request.vars.filename and not request.vars.has_key('file'):
         try:
             appname=cleanpath(request.vars.filename).replace('.','_')
@@ -149,7 +157,7 @@ def site():
     apps=[(file.upper(),file) for file in os.listdir(apath()) if regex.match(file)]
     apps.sort()
     apps=[item[1] for item in apps]
-    return dict(app=None,apps=apps)
+    return dict(app=None,apps=apps,myversion=myversion)
 
 def pack():        
     """ admin controller function """
