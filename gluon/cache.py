@@ -13,10 +13,11 @@ __all__=['Cache']
 class CacheInRam(object):
     locker=thread.allocate_lock()
     storage={}
-    def __init__(self,request):
+    def __init__(self,request=None):
         self.request=request
     def __call__(self,key,f,time_expire=300):
-        key='%s/%s' % (self.request.application,key)
+        if self.request: key='%s/%s' % (self.request.application,key)
+        else: key='/%s'%key
         dt=time_expire
         self.locker.acquire()
         value=None

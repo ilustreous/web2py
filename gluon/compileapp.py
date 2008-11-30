@@ -161,7 +161,7 @@ def run_controller_in(controller,function,environment):
         environment['__symbols__']=environment.keys()
         code=open(filename,'r').read()
         code+=TEST_CODE
-        restricted(code,environment,layer=filename)
+        restricted(code,environment,layer=filename+':_TEST')
     else:
         filename=os.path.join(folder,'controllers/%s.py' % controller)
         if not os.path.exists(filename):
@@ -173,7 +173,7 @@ def run_controller_in(controller,function,environment):
             raise HTTP(400,error_message_custom % 'invalid function',
                        web2py_error='invalid function')
         code+='\n\nresponse._vars=response._caller(%s)' % function        
-        restricted(code,environment,layer=filename)
+        restricted(code,environment,layer=filename+':'+function)
     response=environment['response']
     if response.postprocessing:
         for p in response.postprocessing:

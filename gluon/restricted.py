@@ -8,6 +8,12 @@ import sys, cStringIO, cPickle, traceback, copy, cgi, types, time, os, uuid, dat
 from html import BEAUTIFY
 from http import HTTP
 
+### FIX THIS
+CACHE_TIME=0
+import cache
+cache_pyc=cache.CacheInRam()
+###
+
 __all__=['RestrictedError','restricted']
 
 class RestrictedError:
@@ -58,7 +64,11 @@ def restricted(code,environment={},layer='Unkown'):
     """
     try: 
         if type(code)==types.CodeType: ccode=code
+        elif CACHE_TIME and layer!='Unkown':
+             print layer
+             ccode=cache_pyc(layer,lambda:compile(code.replace('\r\n','\n'),layer,'exec'),CACHE_TIME)
         else: ccode=compile(code.replace('\r\n','\n'),layer,'exec')
+# an experiment for GAE
         exec ccode in environment
     except HTTP:
         raise
