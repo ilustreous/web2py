@@ -5,6 +5,7 @@ License: GPL v2
 """
 
 import sys; sys.path.append('../gluon')
+import os, stat
 from template import parse_template
 from restricted import restricted
 from fileutils import listdir
@@ -21,6 +22,9 @@ try: import py_compile
 except: logging.warning("unable to import py_compile")
 from rewrite import error_message_custom
 
+try: magic=imp.get_magic()
+except: is_gae=True
+else: is_gae=False
 
 TEST_CODE=r"""
 def _TEST():
@@ -47,6 +51,16 @@ def _TEST():
     sys.stdout=stdout
 _TEST()
 """
+
+cfs={}
+def getcfs(key,filename,filter=None):
+     t=os.stat(filename)[stat.ST_MTIME]
+     item=cfs.get(key,None)
+     if item and item[0]==t: return item[1]
+     data=open(filename,'rb').read()
+     if filter: data=filter(data)
+     cfs[key]=(t,data)
+     return data
 
 def build_environment(request,response,session):
     """
@@ -135,8 +149,11 @@ def run_models_in(environment):
              restricted(read_pyc(model),environment,layer=model)
     else:
         models=listdir(os.path.join(folder,'models/'),'^\w+\.py$',0)      
-        for model in models: 
-              restricted(open(model,'r').read(),environment,layer=model)
+        for model in models:
+              layer=model
+              ccode=getcfs(model,model,
+                  lambda code:compile(code.replace('\r\n','\n'),layer,'exec'))
+              restricted(ccode,environment,layer)
 
 def run_controller_in(controller,function,environment):
     """
@@ -172,8 +189,11 @@ def run_controller_in(controller,function,environment):
         if not function in exposed: 
             raise HTTP(400,error_message_custom % 'invalid function',
                        web2py_error='invalid function')
-        code+='\n\nresponse._vars=response._caller(%s)' % function        
-        restricted(code,environment,layer=filename+':'+function)
+        layer=filename+':'+function
+        appendix='\n\nresponse._vars=response._caller(%s)\n' % function
+        ccode=getcfs(layer,filename,
+          lambda code:compile(code.replace('\r\n','\n')+appendix,layer,'exec'))
+        restricted(ccode,environment,layer)
     response=environment['response']
     if response.postprocessing:
         for p in response.postprocessing:
@@ -201,7 +221,6 @@ def run_view_in(environment):
             raise HTTP(400,error_message_custom % 'invalid view',
                        web2py_error='invalid view')
         code=read_pyc(filename)
-        #response.body=restricted(code,environment,layer=filename) 
         restricted(code,environment,layer=filename) 
     else:
         filename=os.path.join(folder,'views/',response.view)
@@ -211,9 +230,12 @@ def run_view_in(environment):
         if not os.path.exists(filename):
              raise HTTP(400,error_message_custom % 'invalid view',
                         web2py_error='invalid view')
-        code=parse_template(response.view,os.path.join(folder,'views/'),
-                            context=environment)
-        restricted(code,environment,layer=filename)
+        layer=filename
+        if is_gae:
+            ccode=getcfs(layer,filename,lambda code:compile(parse_template(response.view,os.path.join(folder,'views/'),context=environment).replace('\r\n','\n'),layer,'exec'))
+        else:
+            ccode=parse_template(response.view,os.path.join(folder,'views/'),context=environment)
+        restricted(ccode,environment,layer)
 
 def remove_compiled_application(folder):
     try:

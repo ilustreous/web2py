@@ -8,12 +8,6 @@ import sys, cStringIO, cPickle, traceback, copy, cgi, types, time, os, uuid, dat
 from html import BEAUTIFY
 from http import HTTP
 
-### FIX THIS
-try: from google.appengine.api import memcache as cache_pyc
-except: is_gae=False
-else: is_gae=True
-###
-
 __all__=['RestrictedError','restricted']
 
 class RestrictedError:
@@ -64,11 +58,6 @@ def restricted(code,environment={},layer='Unkown'):
     """
     try: 
         if type(code)==types.CodeType: ccode=code
-        elif is_gae:
-             ccode=cache_pyc.get(layer)
-             if not ccode:
-                 ccode=compile(code.replace('\r\n','\n'),layer,'exec')
-                 cache_pyc.set(layer,code)
         else: ccode=compile(code.replace('\r\n','\n'),layer,'exec')
         exec ccode in environment
     except HTTP:
