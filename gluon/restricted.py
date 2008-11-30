@@ -9,9 +9,9 @@ from html import BEAUTIFY
 from http import HTTP
 
 ### FIX THIS
-CACHE_TIME=0
-import cache
-cache_pyc=cache.CacheInRam()
+try: from google.appengine.api import memcache as cache_pyc
+except: is_gae=False
+else: is_gae=True
 ###
 
 __all__=['RestrictedError','restricted']
@@ -64,11 +64,12 @@ def restricted(code,environment={},layer='Unkown'):
     """
     try: 
         if type(code)==types.CodeType: ccode=code
-        elif CACHE_TIME and layer!='Unkown':
-             print layer
-             ccode=cache_pyc(layer,lambda:compile(code.replace('\r\n','\n'),layer,'exec'),CACHE_TIME)
+        elif is_gae:
+             ccode=cache_pyc.get(layer)
+             if not ccode:
+                 ccode=compile(code.replace('\r\n','\n'),layer,'exec')
+                 cache_pyc.set(layer,code)
         else: ccode=compile(code.replace('\r\n','\n'),layer,'exec')
-# an experiment for GAE
         exec ccode in environment
     except HTTP:
         raise
