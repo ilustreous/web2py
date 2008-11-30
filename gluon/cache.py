@@ -33,6 +33,18 @@ class CacheInRam(object):
                 raise e
         self.locker.release()
         return value
+    def increment(self,key,value=1):
+        key='%s/%s' % (self.request.application,key)
+        self.locker.acquire()
+        try:
+            if self.storage.has_key(key):
+                value=self.storage[key][1]+value
+            self.storage[key]=(time.time(),value)
+        except BaseException,e:
+            self.locker.release()
+            raise e
+        self.locker.release()
+        return value
 
 class CacheOnDisk(object):
     def __init__(self,request):
@@ -57,6 +69,20 @@ class CacheOnDisk(object):
             except BaseException, e:
                 portalocker.unlock(self.locker)       
                 raise e
+        portalocker.unlock(self.locker)
+        return value
+    def increment(self,key,value=1):
+        key='%s/%s' % (self.request.application,key)
+        portalocker.lock(self.locker, portalocker.LOCK_EX)
+        storage=shelve.open(self.shelve_name)
+        try:
+            if storage.has_key(key):
+                value=storage[key][1]+value
+            storage[key]=(time.time(),value)
+            storage.sync()
+        except BaseException, e:
+            portalocker.unlock(self.locker)       
+            raise e
         portalocker.unlock(self.locker)
         return value
 

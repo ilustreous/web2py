@@ -28,3 +28,9 @@ class MemcacheClient(Client):
             value=f()
             self.set((time.time(),value))
         return value
+    def increment(self,key,value=1):
+        key='%s/%s' % (self.request.application,key)
+        obj=self.get(key)
+        if obj: value=obj[1]+value
+        self.set((time.time(),value))
+        return value
