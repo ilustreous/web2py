@@ -57,7 +57,7 @@ def getcfs(key,filename,filter=None):
      t=os.stat(filename)[stat.ST_MTIME]
      item=cfs.get(key,None)
      if item and item[0]==t: return item[1]
-     data=open(filename,'rb').read()
+     data=open(filename,'r').read()
      if filter: data=filter(data)
      cfs[key]=(t,data)
      return data
