@@ -5,7 +5,7 @@ License: GPL v2
 """
 
 import sys; sys.path.append('../gluon')
-import os, stat
+import os, stat, thread
 from template import parse_template
 from restricted import restricted
 from fileutils import listdir
@@ -52,14 +52,19 @@ def _TEST():
 _TEST()
 """
 
-cfs={}
+cfs={} # for speed-up
+cfs_lock=thread.allocate_lock() # and thread safety
 def getcfs(key,filename,filter=None):
      t=os.stat(filename)[stat.ST_MTIME]
+     cfs_lock.acquire()
      item=cfs.get(key,None)
+     cfs_lock.release()
      if item and item[0]==t: return item[1]
      data=open(filename,'r').read()
      if filter: data=filter(data)
+     cfs_lock.acquire()
      cfs[key]=(t,data)
+     cfs_lock.release()
      return data
 
 def build_environment(request,response,session):
