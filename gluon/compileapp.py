@@ -60,8 +60,8 @@ def getcfs(key,filename,filter=None):
      item=cfs.get(key,None)
      cfs_lock.release()
      if item and item[0]==t: return item[1]
-     data=open(filename,'r').read()
-     if filter: data=filter(data)
+     if not filter: data=open(filename,'r').read()
+     else: data=filter()
      cfs_lock.acquire()
      cfs[key]=(t,data)
      cfs_lock.release()
@@ -156,9 +156,11 @@ def run_models_in(environment):
         models=listdir(os.path.join(folder,'models/'),'^\w+\.py$',0)      
         for model in models:
               layer=model
-              ccode=getcfs(model,model,
-                  lambda code:compile(code.replace('\r\n','\n'),layer,'exec'))
-              restricted(ccode,environment,layer)
+              if is_gae:
+                   code=getcfs(model,model,lambda:compile(open(model,'r').read().replace('\r\n','\n'),layer,'exec'))
+              else:
+                   code=getcfs(model,model,None) ### do not byte code here else no errors
+              restricted(code,environment,layer)
 
 def run_controller_in(controller,function,environment):
     """
@@ -195,10 +197,10 @@ def run_controller_in(controller,function,environment):
             raise HTTP(400,error_message_custom % 'invalid function',
                        web2py_error='invalid function')
         layer=filename+':'+function
-        appendix='\n\nresponse._vars=response._caller(%s)\n' % function
-        ccode=getcfs(layer,filename,
-          lambda code:compile(code.replace('\r\n','\n')+appendix,layer,'exec'))
-        restricted(ccode,environment,layer)
+        code='%s\n\nresponse._vars=response._caller(%s)\n' % (code,function)
+        if is_gae:
+            code=getcfs(layer,filename,lambda:compile(code.replace('\r\n','\n'),layer,'exec'))
+        restricted(code,environment,layer)
     response=environment['response']
     if response.postprocessing:
         for p in response.postprocessing:
@@ -237,7 +239,7 @@ def run_view_in(environment):
                         web2py_error='invalid view')
         layer=filename
         if is_gae:
-            ccode=getcfs(layer,filename,lambda code:compile(parse_template(response.view,os.path.join(folder,'views/'),context=environment).replace('\r\n','\n'),layer,'exec'))
+            ccode=getcfs(layer,filename,lambda:compile(parse_template(response.view,os.path.join(folder,'views/'),context=environment).replace('\r\n','\n'),layer,'exec'))
         else:
             ccode=parse_template(response.view,os.path.join(folder,'views/'),context=environment)
         restricted(ccode,environment,layer)
