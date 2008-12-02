@@ -15,6 +15,10 @@ class CacheInRam(object):
     storage={}
     def __init__(self,request=None):
         self.request=request
+    def clear(self):
+        self.locker.acquire()
+        self.storage.clear()
+        self.locker.release()
     def __call__(self,key,f,time_expire=300):
         if self.request: key='%s/%s' % (self.request.application,key)
         else: key='/%s'%key
@@ -52,6 +56,11 @@ class CacheOnDisk(object):
 	self.request=request
         self.locker=open(os.path.join(request.folder,'cache/cache.lock'),'a')
         self.shelve_name=os.path.join(request.folder,'cache/cache.shelve')
+    def clear(self):
+        portalocker.lock(self.locker, portalocker.LOCK_EX)
+        storage=shelve.open(self.shelve_name)
+        storage.clear()
+        portalocker.unlock(self.locker)
     def __call__(self,key,f,time_expire=300): 
         key='%s/%s' % (self.request.application,key)
         dt=time_expire
