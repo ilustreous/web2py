@@ -263,4 +263,6 @@ Fixed some bugs introduced in 1.49
 Fixed more bugs introduced in 1.49 (sql _extra and html select)
 support for sqlite:memory:
 
-
+1.52
+Fixed a minor bug with _extra[key] and key not str.
+check for upgrade via ajax
