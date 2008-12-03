@@ -280,7 +280,7 @@ def cleanup(text):
 
 def sqlite3_web2py_extract(lookup, s):
     table={'year':(0,4),'month':(5,7),'day':(8,10),
-             'hour':(11,13),'minutes':(14,16),'seconds':(17,19)}
+             'hour':(11,13),'minute':(14,16),'second':(17,19)}
     try: 
         i,j=table[lookup]
         return int(s[i:j])
@@ -705,17 +705,23 @@ class SQLTable(SQLStorage):
         query='CREATE TABLE %s(\n\t%s\n)%s' % (self._tablename,fields,other)
         if not migrate: 
             return query
+        elif self._db._uri[:14]=='sqlite:memory:': 
+            self._dbt=None
         elif isinstance(migrate,str):
             self._dbt=os.path.join(self._db._folder,migrate)
-        else: 
+        else:
             self._dbt=os.path.join(self._db._folder,\
               '%s_%s.table' % (hash5(self._db._uri),self._tablename))        
-        logfilename=os.path.join(self._db._folder,'sql.log')
-        logfile=open(logfilename,'a')      
-        if not os.path.exists(self._dbt):
-            logfile.write('timestamp: %s\n' % \
+        if self._dbt:
+            self._logfilename=os.path.join(self._db._folder,'sql.log')
+            logfile=open(self._logfilename,'a')
+        else:
+            logfile=None
+        if not self._dbt or not os.path.exists(self._dbt):
+            if self._dbt:
+                logfile.write('timestamp: %s\n' % \
                           datetime.datetime.today().isoformat())
-            logfile.write(query+'\n')
+                logfile.write(query+'\n')
             self._db['_lastsql']=query
             self._db._execute(query)
             if self._db._dbname=='oracle':
@@ -728,11 +734,12 @@ class SQLTable(SQLStorage):
                 self._db._execute('set generator GENID_%s to 0;' % t)
                 self._db._execute('create trigger trg_id_%s for %s active before insert position 0 as\nbegin\nif(new.id is null) then\nbegin\nnew.id = gen_id(GENID_%s, 1);\nend\nend;\n' % (t,t,t))  
             self._db.commit()
-            file=open(self._dbt,'w')
-            portalocker.lock(file, portalocker.LOCK_EX)
-            cPickle.dump(sql_fields,file)
-            file.close()
-            logfile.write('success!\n')
+            if self._dbt:
+                file=open(self._dbt,'w')
+                portalocker.lock(file, portalocker.LOCK_EX)
+                cPickle.dump(sql_fields,file)
+                file.close()
+            if self._dbt: logfile.write('success!\n')
         else:
             file=open(self._dbt,'r')
             portalocker.lock(file, portalocker.LOCK_SH)
@@ -777,7 +784,6 @@ class SQLTable(SQLStorage):
                 if sql_fields.has_key(key): sql_fields_old[key]=sql_fields[key]
                 else: del sql_fields_old[key]
                 logfile.write('success!\n')
-        file=open(self._dbt,'w')
         portalocker.lock(file, portalocker.LOCK_EX)
         cPickle.dump(sql_fields_old,file)
         file.close()
@@ -792,18 +798,20 @@ class SQLTable(SQLStorage):
             return ['DROP TABLE %s;' % t,'DROP GENERATOR GENID_%s;' % t]
         return ['DROP TABLE %s;' % t]
     def drop(self):
-        logfile=open(os.path.join(self._db._folder,'sql.log'),'a')
+        if self._dbt:
+            logfile=open(self._logfilename,'a')
         queries=self._drop()
         self._db['_lastsql']='\n'.join(queries)
         for query in queries: 
-            logfile.write(query+'\n')
+            if self._dbt: logfile.write(query+'\n')
             self._db._execute(query)
         self._db.commit()
         del self._db[self._tablename]
         del self._db.tables[self._db.tables.index(self._tablename)]
         self._db._update_referenced_by(self._tablename)
-        os.unlink(self._dbt)
-        logfile.write('success!\n')
+        if self._dbt:
+            os.unlink(self._dbt)
+            logfile.write('success!\n')
     def _insert(self,**fields):
         fs,vs=[],[]
         if [key for key in fields.keys() if not key in self.fields]:
@@ -878,14 +886,16 @@ class SQLTable(SQLStorage):
                     "DELETE FROM sqlite_sequence WHERE name='%s';" % t]
         return ['TRUNCATE TABLE %s;' % t]
     def truncate(self):
-        logfile=open(os.path.join(self._db._folder,'sql.log'),'a')
+        if self._dbt:
+            logfile=open(self._logfilename,'a')
         queries=self._truncate()
         self._db['_lastsql']='\n'.join(queries)
         for query in queries:
             logfile.write(query+'\n')
             self._db._execute(query)
         self._db.commit()
-        logfile.write('success!\n')
+        if self._dbt:
+            logfile.write('success!\n')
  
 class SQLXorable(object):
     def __init__(self,name,type='string',db=None):
