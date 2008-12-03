@@ -17,7 +17,7 @@ class CacheInRam(object):
         self.locker.acquire()
         self.request=request
         if request: app=request.application
-        else: self.applicaiton=''
+        else: app=''
         if not self.meta_storage.has_key(app):
             self.storage=self.meta_storage[app]={}
         else:
