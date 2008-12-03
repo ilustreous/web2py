@@ -4,7 +4,7 @@ Developed by Massimo Di Pierro <mdipierro@cs.depaul.edu>
 License: GPL v2
 """
 
-import time, portalocker, shelve, thread, cPickle, os, logging
+import time, portalocker, shelve, thread, cPickle, os, logging, re
 try: import dbhash
 except: logging.warning("unable to import dbhash")
 
@@ -12,16 +12,28 @@ __all__=['Cache']
 
 class CacheInRam(object):
     locker=thread.allocate_lock()
-    storage={}
+    meta_storage={}
     def __init__(self,request=None):
-        self.request=request
-    def clear(self):
         self.locker.acquire()
-        self.storage.clear()
+        self.request=request
+        if request: app=request.application
+        else: self.applicaiton=''
+        if not self.meta_storage.has_key(app):
+            self.storage=self.meta_storage[app]={}
+        else:
+            self.storage=self.meta_storage[app]
+        self.locker.release()
+    def clear(self,regex=None):
+        self.locker.acquire()
+        storage=self.storage
+        if regex==None:
+            storage.clear()
+        else:
+            r=re.compile(regex)
+            for key in storage.keys():
+                if r.match(key): del storage[key]
         self.locker.release()
     def __call__(self,key,f,time_expire=300):
-        if self.request: key='%s/%s' % (self.request.application,key)
-        else: key='/%s'%key
         dt=time_expire
         self.locker.acquire()
         value=None
@@ -39,7 +51,6 @@ class CacheInRam(object):
         self.locker.release()
         return value
     def increment(self,key,value=1):
-        key='%s/%s' % (self.request.application,key)
         self.locker.acquire()
         try:
             if self.storage.has_key(key):
@@ -56,13 +67,18 @@ class CacheOnDisk(object):
 	self.request=request
         self.locker=open(os.path.join(request.folder,'cache/cache.lock'),'a')
         self.shelve_name=os.path.join(request.folder,'cache/cache.shelve')
-    def clear(self):
+    def clear(self,regex=None):
         portalocker.lock(self.locker, portalocker.LOCK_EX)
         storage=shelve.open(self.shelve_name)
-        storage.clear()
+        if regex==None:
+            storage.clear()
+        else:
+            r=re.compile(regex)
+            for key in storage.keys():
+                if r.match(key): del storage[key]
+            storage.sync()
         portalocker.unlock(self.locker)
     def __call__(self,key,f,time_expire=300): 
-        key='%s/%s' % (self.request.application,key)
         dt=time_expire
         portalocker.lock(self.locker, portalocker.LOCK_EX)
         storage=shelve.open(self.shelve_name)
@@ -82,7 +98,6 @@ class CacheOnDisk(object):
         portalocker.unlock(self.locker)
         return value
     def increment(self,key,value=1):
-        key='%s/%s' % (self.request.application,key)
         portalocker.lock(self.locker, portalocker.LOCK_EX)
         storage=shelve.open(self.shelve_name)
         try:

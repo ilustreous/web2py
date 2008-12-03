@@ -5,7 +5,9 @@ clean:
 	find ./ -name '*~' -exec rm {} \; | echo 'none'
 	find ./ -name '#*' -exec rm {} \; | echo 'none'
 	find ./gluon/ -name '.*' -exec rm {} \; 
-	find ./applications/ -name '.*' -exec rm {} \; 
+	find ./applications/admin/ -name '.*' -exec rm {} \; 
+	find ./applications/examples/ -name '.*' -exec rm {} \; 
+	find ./applications/welcome/ -name '.*' -exec rm {} \; 
 	find ./ -name '*.pyc' -exec rm {} \;
 backup:
 	mv web2py.zip ../web2py.zip.old | echo 'none'
@@ -54,13 +56,13 @@ app:
 	rm -r dist/web2py.app | echo 'ok'
 	python setup_app.py py2app
 	zip -ry web2py_osx.zip dist/web2py.app
-	scp web2py_osx.zip toor@140.192.34.200:~/web2py/applications/examples/static/
+	scp web2py_osx.zip user@140.192.34.200:~/web2py/applications/examples/static/
 post:
-	rsync -avz --partial --progress -e ssh web2py_src.zip toor@140.192.34.200:~/
+	rsync -avz --partial --progress -e ssh web2py_src.zip user@140.192.34.200:~/
 run:
 	python web2py.py -a hello
 tunnel:
-	ssh -L 8888:140.192.34.158:8000 -l toor 140.192.34.158
+	ssh -L 8888:140.192.34.158:8000 -l user 140.192.34.158
 rename:
 	find . -name *.html -exec grep -l Gluon {} \; | xargs perl -pi~ -e 's/Gluon/web2py/'
 	find . -name '*.py' -exec grep -l Gluon {} \; | xargs perl -pi~ -e 's/Gluon/web2py/'
