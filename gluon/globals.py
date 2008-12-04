@@ -76,18 +76,6 @@ class Response(Storage):
             run_view_in(self._view_environment)
             page=self.body.getvalue()
         return page
-    """
-    def render(self,*a,**b):
-        if len(a)>1 or (len(a)==1 and not hasattr(a[0],'items')):
-            raise SyntaxError        
-        if len(a): self._vars=a[0] 
-        else: self._vars={}
-        for key,value in b.items(): self._vars[key]=value
-        for key,value in self._vars.items(): self._view_environment[key]=value
-        run_view_in(self._view_environment)
-        self.body=self.body.getvalue()
-        return self.body
-    """
     def stream(self,stream,chunk_size=10**6,request=None):
         """
         if a controller function
@@ -95,7 +83,8 @@ class Response(Storage):
         the file content will be streamed at 100 bytes at the time
         """
         if isinstance(stream,str):
-            stream_file_or_304_or_206(stream,request=request,chunk_size=chunk_size,headers=self.headers)
+            stream_file_or_304_or_206(stream,request=request,
+                  chunk_size=chunk_size,headers=self.headers)
         ### the following is for backward compatibility
         if hasattr(stream,'name'): filename=stream.name
         else: filename=None
