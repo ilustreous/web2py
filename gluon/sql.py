@@ -735,16 +735,16 @@ class SQLTable(SQLStorage):
                 self._db._execute('create trigger trg_id_%s for %s active before insert position 0 as\nbegin\nif(new.id is null) then\nbegin\nnew.id = gen_id(GENID_%s, 1);\nend\nend;\n' % (t,t,t))  
             self._db.commit()
             if self._dbt:
-                file=open(self._dbt,'w')
-                portalocker.lock(file, portalocker.LOCK_EX)
-                cPickle.dump(sql_fields,file)
-                file.close()
+                tfile=open(self._dbt,'w')
+                portalocker.lock(tfile, portalocker.LOCK_EX)
+                cPickle.dump(sql_fields,tfile)
+                tfile.close()
             if self._dbt: logfile.write('success!\n')
         else:
-            file=open(self._dbt,'r')
-            portalocker.lock(file, portalocker.LOCK_SH)
-            sql_fields_old=cPickle.load(file)
-            file.close()
+            tfile=open(self._dbt,'r')
+            portalocker.lock(tfile, portalocker.LOCK_SH)
+            sql_fields_old=cPickle.load(tfile)
+            tfile.close()
             if sql_fields!=sql_fields_old:
                 self._migrate(sql_fields,sql_fields_old,sql_fields_aux,logfile)
         return query
@@ -784,9 +784,10 @@ class SQLTable(SQLStorage):
                 if sql_fields.has_key(key): sql_fields_old[key]=sql_fields[key]
                 else: del sql_fields_old[key]
                 logfile.write('success!\n')
-        portalocker.lock(file, portalocker.LOCK_EX)
-        cPickle.dump(sql_fields_old,file)
-        file.close()
+        tfile=open(self._dbt,'w')
+        portalocker.lock(tfile, portalocker.LOCK_EX)
+        cPickle.dump(sql_fields_old,tfile)
+        tfile.close()
     def create(self):
         # nothing to do, here for backward compatility
         pass
@@ -862,13 +863,13 @@ class SQLTable(SQLStorage):
         else:
             id=None
         return id
-    def import_from_csv_file(self,file):
+    def import_from_csv_file(self,csvfile):
         """
         import records from csv file. Column headers must have same names as
         table fields. field 'id' is ignored. If column names read 'table.file'
         the 'table.' prefix is ignored.
         """
-        reader = csv.reader(file)
+        reader = csv.reader(csvfile)
         colnames=None
         for line in reader:
             if not colnames:

@@ -99,8 +99,6 @@ class SQLFORM(FORM):
                     inp=DIV(inp,'[',A('file',_href=upload+'/'+default),'|',
                         INPUT(_type='checkbox',_name=fieldname+'__delete'),'delete]')
             elif field.type=='boolean':
-                if default==True: default='ON'
-                else: default=''
                 inp=INPUT(_type='checkbox',_id=field_id,_class=field.type,
                     _name=fieldname,value=default, requires=field.requires)
             elif hasattr(field.requires,'options'):

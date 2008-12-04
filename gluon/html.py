@@ -137,7 +137,7 @@ class DIV(object):
         # for input, textarea, select, option, deal with 'value' and 'validation'
         if newstatus:
             newstatus=self._validate()
-            self._postprocessing()       
+            self._postprocessing()
         elif self.attributes.has_key('old_value'):
             self['value']=self['old_value']
             self._postprocessing()
@@ -350,9 +350,13 @@ class INPUT(DIV):
         ## this only changes value, not _value
         name=self['_name']
         if not name: return True
-        self['old_value']=self['value'] or self['_value'] or ''
-        value=self.request_vars.get(name,self['value'] or '')
-        if not isinstance(value,cgi.FieldStorage): value=str(value)
+        if self['_type']!='checkbox':
+            self['old_value']=self['value'] or self['_value'] or ''
+            value=self.request_vars.get(name,self['value'] or '')
+            if not isinstance(value,cgi.FieldStorage): value=str(value)
+        else:
+            self['old_value']=self['value'] or False
+            value=self.request_vars.get(name,False)
         self['value']=value
         requires=self['requires']
         if requires:
@@ -372,6 +376,7 @@ class INPUT(DIV):
         if not t: t=self['type']='text'
         t=t.lower()
         if t=='checkbox':
+            if not self['_value']: self['_value']='on'
             if self['value']: self['_checked']='checked'
             else: self['_checked']=None
         elif t=='radio':            
