@@ -93,8 +93,7 @@ def findT(application_path,language='en-us'):
             msg=eval(item)
             if msg and not sentences.has_key(msg):
                 sentences[msg]='*** %s' % msg
-    keys=sentences.keys()
-    keys.sort()
+    keys=sorted(sentences)
     file=open(os.path.join(path,'languages','%s.py' % language),'w')
     file.write('{\n')
     for key in keys:

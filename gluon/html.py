@@ -145,10 +145,9 @@ class DIV(object):
         return newstatus
     def _validate(self): return True
     def _xml(self):
-        items=self.attributes.items()
-        items.sort()
         fa=''
-        for key,value in items:
+        for key in sorted(self.attributes):
+             value=self[key]
              if key[:1]!='_': continue
              name=key[1:].lower()
              if value is True: value=name
@@ -535,9 +534,7 @@ class BEAUTIFY(DIV):
             elif 'keys' in s:
                 rows=[]
                 try: 
-                    keys=c.keys()
-                    keys.sort()
-                    for key in keys:
+                    for key in sorted(c):
                         if str(key)[:1]=='_': continue
                         value=c[key]
                         if type(value)==types.LambdaType: continue 

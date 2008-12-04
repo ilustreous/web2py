@@ -95,9 +95,8 @@ class XssCleaner(HTMLParser):
         """
         Returns a printable string informing the user which tags are allowed
         """
-        self.permitted_tags.sort()
         tg = ""
-        for x in self.permitted_tags:
+        for x in sorted(self.permitted_tags):
             tg += "<" + x
             if x in self.allowed_attributes:
                 for y in self.allowed_attributes[x]:

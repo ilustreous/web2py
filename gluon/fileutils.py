@@ -32,8 +32,7 @@ def listdir(path,expression='^.+$',drop=True,add_dirs=False):
         for file in files:           
            if regex.match(file) and not file.startswith('.'):
               items.append(os.path.join(root,file)[n:])
-    items.sort()
-    return items
+    return sorted(items)
 
 def cleanpath(path):
     """
