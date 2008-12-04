@@ -314,7 +314,7 @@ class TABLE(DIV):
             if isinstance(c,(TR,TBODY,THEAD,TFOOT)):
                 components.append(c)
             else:
-                components.append(TR(*c))
+                components.append(TR(c))
         self.components=components
 
 class IFRAME(DIV): tag='iframe'
