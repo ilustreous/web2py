@@ -198,6 +198,7 @@ def run_controller_in(controller,function,environment):
                        web2py_error='invalid function')
         code='%s\n\nresponse._vars=response._caller(%s)\n' % (code,function)
         if is_gae:
+            layer=filename+':'+function
             code=getcfs(layer,filename,lambda:compile(code.replace('\r\n','\n'),layer,'exec'))
         restricted(code,environment,filename)
     response=environment['response']
