@@ -1,4 +1,4 @@
-""" high-speed, production ready, thread pooled, generic WSGI server.
+"""A high-speed, production ready, thread pooled, generic WSGI server.
 
 Simplest example on how to use this module directly
 (without using CherryPy's application machinery):
@@ -36,12 +36,50 @@ This won't call the CherryPy engine (application side) at all, only the
 WSGI server, which is independant from the rest of CherryPy. Don't
 let the name "CherryPyWSGIServer" throw you; the name merely reflects
 its origin, not its coupling.
+
+For those of you wanting to understand internals of this module, here's the
+basic call flow. The server's listening thread runs a very tight loop,
+sticking incoming connections onto a Queue:
+
+    server = CherryPyWSGIServer(...)
+    server.start()
+    while True:
+        tick()
+        # This blocks until a request comes in:
+        child = socket.accept()
+        conn = HTTPConnection(child, ...)
+        server.requests.put(conn)
+
+Worker threads are kept in a pool and poll the Queue, popping off and then
+handling each connection in turn. Each connection can consist of an arbitrary
+number of requests and their responses, so we run a nested loop:
+
+    while True:
+        conn = server.requests.get()
+        conn.communicate()
+        ->  while True:
+                req = HTTPRequest(...)
+                req.parse_request()
+                ->  # Read the Request-Line, e.g. "GET /page HTTP/1.1"
+                    req.rfile.readline()
+                    req.read_headers()
+                req.respond()
+                ->  response = wsgi_app(...)
+                    try:
+                        for chunk in response:
+                            if chunk:
+                                req.write(chunk)
+                    finally:
+                        if hasattr(response, "close"):
+                            response.close()
+                if req.close_connection:
+                    return
 """
 
 
 import base64
-import Queue
 import os
+import Queue
 import re
 quoted_slash = re.compile("(?i)%2F")
 import rfc822
@@ -50,6 +88,9 @@ try:
     import cStringIO as StringIO
 except ImportError:
     import StringIO
+
+_fileobject_uses_str_type = isinstance(socket._fileobject(None)._rbuf, basestring)
+
 import sys
 import threading
 import time
@@ -78,11 +119,19 @@ def plat_specific_errors(*errnames):
     # de-dupe the list
     return dict.fromkeys(nums).keys()
 
+socket_error_eintr = plat_specific_errors("EINTR", "WSAEINTR")
+
 socket_errors_to_ignore = plat_specific_errors(
-    "EPIPE", "ETIMEDOUT", "ECONNREFUSED", "ECONNRESET",
+    "EPIPE",
+    "EBADF", "WSAEBADF",
+    "ENOTSOCK", "WSAENOTSOCK",
+    "ETIMEDOUT", "WSAETIMEDOUT",
+    "ECONNREFUSED", "WSAECONNREFUSED",
+    "ECONNRESET", "WSAECONNRESET",
+    "ECONNABORTED", "WSAECONNABORTED",
+    "ENETRESET", "WSAENETRESET",
     "EHOSTDOWN", "EHOSTUNREACH",
-    "WSAECONNABORTED", "WSAECONNREFUSED", "WSAECONNRESET",
-    "WSAENETRESET", "WSAETIMEDOUT")
+    )
 socket_errors_to_ignore.append("timed out")
 
 socket_errors_nonblocking = plat_specific_errors(
@@ -202,7 +251,7 @@ class HTTPRequest(object):
     
     A single HTTP connection may consist of multiple request/response pairs.
     
-    sendall: the 'sendall' method from the connection's fileobject.
+    send: the 'send' method from the connection's socket object.
     wsgi_app: the WSGI application to call.
     environ: a partial WSGI environ (server and connection entries).
         The caller MUST set the following entries:
@@ -235,9 +284,9 @@ class HTTPRequest(object):
     max_request_header_size = 0
     max_request_body_size = 0
     
-    def __init__(self, sendall, environ, wsgi_app):
+    def __init__(self, wfile, environ, wsgi_app):
         self.rfile = environ['wsgi.input']
-        self.sendall = sendall
+        self.wfile = wfile
         self.environ = environ.copy()
         self.wsgi_app = wsgi_app
         
@@ -286,7 +335,12 @@ class HTTPRequest(object):
         
         environ = self.environ
         
-        method, path, req_protocol = request_line.strip().split(" ", 2)
+        try:
+            method, path, req_protocol = request_line.strip().split(" ", 2)
+        except ValueError:
+            self.simple_response(400, "Malformed Request-Line")
+            return
+        
         environ["REQUEST_METHOD"] = method
         
         # path may be an abs_path (including "http://host.domain.tld");
@@ -351,19 +405,18 @@ class HTTPRequest(object):
             self.simple_response("400 Bad Request", repr(ex.args))
             return
         
-        # Set AUTH_TYPE, REMOTE_USER
-        creds = environ.get("HTTP_AUTHORIZATION", "").split(" ", 1)
-        environ["AUTH_TYPE"] = creds[0]
-        if creds[0].lower() == 'basic':
-            user, pw = base64.decodestring(creds[1]).split(":", 1)
-            environ["REMOTE_USER"] = user
+        mrbs = self.max_request_body_size
+        if mrbs and int(environ.get("CONTENT_LENGTH", 0)) > mrbs:
+            self.simple_response("413 Request Entity Too Large")
+            return
         
         # Persistent connection support
         if self.response_protocol == "HTTP/1.1":
+            # Both server and client are HTTP/1.1
             if environ.get("HTTP_CONNECTION", "") == "close":
                 self.close_connection = True
         else:
-            # HTTP/1.0
+            # Either the server or client (or both) are HTTP/1.0
             if environ.get("HTTP_CONNECTION", "") != "Keep-Alive":
                 self.close_connection = True
         
@@ -438,10 +491,10 @@ class HTTPRequest(object):
             environ[envname] = v
         
         ct = environ.pop("HTTP_CONTENT_TYPE", None)
-        if ct:
+        if ct is not None:
             environ["CONTENT_TYPE"] = ct
         cl = environ.pop("HTTP_CONTENT_LENGTH", None)
-        if cl:
+        if cl is not None:
             environ["CONTENT_LENGTH"] = cl
     
     def decode_chunked(self):
@@ -481,13 +534,17 @@ class HTTPRequest(object):
             self.rfile.maxlen = self.max_request_body_size
         else:
             cl = int(self.environ.get("CONTENT_LENGTH", 0))
-            self.rfile.maxlen = min(cl, self.max_request_body_size)
+            if self.max_request_body_size:
+                self.rfile.maxlen = min(cl, self.max_request_body_size)
+            else:
+                self.rfile.maxlen = cl
         self.rfile.bytes_read = 0
         
         try:
             self._respond()
         except MaxSizeExceeded:
-            self.simple_response("413 Request Entity Too Large")
+            if not self.sent_headers:
+                self.simple_response("413 Request Entity Too Large")
             return
     
     def _respond(self):
@@ -515,7 +572,7 @@ class HTTPRequest(object):
             self.sent_headers = True
             self.send_headers()
         if self.chunked_write:
-            self.sendall("0\r\n\r\n")
+            self.wfile.sendall("0\r\n\r\n")
     
     def simple_response(self, status, msg=""):
         """Write a simple response back to the client."""
@@ -532,19 +589,30 @@ class HTTPRequest(object):
         buf.append("\r\n")
         if msg:
             buf.append(msg)
-        self.sendall("".join(buf))
+        
+        try:
+            self.wfile.sendall("".join(buf))
+        except socket.error, x:
+            if x.args[0] not in socket_errors_to_ignore:
+                raise
     
     def start_response(self, status, headers, exc_info = None):
         """WSGI callable to begin the HTTP response."""
-        if self.started_response:
-            if not exc_info:
-                raise AssertionError("WSGI start_response called a second "
-                                     "time with no exc_info.")
-            else:
-                try:
-                    raise exc_info[0], exc_info[1], exc_info[2]
-                finally:
-                    exc_info = None
+        # "The application may call start_response more than once,
+        # if and only if the exc_info argument is provided."
+        if self.started_response and not exc_info:
+            raise AssertionError("WSGI start_response called a second "
+                                 "time with no exc_info.")
+        
+        # "if exc_info is provided, and the HTTP headers have already been
+        # sent, start_response must raise an error, and should raise the
+        # exc_info tuple."
+        if self.sent_headers:
+            try:
+                raise exc_info[0], exc_info[1], exc_info[2]
+            finally:
+                exc_info = None
+        
         self.started_response = True
         self.status = status
         self.outheaders.extend(headers)
@@ -565,8 +633,9 @@ class HTTPRequest(object):
         
         if self.chunked_write and chunk:
             buf = [hex(len(chunk))[2:], "\r\n", chunk, "\r\n"]
-            chunk="".join(buf)
-        self.sendall(chunk)
+            self.wfile.sendall("".join(buf))
+        else:
+            self.wfile.sendall(chunk)
     
     def send_headers(self):
         """Assert, process, and send the HTTP response message-headers."""
@@ -583,7 +652,8 @@ class HTTPRequest(object):
             if status < 200 or status in (204, 205, 304):
                 pass
             else:
-                if self.response_protocol == 'HTTP/1.1':
+                if (self.response_protocol == 'HTTP/1.1'
+                    and self.environ["REQUEST_METHOD"] != 'HEAD'):
                     # Use the chunked transfer-coding
                     self.chunked_write = True
                     self.outheaders.append(("Transfer-Encoding", "chunked"))
@@ -593,9 +663,11 @@ class HTTPRequest(object):
         
         if "connection" not in hkeys:
             if self.response_protocol == 'HTTP/1.1':
+                # Both server and client are HTTP/1.1 or better
                 if self.close_connection:
                     self.outheaders.append(("Connection", "close"))
             else:
+                # Server and/or client are HTTP/1.0
                 if not self.close_connection:
                     self.outheaders.append(("Connection", "Keep-Alive"))
         
@@ -628,12 +700,12 @@ class HTTPRequest(object):
         except TypeError:
             if not isinstance(k, str):
                 raise TypeError("WSGI response header key %r is not a string.")
-            if not isinstance(v, str):                
+            if not isinstance(v, str):
                 raise TypeError("WSGI response header value %r is not a string.")
             else:
                 raise
         buf.append("\r\n")
-        self.sendall("".join(buf))
+        self.wfile.sendall("".join(buf))
 
 
 class NoSSLError(Exception):
@@ -641,23 +713,357 @@ class NoSSLError(Exception):
     pass
 
 
-def _ssl_wrap_method(method, is_reader=False):
-    """Wrap the given method with SSL error-trapping.
+class FatalSSLAlert(Exception):
+    """Exception raised when the SSL implementation signals a fatal alert."""
+    pass
+
+
+if not _fileobject_uses_str_type:
+    class CP_fileobject(socket._fileobject):
+        """Faux file object attached to a socket object."""
+
+        def sendall(self, data):
+            """Sendall for non-blocking sockets."""
+            while data:
+                try:
+                    bytes_sent = self.send(data)
+                    data = data[bytes_sent:]
+                except socket.error, e:
+                    if e.args[0] not in socket_errors_nonblocking:
+                        raise
+
+        def send(self, data):
+            return self._sock.send(data)
+
+        def flush(self):
+            if self._wbuf:
+                buffer = "".join(self._wbuf)
+                self._wbuf = []
+                self.sendall(buffer)
+
+        def recv(self, size):
+            while True:
+                try:
+                    return self._sock.recv(size)
+                except socket.error, e:
+                    if (e.args[0] not in socket_errors_nonblocking
+                        and e.args[0] not in socket_error_eintr):
+                        raise
+
+        def read(self, size=-1):
+            # Use max, disallow tiny reads in a loop as they are very inefficient.
+            # We never leave read() with any leftover data from a new recv() call
+            # in our internal buffer.
+            rbufsize = max(self._rbufsize, self.default_bufsize)
+            # Our use of StringIO rather than lists of string objects returned by
+            # recv() minimizes memory usage and fragmentation that occurs when
+            # rbufsize is large compared to the typical return value of recv().
+            buf = self._rbuf
+            buf.seek(0, 2)  # seek end
+            if size < 0:
+                # Read until EOF
+                self._rbuf = StringIO.StringIO()  # reset _rbuf.  we consume it via buf.
+                while True:
+                    data = self.recv(rbufsize)
+                    if not data:
+                        break
+                    buf.write(data)
+                return buf.getvalue()
+            else:
+                # Read until size bytes or EOF seen, whichever comes first
+                buf_len = buf.tell()
+                if buf_len >= size:
+                    # Already have size bytes in our buffer?  Extract and return.
+                    buf.seek(0)
+                    rv = buf.read(size)
+                    self._rbuf = StringIO.StringIO()
+                    self._rbuf.write(buf.read())
+                    return rv
+
+                self._rbuf = StringIO.StringIO()  # reset _rbuf.  we consume it via buf.
+                while True:
+                    left = size - buf_len
+                    # recv() will malloc the amount of memory given as its
+                    # parameter even though it often returns much less data
+                    # than that.  The returned data string is short lived
+                    # as we copy it into a StringIO and free it.  This avoids
+                    # fragmentation issues on many platforms.
+                    data = self.recv(left)
+                    if not data:
+                        break
+                    n = len(data)
+                    if n == size and not buf_len:
+                        # Shortcut.  Avoid buffer data copies when:
+                        # - We have no data in our buffer.
+                        # AND
+                        # - Our call to recv returned exactly the
+                        #   number of bytes we were asked to read.
+                        return data
+                    if n == left:
+                        buf.write(data)
+                        del data  # explicit free
+                        break
+                    assert n <= left, "recv(%d) returned %d bytes" % (left, n)
+                    buf.write(data)
+                    buf_len += n
+                    del data  # explicit free
+                    #assert buf_len == buf.tell()
+                return buf.getvalue()
+
+        def readline(self, size=-1):
+            buf = self._rbuf
+            buf.seek(0, 2)  # seek end
+            if buf.tell() > 0:
+                # check if we already have it in our buffer
+                buf.seek(0)
+                bline = buf.readline(size)
+                if bline.endswith('\n') or len(bline) == size:
+                    self._rbuf = StringIO.StringIO()
+                    self._rbuf.write(buf.read())
+                    return bline
+                del bline
+            if size < 0:
+                # Read until \n or EOF, whichever comes first
+                if self._rbufsize <= 1:
+                    # Speed up unbuffered case
+                    buf.seek(0)
+                    buffers = [buf.read()]
+                    self._rbuf = StringIO.StringIO()  # reset _rbuf.  we consume it via buf.
+                    data = None
+                    recv = self.recv
+                    while data != "\n":
+                        data = recv(1)
+                        if not data:
+                            break
+                        buffers.append(data)
+                    return "".join(buffers)
+
+                buf.seek(0, 2)  # seek end
+                self._rbuf = StringIO.StringIO()  # reset _rbuf.  we consume it via buf.
+                while True:
+                    data = self.recv(self._rbufsize)
+                    if not data:
+                        break
+                    nl = data.find('\n')
+                    if nl >= 0:
+                        nl += 1
+                        buf.write(data[:nl])
+                        self._rbuf.write(data[nl:])
+                        del data
+                        break
+                    buf.write(data)
+                return buf.getvalue()
+            else:
+                # Read until size bytes or \n or EOF seen, whichever comes first
+                buf.seek(0, 2)  # seek end
+                buf_len = buf.tell()
+                if buf_len >= size:
+                    buf.seek(0)
+                    rv = buf.read(size)
+                    self._rbuf = StringIO.StringIO()
+                    self._rbuf.write(buf.read())
+                    return rv
+                self._rbuf = StringIO.StringIO()  # reset _rbuf.  we consume it via buf.
+                while True:
+                    data = self.recv(self._rbufsize)
+                    if not data:
+                        break
+                    left = size - buf_len
+                    # did we just receive a newline?
+                    nl = data.find('\n', 0, left)
+                    if nl >= 0:
+                        nl += 1
+                        # save the excess data to _rbuf
+                        self._rbuf.write(data[nl:])
+                        if buf_len:
+                            buf.write(data[:nl])
+                            break
+                        else:
+                            # Shortcut.  Avoid data copy through buf when returning
+                            # a substring of our first recv().
+                            return data[:nl]
+                    n = len(data)
+                    if n == size and not buf_len:
+                        # Shortcut.  Avoid data copy through buf when
+                        # returning exactly all of our first recv().
+                        return data
+                    if n >= left:
+                        buf.write(data[:left])
+                        self._rbuf.write(data[left:])
+                        break
+                    buf.write(data)
+                    buf_len += n
+                    #assert buf_len == buf.tell()
+                return buf.getvalue()
+
+else:
+    class CP_fileobject(socket._fileobject):
+        """Faux file object attached to a socket object."""
+
+        def sendall(self, data):
+            """Sendall for non-blocking sockets."""
+            while data:
+                try:
+                    bytes_sent = self.send(data)
+                    data = data[bytes_sent:]
+                except socket.error, e:
+                    if e.args[0] not in socket_errors_nonblocking:
+                        raise
+
+        def send(self, data):
+            return self._sock.send(data)
+
+        def flush(self):
+            if self._wbuf:
+                buffer = "".join(self._wbuf)
+                self._wbuf = []
+                self.sendall(buffer)
+
+        def recv(self, size):
+            while True:
+                try:
+                    return self._sock.recv(size)
+                except socket.error, e:
+                    if (e.args[0] not in socket_errors_nonblocking
+                        and e.args[0] not in socket_error_eintr):
+                        raise
+
+        def read(self, size=-1):
+            if size < 0:
+                # Read until EOF
+                buffers = [self._rbuf]
+                self._rbuf = ""
+                if self._rbufsize <= 1:
+                    recv_size = self.default_bufsize
+                else:
+                    recv_size = self._rbufsize
+
+                while True:
+                    data = self.recv(recv_size)
+                    if not data:
+                        break
+                    buffers.append(data)
+                return "".join(buffers)
+            else:
+                # Read until size bytes or EOF seen, whichever comes first
+                data = self._rbuf
+                buf_len = len(data)
+                if buf_len >= size:
+                    self._rbuf = data[size:]
+                    return data[:size]
+                buffers = []
+                if data:
+                    buffers.append(data)
+                self._rbuf = ""
+                while True:
+                    left = size - buf_len
+                    recv_size = max(self._rbufsize, left)
+                    data = self.recv(recv_size)
+                    if not data:
+                        break
+                    buffers.append(data)
+                    n = len(data)
+                    if n >= left:
+                        self._rbuf = data[left:]
+                        buffers[-1] = data[:left]
+                        break
+                    buf_len += n
+                return "".join(buffers)
+
+        def readline(self, size=-1):
+            data = self._rbuf
+            if size < 0:
+                # Read until \n or EOF, whichever comes first
+                if self._rbufsize <= 1:
+                    # Speed up unbuffered case
+                    assert data == ""
+                    buffers = []
+                    while data != "\n":
+                        data = self.recv(1)
+                        if not data:
+                            break
+                        buffers.append(data)
+                    return "".join(buffers)
+                nl = data.find('\n')
+                if nl >= 0:
+                    nl += 1
+                    self._rbuf = data[nl:]
+                    return data[:nl]
+                buffers = []
+                if data:
+                    buffers.append(data)
+                self._rbuf = ""
+                while True:
+                    data = self.recv(self._rbufsize)
+                    if not data:
+                        break
+                    buffers.append(data)
+                    nl = data.find('\n')
+                    if nl >= 0:
+                        nl += 1
+                        self._rbuf = data[nl:]
+                        buffers[-1] = data[:nl]
+                        break
+                return "".join(buffers)
+            else:
+                # Read until size bytes or \n or EOF seen, whichever comes first
+                nl = data.find('\n', 0, size)
+                if nl >= 0:
+                    nl += 1
+                    self._rbuf = data[nl:]
+                    return data[:nl]
+                buf_len = len(data)
+                if buf_len >= size:
+                    self._rbuf = data[size:]
+                    return data[:size]
+                buffers = []
+                if data:
+                    buffers.append(data)
+                self._rbuf = ""
+                while True:
+                    data = self.recv(self._rbufsize)
+                    if not data:
+                        break
+                    buffers.append(data)
+                    left = size - buf_len
+                    nl = data.find('\n', 0, left)
+                    if nl >= 0:
+                        nl += 1
+                        self._rbuf = data[nl:]
+                        buffers[-1] = data[:nl]
+                        break
+                    n = len(data)
+                    if n >= left:
+                        self._rbuf = data[left:]
+                        buffers[-1] = data[:left]
+                        break
+                    buf_len += n
+                return "".join(buffers)
     
-    is_reader: if False (the default), EOF errors will be raised.
-        If True, EOF errors will return "" (to emulate normal sockets).
-    """
-    def ssl_method_wrapper(self, *args, **kwargs):
-##        print (id(self), method, args, kwargs)
+
+class SSL_fileobject(CP_fileobject):
+    """SSL file object attached to a socket object."""
+    
+    ssl_timeout = 3
+    ssl_retry = .01
+    
+    def _safe_call(self, is_reader, call, *args, **kwargs):
+        """Wrap the given call with SSL error-trapping.
+        
+        is_reader: if False EOF errors will be raised. If True, EOF errors
+            will return "" (to emulate normal sockets).
+        """
         start = time.time()
         while True:
             try:
-                return method(self, *args, **kwargs)
-            except (SSL.WantReadError, SSL.WantWriteError):
+                return call(*args, **kwargs)
+            except SSL.WantReadError:
                 # Sleep and try again. This is dangerous, because it means
                 # the rest of the stack has no way of differentiating
                 # between a "new handshake" error and "client dropped".
                 # Note this isn't an endless loop: there's a timeout below.
+                time.sleep(self.ssl_retry)
+            except SSL.WantWriteError:
                 time.sleep(self.ssl_retry)
             except SSL.SysCallError, e:
                 if is_reader and e.args == (-1, 'Unexpected EOF'):
@@ -677,29 +1083,31 @@ def _ssl_wrap_method(method, is_reader=False):
                 except IndexError:
                     pass
                 
-                if is_reader and thirdarg == 'ssl handshake failure':
-                    return ""
                 if thirdarg == 'http request':
                     # The client is talking HTTP to an HTTPS server.
                     raise NoSSLError()
+                raise FatalSSLAlert(*e.args)
+            except:
                 raise
+            
             if time.time() - start > self.ssl_timeout:
                 raise socket.timeout("timed out")
-    return ssl_method_wrapper
 
-class SSL_fileobject(socket._fileobject):
-    """Faux file object attached to a socket object."""
+    def recv(self, *args, **kwargs):
+        buf = []
+        r = super(SSL_fileobject, self).recv
+        while True:
+            data = self._safe_call(True, r, *args, **kwargs)
+            buf.append(data)
+            p = self._sock.pending()
+            if not p:
+                return "".join(buf)
     
-    ssl_timeout = 3
-    ssl_retry = .01
-    
-    close = _ssl_wrap_method(socket._fileobject.close)
-    flush = _ssl_wrap_method(socket._fileobject.flush)
-    write = _ssl_wrap_method(socket._fileobject.write)
-    writelines = _ssl_wrap_method(socket._fileobject.writelines)
-    read = _ssl_wrap_method(socket._fileobject.read, is_reader=True)
-    readline = _ssl_wrap_method(socket._fileobject.readline, is_reader=True)
-    readlines = _ssl_wrap_method(socket._fileobject.readlines, is_reader=True)
+    def sendall(self, *args, **kwargs):
+        return self._safe_call(False, super(SSL_fileobject, self).sendall, *args, **kwargs)
+
+    def send(self, *args, **kwargs):
+        return self._safe_call(False, super(SSL_fileobject, self).send, *args, **kwargs)
 
 
 class HTTPConnection(object):
@@ -710,7 +1118,7 @@ class HTTPConnection(object):
     environ: a WSGI environ template. This will be copied for each request.
     
     rfile: a fileobject for reading from the socket.
-    sendall: a function for writing (+ flush) to the socket.
+    send: a function for writing (+ flush) to the socket.
     """
     
     rbufsize = -1
@@ -733,12 +1141,13 @@ class HTTPConnection(object):
         
         if SSL and isinstance(sock, SSL.ConnectionType):
             timeout = sock.gettimeout()
-            self.rfile = SSL_fileobject(sock, "r", self.rbufsize)
+            self.rfile = SSL_fileobject(sock, "rb", self.rbufsize)
             self.rfile.ssl_timeout = timeout
-            self.sendall = _ssl_wrap_method(sock.sendall)
+            self.wfile = SSL_fileobject(sock, "wb", -1)
+            self.wfile.ssl_timeout = timeout
         else:
-            self.rfile = sock.makefile("rb", self.rbufsize)
-            self.sendall = sock.sendall
+            self.rfile = CP_fileobject(sock, "rb", self.rbufsize)
+            self.wfile = CP_fileobject(sock, "wb", -1)
         
         # Wrap wsgi.input but not HTTPConnection.rfile itself.
         # We're also not setting maxlen yet; we'll do that separately
@@ -754,7 +1163,7 @@ class HTTPConnection(object):
                 # the RequestHandlerClass constructor, the error doesn't
                 # get written to the previous request.
                 req = None
-                req = self.RequestHandlerClass(self.sendall, self.environ,
+                req = self.RequestHandlerClass(self.wfile, self.environ,
                                                self.wsgi_app)
                 
                 # This order of operations should guarantee correct pipelining.
@@ -768,26 +1177,41 @@ class HTTPConnection(object):
         
         except socket.error, e:
             errnum = e.args[0]
-            if errnum not in socket_errors_to_ignore:
-                if req:
+            if errnum == 'timed out':
+                if req and not req.sent_headers:
+                    req.simple_response("408 Request Timeout")
+            elif errnum not in socket_errors_to_ignore:
+                if req and not req.sent_headers:
                     req.simple_response("500 Internal Server Error",
                                         format_exc())
             return
         except (KeyboardInterrupt, SystemExit):
             raise
+        except FatalSSLAlert, e:
+            # Close the connection.
+            return
         except NoSSLError:
-            # Unwrap our sendall
-            req.sendall = self.socket._sock.sendall
-            req.simple_response("400 Bad Request",
-                                "The client sent a plain HTTP request, but "
-                                "this server only speaks HTTPS on this port.")
-        except:
-            if req:
+            # Unwrap our wfile
+            req.wfile = CP_fileobject(self.socket, "wb", -1)
+            if req and not req.sent_headers:
+                req.simple_response("400 Bad Request",
+                    "The client sent a plain HTTP request, but "
+                    "this server only speaks HTTPS on this port.")
+        except Exception, e:
+            if req and not req.sent_headers:
                 req.simple_response("500 Internal Server Error", format_exc())
     
     def close(self):
         """Close the socket underlying this connection."""
         self.rfile.close()
+        
+        # Python's socket module does NOT call close on the kernel socket
+        # when you call socket.close(). We do so manually here because we
+        # want this server to send a FIN TCP segment immediately. Note this
+        # must be called *before* calling socket.close(), because the latter
+        # drops its reference to the kernel socket.
+        self.socket._sock.close()
+        
         self.socket.close()
 
 
@@ -842,7 +1266,11 @@ class WorkerThread(threading.Thread):
 
 
 class ThreadPool(object):
-    """A Request Queue for the CherryPyWSGIServer which pools threads."""
+    """A Request Queue for the CherryPyWSGIServer which pools threads.
+    
+    ThreadPool objects must provide min, get(), put(obj), start()
+    and stop(timeout) attributes.
+    """
     
     def __init__(self, server, min=10, max=-1):
         self.server = server
@@ -872,12 +1300,6 @@ class ThreadPool(object):
         self._queue.put(obj)
         if obj is _SHUTDOWNREQUEST:
             return
-        
-        # Grow/shrink the pool if necessary.
-        # Remove any dead threads from our list
-        for t in self._threads:
-            if not t.isAlive():
-                self._threads.remove(t)
     
     def grow(self, amount):
         """Spawn new worker threads (not above self.max)."""
@@ -891,12 +1313,20 @@ class ThreadPool(object):
     
     def shrink(self, amount):
         """Kill off worker threads (not below self.min)."""
-        for i in xrange(min(amount, len(self._threads) - self.min)):
-            # Put a number of shutdown requests on the queue equal
-            # to 'amount'. Once each of those is processed by a worker,
-            # that worker will terminate and be culled from our list
-            # in self.put.
-            self._queue.put(_SHUTDOWNREQUEST)
+        # Grow/shrink the pool if necessary.
+        # Remove any dead threads from our list
+        for t in self._threads:
+            if not t.isAlive():
+                self._threads.remove(t)
+                amount -= 1
+        
+        if amount > 0:
+            for i in xrange(min(amount, len(self._threads) - self.min)):
+                # Put a number of shutdown requests on the queue equal
+                # to 'amount'. Once each of those is processed by a worker,
+                # that worker will terminate and be culled from our list
+                # in self.put.
+                self._queue.put(_SHUTDOWNREQUEST)
     
     def stop(self, timeout=5):
         # Must shut down threads here so the code that calls
@@ -960,6 +1390,27 @@ class SSLConnection:
 """ % (f, f)
 
 
+try:
+    import fcntl
+except ImportError:
+    try:
+        from ctypes import windll, WinError
+    except ImportError:
+        def prevent_socket_inheritance(sock):
+            """Dummy function, since neither fcntl nor ctypes are available."""
+            pass
+    else:
+        def prevent_socket_inheritance(sock):
+            """Mark the given socket fd as non-inheritable (Windows)."""
+            if not windll.kernel32.SetHandleInformation(sock.fileno(), 1, 0):
+                raise WinError()
+else:
+    def prevent_socket_inheritance(sock):
+        """Mark the given socket fd as non-inheritable (POSIX)."""
+        fd = sock.fileno()
+        old_flags = fcntl.fcntl(fd, fcntl.F_GETFD)
+        fcntl.fcntl(fd, fcntl.F_SETFD, old_flags | fcntl.FD_CLOEXEC)
+
 
 class CherryPyWSGIServer(object):
     """An HTTP server for WSGI.
@@ -983,6 +1434,9 @@ class CherryPyWSGIServer(object):
         specifies the maximum number of queued connections (default 5).
     timeout: the timeout in seconds for accepted connections (default 10).
     
+    nodelay: if True (the default since 3.1), sets the TCP_NODELAY socket
+        option.
+    
     protocol: the version string to write in the Status-Line of all
         HTTP responses. For example, "HTTP/1.1" (the default). This
         also limits the supported features used in the response.
@@ -1003,9 +1457,12 @@ class CherryPyWSGIServer(object):
     
     protocol = "HTTP/1.1"
     _bind_addr = "127.0.0.1"
-    version = "CherryPy/3.1.0beta3"
+    version = "CherryPy/3.1.0"
     ready = False
     _interrupt = None
+    
+    nodelay = True
+    
     ConnectionClass = HTTPConnection
     environ = {}
     
@@ -1147,8 +1604,10 @@ class CherryPyWSGIServer(object):
     def bind(self, family, type, proto=0):
         """Create (or recreate) the actual socket object."""
         self.socket = socket.socket(family, type, proto)
+        prevent_socket_inheritance(self.socket)
         self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-##        self.socket.setsockopt(socket.SOL_SOCKET, socket.TCP_NODELAY, 1)
+        if self.nodelay:
+            self.socket.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
         if self.ssl_certificate and self.ssl_private_key:
             if SSL is None:
                 raise ImportError("You must install pyOpenSSL to use HTTPS.")
@@ -1159,12 +1618,25 @@ class CherryPyWSGIServer(object):
             ctx.use_certificate_file(self.ssl_certificate)
             self.socket = SSLConnection(ctx, self.socket)
             self.populate_ssl_environ()
+            
+            # If listening on the IPV6 any address ('::' = IN6ADDR_ANY),
+            # activate dual-stack. See http://www.cherrypy.org/ticket/871.
+            if (not isinstance(self.bind_addr, basestring)
+                and self.bind_addr[0] == '::' and family == socket.AF_INET6):
+                try:
+                    self.socket.setsockopt(socket.IPPROTO_IPV6, socket.IPV6_V6ONLY, 0)
+                except (AttributeError, socket.error):
+                    # Apparently, the socket option is not available in
+                    # this machine's TCP stack
+                    pass
+        
         self.socket.bind(self.bind_addr)
     
     def tick(self):
         """Accept a new connection and put it on the Queue."""
         try:
             s, addr = self.socket.accept()
+            prevent_socket_inheritance(s)
             if not self.ready:
                 return
             if hasattr(s, 'settimeout'):
@@ -1173,7 +1645,8 @@ class CherryPyWSGIServer(object):
             environ = self.environ.copy()
             # SERVER_SOFTWARE is common for IIS. It's also helpful for
             # us to pass a default value for the "Server" response header.
-            environ["SERVER_SOFTWARE"] = "%s WSGI Server" % self.version
+            if environ.get("SERVER_SOFTWARE") is None:
+                environ["SERVER_SOFTWARE"] = "%s WSGI Server" % self.version
             # set a non-standard environ entry so the WSGI app can know what
             # the *real* server protocol is (and what features to support).
             # See http://www.faqs.org/rfcs/rfc2145.html.
@@ -1199,19 +1672,19 @@ class CherryPyWSGIServer(object):
             # accept() by default
             return
         except socket.error, x:
-            if hasattr(errno, "EINTR") and x.args[0] == errno.EINTR:
+            if x.args[0] in socket_error_eintr:
                 # I *think* this is right. EINTR should occur when a signal
                 # is received during the accept() call; all docs say retry
                 # the call, and I *think* I'm reading it right that Python
                 # will then go ahead and poll for and handle the signal
                 # elsewhere. See http://www.cherrypy.org/ticket/707.
                 return
-            msg = x.args[1]
-            if msg in ("Bad file descriptor", "Socket operation on non-socket"):
-                # Our socket was closed.
-                return
-            if msg == "Resource temporarily unavailable":
+            if x.args[0] in socket_errors_nonblocking:
                 # Just try again. See http://www.cherrypy.org/ticket/479.
+                return
+            if x.args[0] in socket_errors_to_ignore:
+                # Our socket was closed.
+                # See http://www.cherrypy.org/ticket/686.
                 return
             raise
     
@@ -1265,7 +1738,7 @@ class CherryPyWSGIServer(object):
     
     def populate_ssl_environ(self):
         """Create WSGI environ entries to be merged into each request."""
-        cert = open(self.ssl_certificate).read()
+        cert = open(self.ssl_certificate, 'rb').read()
         cert = crypto.load_certificate(crypto.FILETYPE_PEM, cert)
         ssl_environ = {
             "wsgi.url_scheme": "https",

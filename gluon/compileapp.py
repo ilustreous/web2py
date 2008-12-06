@@ -159,7 +159,7 @@ def run_models_in(environment):
               if is_gae:
                    code=getcfs(model,model,lambda:compile(open(model,'r').read().replace('\r\n','\n'),layer,'exec'))
               else:
-                   code=getcfs(model,model,None) ### do not byte code here else no errors
+                   code=open(model,'r').read()
               restricted(code,environment,layer)
 
 def run_controller_in(controller,function,environment):
