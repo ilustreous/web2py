@@ -185,7 +185,7 @@ def run_controller_in(controller,function,environment):
         environment['__symbols__']=environment.keys()
         code=open(filename,'r').read()
         code+=TEST_CODE
-        restricted(code,environment,layer=filename+':_TEST')
+        restricted(code,environment,layer=filename)
     else:
         filename=os.path.join(folder,'controllers/%s.py' % controller)
         if not os.path.exists(filename):
@@ -196,11 +196,10 @@ def run_controller_in(controller,function,environment):
         if not function in exposed: 
             raise HTTP(400,error_message_custom % 'invalid function',
                        web2py_error='invalid function')
-        layer=filename+':'+function
         code='%s\n\nresponse._vars=response._caller(%s)\n' % (code,function)
         if is_gae:
             code=getcfs(layer,filename,lambda:compile(code.replace('\r\n','\n'),layer,'exec'))
-        restricted(code,environment,layer)
+        restricted(code,environment,filename)
     response=environment['response']
     if response.postprocessing:
         for p in response.postprocessing:
