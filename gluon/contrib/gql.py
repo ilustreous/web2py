@@ -137,6 +137,11 @@ class SQLTable(SQLStorage):
         self._referenced_by=[]
         fields=list(fields)
         fields.insert(0,SQLField('id','id'))
+        ### GAE Only, make sure uplodaded files go in datastore
+        for field in fields:
+            if isinstance(field,SQLField) and field.type=='upload' and field.uploadfield==True:
+                tmp=field.uploadfield='%s_blob'%field.name
+                fields.append(self._db.Field(tmp,'blob',default=''))
         for field in fields:
             self.fields.append(field.name)
             self[field.name]=field
