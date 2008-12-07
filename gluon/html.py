@@ -347,7 +347,7 @@ class INPUT(DIV):
     tag='input/'
     def _validate(self):
         ## this only changes value, not _value
-        name=self['_name']
+        name=str(self['_name'])
         if not name: return True
         if self['_type']!='checkbox':
             self['old_value']=self['value'] or self['_value'] or ''
