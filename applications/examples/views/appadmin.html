@@ -34,7 +34,7 @@ $(document).ready(function(){
    {{=form}}
    <p>The "query" is a condition like "db.table1.field1=='value'". Something like "db.table1.field1==db.table2.field2" results in a SQL JOIN.<br/>
       Use (...)&amp;(...) for AND, (...)|(...) for OR, and ~(...)  for NOT to build more complex queries.<br/>
-      "update" is an optional expression like "field1='newvalue'". You cannot update or delete the results of a JOIN)</p>
+      "update" is an optional expression like "field1='newvalue'". You cannot update or delete the results of a JOIN</p>
     <br/><br/>
     <h3>{{=nrows}} selected</h3>
     {{if start>0:}}[ {{=A('previous 100 rows',_href=URL(r=request,f='select',args=request.args[:1],vars=dict(start=start-100)))}} ]{{pass}}
