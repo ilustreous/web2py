@@ -1021,6 +1021,7 @@ class SQLField(SQLXorable):
     def min(self):
         return SQLXorable('MIN(%s)' % str(self),'integer',self._db)
     def __getslice__(self,start,stop):
+        if start<0 or stop<start: raise SyntaxError, "not supported"
         d=dict(field=str(self),pos=start+1,length=stop-start)
         s=self._db._translator["substring"] % d
         return SQLXorable(s,'string',self._db)
