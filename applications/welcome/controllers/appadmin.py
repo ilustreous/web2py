@@ -2,9 +2,13 @@
 ### make sure administrator is on localhost
 ############################################################
 
-import os, socket, datetime
+
+import os, socket, datetime,copy
 import gluon.contenttype
 import gluon.fileutils
+### crytical --- make a copy of the environment
+global_env=copy.copy(globals())
+global_env['datetime']=datetime
 
 http_host = request.env.http_host.split(':')[0]
 remote_addr = request.env.remote_addr
@@ -26,9 +30,8 @@ response.menu=[[T('design'),False,URL('admin','default','design',
 ############################################################
 
 def get_databases(request):
-    import types
     dbs={}
-    for key,value in globals().items():
+    for key,value in global_env.items():
         cond=False
         try: cond=isinstance(value,GQLDB)
         except: cond=isinstance(value,SQLDB)
@@ -37,9 +40,13 @@ def get_databases(request):
 
 databases=get_databases(None)
 
+def eval_in_global_env(text):
+    exec('_ret=%s'%text,{},global_env)
+    return global_env['_ret']
+
 def get_database(request):
     if request.args and request.args[0] in databases:
-        return eval(request.args[0])
+        return eval_in_global_env(request.args[0])
     else:
         session.flash=T('invalid request')
         redirect(URL(r=request,f='index'))
@@ -53,11 +60,8 @@ def get_table(request):
         redirect(URL(r=request,f='index'))
 
 def get_query(request):
-    env={'datetime':'datetime'}
-    env.update(databases)
     try:
-        exec('_ret=%s'%request.vars.query,{},env)
-        return env['_ret']
+        return eval_in_global_env(request.vars.query)
     except Exception:
         return None
 
@@ -165,13 +169,13 @@ def select():
         try:
             nrows=db(query).count()
             if form.vars.update_check and form.vars.update_fields:
-                db(query).update(**eval('dict(%s)'%form.vars.update_fields))
+                db(query).update(**eval_in_global_env('dict(%s)'%form.vars.update_fields))
                 response.flash=T('%s rows updated',nrows)
             elif form.vars.delete_check:
                 db(query).delete()
                 response.flash=T('%s rows deleted',nrows)
             nrows=db(query).count()
-            if orderby: rows=db(query).select(limitby=(start,stop), orderby=eval(orderby))
+            if orderby: rows=db(query).select(limitby=(start,stop), orderby=eval_in_global_env(orderby))
             else: rows=db(query).select(limitby=(start,stop))
         except:
             rows,nrows=[],0
