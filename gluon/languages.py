@@ -13,7 +13,7 @@ __all__=['translator','findT','update_all_languages']
 PY_STRING_LITERAL_RE= r'(?<=[^\w]T\()(?P<name>'+ \
   r"[uU]?[rR]?(?:'''(?:[^']|'{1,2}(?!'))*''')|" +\
               r"(?:'(?:[^'\\]|\\.)*')|" +\
-            r'(?:"""(?:[^"]|"{1,2}(?!"))*""")|'+ \
+              r'(?:"""(?:[^"]|"{1,2}(?!"))*""")|'+ \
               r'(?:"(?:[^"\\]|\\.)*"))'
            
 regex_translate=re.compile(PY_STRING_LITERAL_RE,re.DOTALL)
@@ -32,7 +32,7 @@ class lazyT(object):
     def __str__(self):
         m=self.m
         if self.t and self.t.has_key(m): m=self.t[m]
-        if self.s: return m % self.s
+        if self.s or self.s==0: return m % self.s
         else: return m
     def xml(self):
         return cgi.escape(str(self))

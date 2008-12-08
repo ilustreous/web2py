@@ -47,7 +47,7 @@ def get_database(request):
 def get_table(request):
     db=get_database(request)
     if len(request.args)>1 and request.args[1] in db.tables:
-        return db[request.args[1]]
+        return db,request.args[1]
     else:
         session.flash=T('invalid request')
         redirect(URL(r=request,f='index'))
@@ -73,8 +73,8 @@ def index():
 ############################################################
 
 def insert():
-    table=get_table(request)
-    form=SQLFORM(table)
+    db,table=get_table(request)
+    form=SQLFORM(db[table])
     if form.accepts(request.vars,session):
         response.flash=T('new record inserted')
     return dict(form=form)
@@ -183,14 +183,14 @@ def select():
 ############################################################
 
 def update():
-    table=get_table(request)
+    db,table=get_table(request)
     try:
         id=int(request.args[2])
-        record=db(table.id==id).select()[0]
+        record=db(db[table].id==id).select()[0]
     except:
         session.flash=T('record does not exist')
         redirect(URL(r=request,f='select',args=request.args[:1],vars=dict(query='%s.%s.id>0'%tuple(request.args[:2]))))
-    form=SQLFORM(table,record,deletable=True,
+    form=SQLFORM(db[table],record,deletable=True,
                  linkto=URL(r=request,f='select',args=request.args[:1]),
                  upload=URL(r=request,f='download',args=request.args[:1]))
     if form.accepts(request.vars,session): 
