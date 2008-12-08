@@ -2,7 +2,7 @@
 ### make sure administrator is on localhost
 ############################################################
 
-import os, socket
+import os, socket, datetime
 import gluon.contenttype
 import gluon.fileutils
 
@@ -16,39 +16,64 @@ if not gluon.fileutils.check_credentials(request):
     redirect('/admin')
 
 response.view='appadmin.html'
-response.menu=[[T('design'),False,'/admin/default/design/%s' % request.application],
-               [T('db'),False,'/%s/%s/index' % (request.application, request.controller)],
-               [T('state'),False,'/%s/%s/state' % (request.application, request.controller)]]
-
+response.menu=[[T('design'),False,URL('admin','default','design',
+                args=[request.application])],
+               [T('db'),False,URL(r=request,f='index')],
+               [T('state'),False,URL(r=request,f='state')]]
 
 ###########################################################
-### list all tables in database
+### auxiliary functions
+############################################################
+
+def get_databases(request):
+    import types
+    dbs={}
+    for key,value in globals().items():
+        cond=False
+        try: cond=isinstance(value,GQLDB)
+        except: cond=isinstance(value,SQLDB)
+        if cond: dbs[key]=value
+    return dbs
+
+databases=get_databases(None)
+
+def get_database(request):
+    if request.args and request.args[0] in databases:
+        return eval(request.args[0])
+    else:
+        session.flash=T('invalid request')
+        redirect(URL(r=request,f='index'))
+
+def get_table(request):
+    db=get_database(request)
+    if len(request.args)>1 and request.args[1] in db.tables:
+        return db[request.args[1]]
+    else:
+        session.flash=T('invalid request')
+        redirect(URL(r=request,f='index'))
+
+def get_query(request):
+    env={'datetime':'datetime'}
+    env.update(databases)
+    try:
+        exec('_ret=%s'%request.vars.query,{},env)
+        return env['_ret']
+    except Exception:
+        return None
+
+###########################################################
+### list all databases and tables
 ############################################################
 
 def index():
-    import types as _types
-    _dbs={}
-    try: GQLDB
-    except: GQLDB=SQLDB
-    for _key,_value in globals().items():
-        if isinstance(_value,GQLDB):
-           tables=_dbs[_key]=[]
-           for _tablename in _value.tables:
-               tables.append((_key,_tablename))
-    return dict(dbs=_dbs)
+    return dict(databases=databases)
 
 ###########################################################
 ### insert a new record
 ############################################################
 
 def insert():
-    try:
-        dbname=request.args[0]
-        db=eval(dbname)
-        table=db[request.args[1]]
-    except:
-        session.flash=T('invalid request')
-        redirect(URL(r=request,f='index'))
+    table=get_table(request)
     form=SQLFORM(table)
     if form.accepts(request.vars,session):
         response.flash=T('new record inserted')
@@ -60,32 +85,30 @@ def insert():
 
 def download():
     import os
-    dbname=request.args[0]
-    ### for GAE only ###
-    tablename,fieldname=request.args[1].split('.')[:2]
-    uploadfield=eval(dbname)[tablename][fieldname].uploadfield
+    db=get_database(request)
     filename=request.args[1]
-    if isinstance(uploadfield,str):
-        from gluon.contenttype import contenttype
-        response.headers['Content-Type']=contenttype(filename)
-        db=eval(dbname)
-        rows=db(db[tablename][fieldname]==filename).select()
-        return rows[0][uploadfield]
+    print filename
+    ### for GAE only ###
+    table,field=filename.split('.')[:2]
+    if table in db.tables and field in db[table].fields:
+        uploadfield=db[table][field].uploadfield
+        if isinstance(uploadfield,str):
+            from gluon.contenttype import contenttype
+            response.headers['Content-Type']=contenttype(filename)
+            rows=db(db[table][field]==filename).select()
+            return rows[0][uploadfield]
     ### end for GAE ###
-    filename=os.path.join(request.folder,'uploads/',filename)
-    return response.stream(open(filename,'rb'))
+    path=os.path.join(request.folder,'uploads/',filename)
+    return response.stream(open(path,'rb'))
 
 def csv():
     import gluon.contenttype
     response.headers['Content-Type']=gluon.contenttype.contenttype('.csv')
-    try:
-        dbname=request.vars.dbname
-        db=eval(dbname)
-        response.headers['Content-disposition']="attachment; filename=%s_%s.csv" % (request.vars.dbname, request.vars.query.split('.',1)[0])
-        return str(db(request.vars.query).select())
-    except:
-        session.flash=T('unable to retrieve data')
-        redirect(URL(r=request,f='index'))
+    query=get_query(request)
+    if not query: return None
+    response.headers['Content-disposition']="attachment; filename=%s_%s.csv"%\
+        tuple(request.vars.query.split('.')[:2])
+    return str(db(query).select())
 
 def import_csv(table,file):
     import csv
@@ -100,94 +123,83 @@ def import_csv(table,file):
             table.insert(**dict(items))
 
 def select():
-    try:
-        dbname=request.args[0]
-        db=eval(dbname)
-        if request.vars.query:
-            query=request.vars.query
-            orderby=None
-            start=0
-        elif request.vars.orderby:
-            query=session.appadmin_last_query
-            orderby=request.vars.orderby
-            if orderby==session.appadmin_last_orderby:
-                if orderby[-5:]==' DESC': oderby=orderby[:-5]
-                else: orderby=orderby+' DESC'
-            start=0
-        elif request.vars.start!=None:
-            query=session.appadmin_last_query
-            orderby=session.appadmin_last_orderby
-            start=int(request.vars.start)
-        else:
-            table=request.args[1]
-            query='%s.id>0' % table    
-            orderby=None
-            start=0
-        session.appadmin_last_query=query
-        session.appadmin_last_orderby=orderby
-        limitby=(start,start+100)
-    except:
-        session.flash=T('invalid request')
-        redirect(URL(r=request,f='index'))
+    import re
+    db=get_database(request)
+    dbname=request.args[0]
+    regex=re.compile('(?P<table>\w+)\.(?P<field>\w+)=(?P<value>\d+)')
+    if request.vars.query:
+        match=regex.match(request.vars.query)
+        if match: request.vars.query='%s.%s.%s==%s' % (request.args[0],match.group('table'),match.group('field'),match.group('value'))
+    else:
+        request.vars.query=session.last_query
+    query=get_query(request)
+    if request.vars.start: start=int(request.vars.start)
+    else: start=0
+    nrows=0
+    stop=start+100
+    table=None
+    rows=[]
+    orderby=request.vars.orderby
+    if orderby:
+        orderby=dbname+'.'+orderby
+        if orderby==session.last_orderby:
+           if orderby[0]=='~': orderby=orderby[1:]
+           else: orderby='~'+orderby    
+    session.last_orderby=orderby
+    session.last_query=request.vars.query
+    form=FORM(TABLE(TR('Query:','',INPUT(_style='width:400px',_name='query',_value=request.vars.query or '',requires=IS_NOT_EMPTY())),
+                    TR('Update:',INPUT(_name='update_check',_type='checkbox',value=False),
+                                 INPUT(_style='width:400px',_name='update_fields',_value=request.vars.update_fields or '')),
+                    TR('Delete:',INPUT(_name='delete_check',_class='delete',_type='checkbox',value=False),''),
+                    TR('','',INPUT(_type='submit',_value='submit'))))
     if request.vars.csvfile!=None:        
         try:
-            import_csv(db[table],request.vars.csvfile.file)
+            import_csv(db[request.vars.table],request.vars.csvfile.file)
             response.flash=T('data uploaded')
         except: 
             response.flash=T('unable to parse csv file')
-    if request.vars.delete_all and request.vars.delete_all_sure=='yes':
+    if form.accepts(request.vars,formname=None):
+        regex=re.compile(request.args[0]+'\.(?P<table>\w+)\.id\>0')
+        match=regex.match(form.vars.query.strip())
+        if match: table=match.group('table')
         try:
-            db(query).delete()
-            response.flash=T('records deleted')
+            nrows=db(query).count()
+            if form.vars.update_check and form.vars.update_fields:
+                db(query).update(**eval('dict(%s)'%form.vars.update_fields))
+                response.flash=T('%s rows updated',nrows)
+            elif form.vars.delete_check:
+                db(query).delete()
+                response.flash=T('%s rows deleted',nrows)
+            nrows=db(query).count()
+            if orderby: rows=db(query).select(limitby=(start,stop), orderby=eval(orderby))
+            else: rows=db(query).select(limitby=(start,stop))
         except:
-            response.flash=T('invalid SQL FILTER')
-    elif request.vars.update_string:
-        try:
-            env=dict(db=db,query=query)
-            exec('db(query).update('+request.vars.update_string+')') in env
-            response.flash=T('records updated')
-        except:
-            response.flash=T('invalid SQL FILTER or UPDATE STRING')
-    try:
-        records=db(query).select(limitby=limitby,orderby=orderby)
-    except: 
-        response.flash=T('invalid SQL FILTER')
-        return dict(records=T('no records'),nrecords=0,query=query,start=0)
-    linkto=URL(r=request,f='update',args=[dbname])
-    upload=URL(r=request,f='download',args=[dbname])
-    return dict(start=start,query=query,orderby=orderby, \
-                nrecords=len(records),\
-                records=SQLTABLE(records,linkto,upload,orderby=True,_class='sortable'))
+            rows,nrows=[],0
+            response.flash=T('Invalid Query')
+    return dict(form=form,table=table,start=start,nrows=nrows,rows=rows,query=request.vars.query)
 
 ###########################################################
 ### edit delete one record
 ############################################################
 
 def update():
-    try:
-        dbname=request.args[0]
-        db=eval(dbname)
-        table=request.args[1]
-    except:
-        response.flash=T('invalid request')
-        redirect(URL(r=request,f='index'))
+    table=get_table(request)
     try:
         id=int(request.args[2])
-        record=db(db[table].id==id).select()[0]
+        record=db(table.id==id).select()[0]
     except:
         session.flash=T('record does not exist')
-        redirect(URL(r=request,f='select/%s/%s'%(dbname,table)))
-    form=SQLFORM(db[table],record,deletable=True,
-                 linkto=URL(r=request,f='select',args=[dbname]),
-                 upload=URL(r=request,f='download',args=[dbname]))
+        redirect(URL(r=request,f='select',args=request.args[:1],vars=dict(query='%s.%s.id>0'%tuple(request.args[:2]))))
+    form=SQLFORM(table,record,deletable=True,
+                 linkto=URL(r=request,f='select',args=request.args[:1]),
+                 upload=URL(r=request,f='download',args=request.args[:1]))
     if form.accepts(request.vars,session): 
-        response.flash=T('done!')        
-        redirect(URL(r=request,f='select/%s/%s'%(dbname,table)))
+        response.flash=T('done!')
+        redirect(URL(r=request,f='select',args=request.args[:1],vars=dict(query='%s.%s.id>0'%tuple(request.args[:2]))))
     return dict(form=form)
 
 ###########################################################
 ### get global variables
 ############################################################
 
-def state():
-    return dict(state=request.env)
+def state(): return dict()
