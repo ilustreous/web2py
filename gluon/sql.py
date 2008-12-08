@@ -95,7 +95,7 @@ SQL_DIALECTS={'sqlite':{'boolean':'CHAR(1)',
                       'left join':'LEFT JOIN',
                       'random':'Random()',
                       'notnull':'NOT NULL DEFAULT %(default)s',
-                      'substring' : 'SUBSTR(%(field)s,%(pos)s%(length)s)'},
+                      'substring' : 'SUBSTR(%(field)s,%(pos)s,%(length)s)'},
             'mysql':{'boolean':'CHAR(1)',
                       'string':'VARCHAR(%(length)s)',
                       'text':'LONGTEXT',
@@ -117,7 +117,7 @@ SQL_DIALECTS={'sqlite':{'boolean':'CHAR(1)',
                       'left join':'LEFT JOIN',
                       'random':'RAND()',
                       'notnull':'NOT NULL DEFAULT %(default)s',
-                      'substring' : 'SUBSTRING(%(field)s,%(pos)s%(length)s)'},
+                      'substring' : 'SUBSTRING(%(field)s,%(pos)s,%(length)s)'},
             'postgres':{'boolean':'CHAR(1)',
                       'string':'VARCHAR(%(length)s)',
                       'text':'TEXT',
@@ -139,7 +139,7 @@ SQL_DIALECTS={'sqlite':{'boolean':'CHAR(1)',
                       'left join':'LEFT JOIN',
                       'random':'RANDOM()',
                       'notnull':'NOT NULL DEFAULT %(default)s',
-                      'substring' : 'SUBSTR(%(field)s,%(pos)s%(length)s)'},
+                      'substring' : 'SUBSTR(%(field)s,%(pos)s,%(length)s)'},
             'oracle':{'boolean':'CHAR(1)',
                       'string':'VARCHAR2(%(length)s)',
                       'text':'CLOB',
@@ -161,7 +161,7 @@ SQL_DIALECTS={'sqlite':{'boolean':'CHAR(1)',
                       'left join':'LEFT OUTER JOIN',
                       'random':'dbms_random.value',
                       'notnull':'DEFAULT %(default)s NOT NULL',
-                      'substring' : 'SUBSTR(%(field)s,%(pos)s%(length)s)'},
+                      'substring' : 'SUBSTR(%(field)s,%(pos)s,%(length)s)'},
              'mssql':{'boolean':'BIT',
                       'string':'VARCHAR(%(length)s)',
                       'text':'TEXT',
@@ -183,7 +183,7 @@ SQL_DIALECTS={'sqlite':{'boolean':'CHAR(1)',
                       'left join':'LEFT OUTER JOIN',
                       'random':'NEWID()',
                       'notnull':'NOT NULL DEFAULT %(default)s',
-                      'substring' : 'SUBSTR(%(field)s,%(pos)s%(length)s)'},
+                      'substring' : 'SUBSTR(%(field)s,%(pos)s,%(length)s)'},
             'firebird':{'boolean':'CHAR(1)',
                       'string':'VARCHAR(%(length)s)',
                       'text':'BLOB SUB_TYPE 1',
@@ -205,7 +205,7 @@ SQL_DIALECTS={'sqlite':{'boolean':'CHAR(1)',
                       'left join':'LEFT JOIN',
                       'random':'RANDOM()',
                       'notnull':'DEFAULT %(default)s NOT NULL',
-                      'substring' : 'SUBSTRING(%(field)s,%(pos)s%(length)s)'},
+                      'substring' : 'SUBSTRING(%(field)s,%(pos)s,%(length)s)'},
             'informix':{'boolean':'CHAR(1)',
                       'string':'VARCHAR(%(length)s)',
                       'text':'BLOB SUB_TYPE 1',
@@ -227,7 +227,7 @@ SQL_DIALECTS={'sqlite':{'boolean':'CHAR(1)',
                       'left join':'LEFT JOIN',
                       'random':'RANDOM()',
                       'notnull':'DEFAULT %(default)s NOT NULL',
-                      'substring' : 'SUBSTR(%(field)s,%(pos)s%(length)s)'}
+                      'substring' : 'SUBSTR(%(field)s,%(pos)s,%(length)s)'}
               }
 
 def sqlhtml_validators(field_type,length):
@@ -1020,10 +1020,9 @@ class SQLField(SQLXorable):
         return SQLXorable('MAX(%s)' % str(self),'integer',self._db)
     def min(self):
         return SQLXorable('MIN(%s)' % str(self),'integer',self._db)
-    def __getslice__(self,pos,length):
-        length = "" if length == 2147483647 else ",%s" % length
-        if pos >= 0: pos += 1
-        s=self._db._translator["substring"] % dict(field=str(self),pos=pos,length=length)
+    def __getslice__(self,start,stop):
+        d=dict(field=str(self),pos=start+1,length=stop-start)
+        s=self._db._translator["substring"] % d
         return SQLXorable(s,'string',self._db)
     def __str__(self):
         return '%s.%s' % (self._tablename,self.name)
