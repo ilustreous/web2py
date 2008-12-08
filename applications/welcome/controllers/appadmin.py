@@ -180,7 +180,7 @@ def select():
         except:
             rows,nrows=[],0
             response.flash=T('Invalid Query')
-    return dict(form=form,table=table,start=start,nrows=nrows,rows=rows,query=request.vars.query)
+    return dict(form=form,table=table,start=start,stop=stop,nrows=nrows,rows=rows,query=request.vars.query)
 
 ###########################################################
 ### edit delete one record
