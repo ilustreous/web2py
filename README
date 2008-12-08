@@ -1,4 +1,4 @@
-**** start the program with python runme.py ***
+**** start the program with python web2py.py ***
 
 \project
 	README
@@ -266,3 +266,8 @@ support for sqlite:memory:
 1.52
 Fixed a minor bug with _extra[key] and key not str.
 check for upgrade via ajax
+
+1.53
+On GAE upload data goes automatically in datastore (blob created automatically)
+New appadmin runs on GAE (most of it, not all)
+Martin Hufsky patch allow slicing of fields in DAL expressions
