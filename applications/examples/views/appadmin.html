@@ -54,7 +54,7 @@ $(document).ready(function(){
 
 {{elif request.function=='insert':}}  
   <h1>database {{=A(request.args[0],_href=URL(r=request,f='index'))}}
-    table {{=A(request.args[1],_href=URL(r=request,f='select',vars=dict(query='%s.%s.id>0'%tuple(request.args[:2]))))}}
+    table {{=A(request.args[1],_href=URL(r=request,f='select',args=request.args[:1],vars=dict(query='%s.%s.id>0'%tuple(request.args[:2]))))}}
   </h1>
   <h2>New Record</h2><br/>
   {{=form}}
@@ -63,7 +63,7 @@ $(document).ready(function(){
 
 {{elif request.function=='update':}}
   <h1>database {{=A(request.args[0],_href=URL(r=request,f='index'))}}
-    table {{=A(request.args[1],_href=URL(r=request,f='select',vars=dict(query='%s.%s.id>0'%tuple(request.args[:2]))))}}
+    table {{=A(request.args[1],_href=URL(r=request,f='select',args=request.args[:1],vars=dict(query='%s.%s.id>0'%tuple(request.args[:2]))))}}
     record id {{=A(request.args[2],_href=URL(r=request,f='update',args=request.args[:3]))}}
   </h1>
   <h2>Edit current record</h2><br/><br/>{{=form}}
