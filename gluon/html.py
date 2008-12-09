@@ -197,6 +197,7 @@ class SCRIPT(DIV):
     tag='script'
     def xml(self):
         fa,co=self._xml()
+        co='\n'.join([str(component) for component in self.components])
         if co: return '<%s%s><!--\n%s\n//--></%s>' % (self.tag,fa,co,self.tag)
         else: return DIV.xml(self)
 
