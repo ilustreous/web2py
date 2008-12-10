@@ -401,11 +401,11 @@ class SQLSet(object):
             self._tables.insert(0,fields[0].table._tablename)
         table = self._get_table_or_raise()
         tablename = table.kind()       
-        query = google_db.Query(table)  
+        items = google_db.Query(table)  
         for filter in self.filters:
             left,op,val = filter
             cond = "%s %s" % (left.name,op)
-            query=query.filter(cond,val)  
+            items=items.filter(cond,val)  
         if attributes.has_key('left') and attributes['left']: 
             raise SyntaxError, "SQLSet: no left join in appengine"
         if attributes.has_key('groupby') and attributes['groupby']: 
@@ -414,20 +414,21 @@ class SQLSet(object):
             assert_filter_fields(attributes['orderby'])
             orders = attributes['orderby'].name.split("|")   
             for order in orders:
-                query = query.order(order)
+                items = items.order(order)
         if attributes.has_key('limitby') and attributes['limitby']: 
             lmin,lmax=attributes['limitby']   
             limit,offset=(lmax-lmin,lmin)  
-            query = query.fetch(limit,offset=offset)     
-        return query,tablename,self._db[tablename].fields
+            items = items.fetch(limit,offset=offset)     
+        return items,tablename,self._db[tablename].fields
     def _getitem_exception(self):
         tablename,id=self.where.tablename,self.where.id
         fields=self._db[tablename].fields
         self.colnames=['%s.%s'%(tablename,t) for t in fields]
-        return self._db[tablename]._tableobj.get_by_id(long(id)),fields
+        item=self._db[tablename]._tableobj.get_by_id(long(id))
+        return item,tablename,fields
     def _select_except(self):
         if not self.where.id: return SQLRows(self._db,[])
-        item,fields=self._getitem_exception()
+        item,tablename,fields=self._getitem_exception()
         if not item: return []
         new_item=[]
         for t in fields:
@@ -440,12 +441,12 @@ class SQLSet(object):
         Always returns a SQLRows object, even if it may be empty
         """
         if isinstance(self.where,QueryException): return self._select_except()
-        query,tablename,fields=self._select(*fields,**attributes)
+        items,tablename,fields=self._select(*fields,**attributes)
         self.colnames=['%s.%s'%(tablename,t) for t in fields]
-        self._db['_lastsql']=query
+        self._db['_lastsql']=items
         r=[]
 
-        for item in query:
+        for item in items:
             new_item=[]
             for t in fields:
                 if t=='id': new_item.append(int(item.key().id()))
@@ -456,27 +457,32 @@ class SQLSet(object):
         return len(self.select())
     def delete(self):
         if isinstance(self.where,QueryException):
-            item,fields=self._getitem_exception()
+            item,tablename,fields=self._getitem_exception()
             if not item: return
             item.delete()
         else:
-            query,tablename,fields=self._select()
+            items,tablename,fields=self._select()
             tableobj=self._db[tablename]._tableobj 
-            for item in query:
+            for item in items:
                 tableobj.get(item.key()).delete()
     def update(self,**update_fields):
+        db=self._db
         if isinstance(self.where,QueryException):
-            item,fields=self._getitem_exception()
+            item,tablename,fields=self._getitem_exception()
+            table=db[tablename]
             if not item: return
-            for key,value in update_fields.items():
-                setattr(item,key,value)
+            for field,value in update_fields.items():
+                value=obj_represent(update_fields[field],table[field].type,db) 
+                setattr(item,field,value)
             item.put()
         else:
-            query,tablename,fields=self._select()
-            tableobj=self._db[tablename]._tableobj
-            for item in query:
-                for key,value in update_fields.items():
-                    setattr(item,key,value)
+            items,tablename,fields=self._select()
+            table=db[tablename]
+            tableobj=table._tableobj
+            for item in items:
+                for field,value in update_fields.items():
+                    value=obj_represent(update_fields[field],table[field].type,db)
+                    setattr(item,field,value)
                 item.put()
 
 def update_record(t,s,id,a):
