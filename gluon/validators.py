@@ -597,7 +597,7 @@ class IS_TIME(object):
             if value.group('d') == 'pm' and 0 < h < 12: h = h + 12
             if not (h in range(24) and m in range(60) and s in range(60)):
                 raise ValueError
-            value = '%.2i:%.2i:%.2i' % (h, m, s)
+            value = datetime.time(h,m,s)
             return (value, None)
         except AttributeError: pass
         except ValueError: pass
