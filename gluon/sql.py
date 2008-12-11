@@ -675,6 +675,7 @@ class SQLTable(SQLStorage):
         for fieldname in other.fields:
             other[fieldname]=copy.copy(other[fieldname])
             other[fieldname]._tablename=alias
+        self._db[alias]=self
         return other
     def _create(self,migrate=True):
         fields=[]
