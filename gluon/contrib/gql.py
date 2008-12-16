@@ -458,23 +458,26 @@ class SQLSet(object):
     def delete(self):
         if isinstance(self.where,QueryException):
             item,tablename,fields=self._getitem_exception()
-            if not item: return
+            if not item: return 0
             item.delete()
+            return 1
         else:
             items,tablename,fields=self._select()
             tableobj=self._db[tablename]._tableobj 
             for item in items:
                 tableobj.get(item.key()).delete()
+            return len(items)
     def update(self,**update_fields):
         db=self._db
         if isinstance(self.where,QueryException):
             item,tablename,fields=self._getitem_exception()
             table=db[tablename]
-            if not item: return
+            if not item: return 0
             for field,value in update_fields.items():
                 value=obj_represent(update_fields[field],table[field].type,db) 
                 setattr(item,field,value)
             item.put()
+            return 1
         else:
             items,tablename,fields=self._select()
             table=db[tablename]
@@ -484,6 +487,7 @@ class SQLSet(object):
                     value=obj_represent(update_fields[field],table[field].type,db)
                     setattr(item,field,value)
                 item.put()
+            return len(items)
 
 def update_record(t,s,id,a):
     item=s._tableobj.get_by_id(long(id))
