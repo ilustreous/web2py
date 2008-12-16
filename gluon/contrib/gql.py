@@ -464,9 +464,11 @@ class SQLSet(object):
         else:
             items,tablename,fields=self._select()
             tableobj=self._db[tablename]._tableobj 
+            counter=0
             for item in items:
                 tableobj.get(item.key()).delete()
-            return len(items)
+                counter+=1
+            return counter
     def update(self,**update_fields):
         db=self._db
         if isinstance(self.where,QueryException):
@@ -482,12 +484,14 @@ class SQLSet(object):
             items,tablename,fields=self._select()
             table=db[tablename]
             tableobj=table._tableobj
+            counter=0
             for item in items:
                 for field,value in update_fields.items():
                     value=obj_represent(update_fields[field],table[field].type,db)
                     setattr(item,field,value)
                 item.put()
-            return len(items)
+                counter+=1
+            return counter
 
 def update_record(t,s,id,a):
     item=s._tableobj.get_by_id(long(id))
