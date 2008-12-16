@@ -54,7 +54,11 @@ class translator(object):
     def __init__(self,request):        
         self.folder=request.folder
         self.current_languages=[]
-        self.force(languages=request.env.http_accept_language)
+        self.http_accept_language = request.env.http_accept_language
+        self.force(languages=self.http_accept_language) 
+    def set_current_languages(self,languages=[]):
+        self.current_languages=languages
+        self.force(languages=self.http_accept_language) 
     def force(self,languages=None):
         if languages:
             if isinstance(languages,(str,unicode)):
