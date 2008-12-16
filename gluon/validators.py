@@ -141,7 +141,8 @@ class IS_IN_DB(object):
            dd=dict(orderby=', '.join(self.fields))
            records=self.dbset.select(*self.fields,**dd)
         else:
-           dd=dict(orderby=', '.join([k for k in self.ks if k!='id']))
+           import contrib.gql
+           dd=dict(orderby=contrib.gql.SQLXorable('|'.join([k for k in self.ks if k!='id'])))
            if not dd: dd=None
            records=self.dbset.select(self.dbset._db[self.ktable].ALL,**dd)
         self.theset=[str(r[self.kfield]) for r in records]
