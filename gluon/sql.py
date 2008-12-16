@@ -463,6 +463,7 @@ class SQLDB(SQLStorage):
             if not port: port='5432'
             msg="dbname='%s' user='%s' host='%s' port=%s password='%s'" % (db,user,host,port,passwd)            
             self._pool_connection(lambda:psycopg2.connect(msg))
+            self._connection.set_client_encoding('UTF8')
             self._cursor=self._connection.cursor()
             self._execute=lambda *a,**b: self._cursor.execute(*a,**b)
             query='BEGIN;'
@@ -476,6 +477,7 @@ class SQLDB(SQLStorage):
             self._execute=lambda a: self._cursor.execute(a[:-1])  ###
             self._execute("ALTER SESSION SET NLS_DATE_FORMAT = 'YYYY-MM-DD';")
             self._execute("ALTER SESSION SET NLS_TIMESTAMP_FORMAT = 'YYYY-MM-DD HH24:MI:SS';")
+            ### read: http://bytes.com/groups/python/460325-cx_oracle-utf8
         elif self._uri[:8]=='mssql://':
             self._dbname='mssql'
             if '@' not in self._uri[8:]: 
@@ -521,6 +523,7 @@ class SQLDB(SQLStorage):
             self._pool_connection(lambda:kinterbasdb.connect(dsn="%s:%s"%(host,db), user=user, password=passwd))
             self._cursor=self._connection.cursor()
             self._execute=lambda *a,**b: self._cursor.execute(*a,**b)
+            self._execute('SET NAMES UTF8;')
         elif self._uri[:11]=='informix://': 
             self._dbname='informix'
             m=re.compile('^(?P<user>[^:@]+)(\:(?P<passwd>[^@]*))?@(?P<host>[^\:/]+)(\:(?P<port>[0-9]+))?/(?P<db>.+)$').match(self._uri[11:])
