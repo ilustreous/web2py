@@ -1206,6 +1206,8 @@ class SQLSet(object):
         query=self._delete()
         self._db['_lastsql']=query
         self._db._execute(query)
+        try: return self._db._cursor.rowcount
+        except: return None
     def _update(self,**fields):
         tablenames=self._tables
         if len(tablenames)!=1: 
@@ -1220,6 +1222,8 @@ class SQLSet(object):
         query=self._update(**fields)
         self._db['_lastsql']=query
         self._db._execute(query)
+        try: return self._db._cursor.rowcount
+        except: return None
 
 def update_record(t,s,a):
     s.update(**a)
@@ -1374,7 +1378,9 @@ def test_all():
     >>> me.name
     'Massimo'
     >>> db(db.person.name=='Massimo').update(name='massimo') # test update
+    1
     >>> db(db.person.name=='Marco').delete() # test delete
+    1
 
     Update a single record
 
@@ -1492,6 +1498,7 @@ def test_all():
 
     >>> mynumber=db.define_table('mynumber',SQLField('x','integer'))
     >>> db(mynumber.id>0).delete()
+    0
     >>> for i in range(10): tmp=mynumber.insert(x=i)
     >>> db(mynumber.id>0).select(mynumber.x.sum())[0]._extra[mynumber.x.sum()]
     45
