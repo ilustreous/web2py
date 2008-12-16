@@ -54,12 +54,10 @@ class translator(object):
     def __init__(self,request):        
         self.folder=request.folder
         self.current_languages=[]
-        self.http_accept_language = request.env.http_accept_language
-        self.force(languages=self.http_accept_language) 
-    def set_current_languages(self,languages=[]):
-        self.current_languages=languages
-        self.force(languages=self.http_accept_language) 
+        self.http_accept_language=request.env.http_accept_language
+        self.forced=False
     def force(self,languages=None):
+        self.forced=True
         if languages:
             if isinstance(languages,(str,unicode)):
                 accept_languages=languages.split(';')
@@ -76,6 +74,7 @@ class translator(object):
                     return
         self.t=None ### no langauge by default
     def __call__(self,message,symbols={}):
+        if not self.forced: self.force(languages=self.http_accept_language)
         return lazyT(message,symbols,self.t)
             
 def findT(application_path,language='en-us'):
