@@ -495,7 +495,7 @@ def errors():
     for item in request.vars:
         if item[:7]=='delete_':
             os.unlink(apath('%s/errors/%s' % (app,item[7:])))
-    tickets=os.listdir(apath('%s/errors/' % app))
+    tickets=sorted(os.listdir(apath('%s/errors/' % app)), key=lambda p: os.stat(apath('%s/errors/%s' % (app,p))).st_mtime,reverse=True)
     return dict(app=app,tickets=tickets)
 
 def ticket():        
