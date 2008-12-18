@@ -2,9 +2,13 @@
     Unit tests for gluon.cache
 '''
 
+import sys
+import os
+sys.path.append(os.path.realpath('../'))
+
 import unittest
-from gluon.storage import Storage
-from gluon.cache import CacheInRam, CacheOnDisk
+from storage import Storage
+from cache import CacheInRam, CacheOnDisk
 
 class TestCache(unittest.TestCase):
     def testCacheInRam(self):
@@ -35,5 +39,8 @@ class TestCache(unittest.TestCase):
 
 
 if __name__ == "__main__":
+    oldpwd = os.getcwd()
+    os.chdir(os.path.realpath('../../'))
     unittest.main()
+    os.chdir(oldpwd)
     

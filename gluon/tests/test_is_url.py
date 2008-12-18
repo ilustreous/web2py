@@ -1,10 +1,13 @@
 '''
     Unit tests for IS_URL()
 '''
+import sys
+import os
+sys.path.append(os.path.realpath('../'))
 
 import unittest
-from gluon.validators import *
-import gluon.validators
+from validators import *
+import validators
 
 
 
@@ -196,7 +199,7 @@ class TestIsUrl(unittest.TestCase):
 
 ###############################################################################
 class TestIsGenericUrl(unittest.TestCase):
-    x = gluon.validators.IS_GENERIC_URL()
+    x = validators.IS_GENERIC_URL()
     
     
     def testInvalidUrls(self):
@@ -314,14 +317,14 @@ class TestIsGenericUrl(unittest.TestCase):
         self.assertEqual(self.x('https://google.ca'), ('https://google.ca', None)) #Does not prepend when scheme already exists
         
         #Does not prepend if None type is not specified in allowed_scheme, because a scheme is required 
-        y = gluon.validators.IS_GENERIC_URL(allowed_schemes=['http', 'blargg'], prepend_scheme='http')
+        y = validators.IS_GENERIC_URL(allowed_schemes=['http', 'blargg'], prepend_scheme='http')
         self.assertEqual(y('google.ca'), ('google.ca', 'invalid url!'))
         
         
 
 ###############################################################################
 class TestIsHttpUrl(unittest.TestCase):
-    x = gluon.validators.IS_HTTP_URL()
+    x = validators.IS_HTTP_URL()
     
     
     def testInvalidUrls(self):
@@ -477,14 +480,14 @@ class TestIsHttpUrl(unittest.TestCase):
         self.assertEqual(self.x('google.ca:8080'), ('http://google.ca:8080', None)) #prepends scheme for abbreviated domains
         self.assertEqual(self.x('https://google.ca'), ('https://google.ca', None)) #does not prepend when scheme already exists
         
-        y = gluon.validators.IS_HTTP_URL(prepend_scheme='https')
+        y = validators.IS_HTTP_URL(prepend_scheme='https')
         self.assertEqual(y('google.ca'), ('https://google.ca', None)) #prepends https if asked
         
-        z = gluon.validators.IS_HTTP_URL(prepend_scheme=None)
+        z = validators.IS_HTTP_URL(prepend_scheme=None)
         self.assertEqual(z('google.ca:8080'), ('google.ca:8080', None)) #prepending disabled
         
         try:
-            gluon.validators.IS_HTTP_URL(prepend_scheme='mailto')
+            validators.IS_HTTP_URL(prepend_scheme='mailto')
         except Exception, e:
             if str(e) != "prepend_scheme='mailto' is not in allowed_schemes=[None, 'http', 'https']":
                 self.fail("Wrong exception: " + str(e))
@@ -492,7 +495,7 @@ class TestIsHttpUrl(unittest.TestCase):
             self.fail("Got invalid prepend_scheme: 'mailto'")
         
         #Does not prepend if None type is not specified in allowed_scheme, because a scheme is required 
-        a = gluon.validators.IS_HTTP_URL(allowed_schemes=['http'])
+        a = validators.IS_HTTP_URL(allowed_schemes=['http'])
         self.assertEqual(a('google.ca'), ('google.ca', 'invalid url!'))
         self.assertEqual(a('google.ca:80'), ('google.ca:80', 'invalid url!'))
         

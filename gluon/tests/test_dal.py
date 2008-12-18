@@ -1,12 +1,65 @@
 '''
     Unit tests for gluon.cache
 '''
+import sys
+import os
+sys.path.append(os.path.realpath('../'))
 
-import unittest, os, datetime
-from gluon.sql import SQLDB
-from gluon.cache import CacheInRam
+import unittest
+import datetime
+from sql import *
+from sql import SQLTable, SQLALL
+
+ALLOWED_DATATYPES = ['string'
+                     , 'text'
+                     , 'integer'
+                     , 'boolean'
+                     , 'double'
+                     , 'blob'
+                     , 'date'
+                     , 'time'
+                     , 'datetime'
+                     , 'upload'
+                     , 'password' ]
 
 class TestFields(unittest.TestCase):
+
+    def testSQLFieldName(self):
+        # Check that Fields cannot start with underscores
+        self.assertRaises( SyntaxError, SQLField, '_abc','string')
+        # Check that Fields cannot contain punctuation other than underscores
+        self.assertRaises( SyntaxError, SQLField, 'a.bc','string')
+        # Check that Fields cannot be a name of a method or property of SQLTable
+        for x in ['create', 'drop', 'on', 'truncate']:
+            self.assertRaises( SyntaxError, SQLField, x,'string')
+        # Check that Fields allows underscores in the body of a field name.
+        self.assert_( SQLField('a_bc','string'), "SQLField isn't allowing underscores in fieldnames.  It should.")
+
+    def testSQLFieldTypes(self):
+        # Check that string, text, and password default length is 32
+        for typ in ['string', 'text', 'password']:
+            self.assert_( SQLField('abc',typ).length == 32, "Default length for type '%s' is not 32" % typ)
+        # Check that string becomes text when length == 0
+        self.assert_( SQLField('abc','string', length=0).type == 'text', "String does not default to text when length is 0.")
+        # Check that upload default length is 64
+        self.assert_( SQLField('abc','upload').length == 64, "Default length for type 'upload' is not 64")
+        # Check that SQLTables passed in the type creates a reference
+        self.assert_( SQLField('abc', SQLTable(None,"temp")).type == 'reference temp', "Passing an SQLTable does not result in a reference type.")
+
+    def testSQLFieldLabels(self):
+        # Check that a label is successfully built from the supplied fieldname
+        self.assert_( SQLField('abc','string').label == 'Abc', "Label built is incorrect")
+        self.assert_( SQLField('abc_def','string').label == 'Abc Def', "Label built is incorrect")
+
+    def testSQLFieldFormatters(self): # Formatter should be called Validator
+        # Test the default formatters
+        for typ in ALLOWED_DATATYPES:
+            f = SQLField('abc',typ)
+            if typ not in ['date', 'time', 'datetime']:
+                isinstance(f.formatter('test'), str)
+            else:
+                isinstance(f.formatter(datetime.datetime.now()), str)
+
     def testRun(self):
         db=SQLDB('sqlite:memory:')
         for ft in ['string','text','password','upload','blob']:
@@ -41,6 +94,58 @@ class TestFields(unittest.TestCase):
         self.assertEqual(db.t.insert(a=t0),1)
         self.assertEqual(db().select(db.t.a)[0].a,t0)
         db.t.drop()
+
+        
+class TestAll(unittest.TestCase):
+    def setUp(self):
+        class PseudoTable():
+            fields = ['id', 'name', 'birthdate']
+            _tablename="PseudoTable"
+
+        self.pt = PseudoTable()
+
+    def testSQLALL(self):
+        ans = 'PseudoTable.id, PseudoTable.name, PseudoTable.birthdate'
+        self.assertEqual(str(SQLALL(self.pt)),ans)
+
+
+class TestTable(unittest.TestCase):
+
+    def testTableCreation(self):
+        # Check for error when not passing type other than SQLField or SQLTable
+        self.assertRaises(SyntaxError, SQLTable, None, 'test', None)
+
+        persons = SQLTable( None
+                           , 'persons'
+                           , SQLField('firstname', 'string')
+                           , SQLField('lastname', 'string'))
+        # Does it have the correct fields?
+        self.assert_(set(persons.fields).issuperset(set(['firstname', 'lastname'])))
+        # ALL is set correctly
+        self.assert_('persons.firstname, persons.lastname' in str(persons.ALL))
+
+    def testTableAlias(self):
+        persons = SQLTable( None
+                               , 'persons'
+                               , SQLField('firstname', 'string')
+                               , SQLField('lastname', 'string'))
+        aliens = persons.with_alias('aliens')
+        # Are the different table instances with the same fields
+        self.assert_(persons is not aliens)
+        self.assert_(set(persons.fields) == set(aliens.fields))
+
+    def testTableInheritance(self):
+        persons = SQLTable(None
+                               , 'persons'
+                               , SQLField('firstname', 'string')
+                               , SQLField('lastname', 'string'))
+        customers = SQLTable(None
+                                 , 'customers'
+                                 , SQLField('items_purchased', 'integer')
+                                 , persons)
+        self.assert_(set(customers.fields).issuperset(set(['items_purchased'
+                                                              , 'firstname'
+                                                              , 'lastname'])))
 
 class TestInsert(unittest.TestCase):
     def testRun(self):
