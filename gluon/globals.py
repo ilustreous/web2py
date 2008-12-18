@@ -54,6 +54,8 @@ class Response(Storage):
         self._vars=None
         self._caller=lambda f: f()
         self._view_environment=None
+        self._custom_commit=None
+        self._custom_rollback=None
     def write(self,data,escape=True):
         if not escape: self.body.write(str(data))
         else: self.body.write(xmlescape(data))
