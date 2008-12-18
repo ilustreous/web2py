@@ -257,7 +257,9 @@ def wsgibase(environ, responder):
         ###################################################
         # on application error, rollback database
         ###################################################
-        try: SQLDB.close_all_instances(SQLDB.rollback)
+        try: 
+            if response._custom_rollback: reponse._custom_rollback()
+            else: SQLDB.close_all_instances(SQLDB.rollback)
         except: pass
         e=RestrictedError('Framework','','',locals())
         try: ticket=e.log(request)
