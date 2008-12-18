@@ -221,7 +221,8 @@ def wsgibase(environ, responder):
             ###################################################
             # on sucess, committ database
             ###################################################
-            SQLDB.close_all_instances(SQLDB.commit)
+            if response.custom_commit: reponse.custom_commit()
+            else: SQLDB.close_all_instances(SQLDB.commit)
             ###################################################
             # if session not in db try store session on filesystem
             ###################################################
@@ -242,7 +243,8 @@ def wsgibase(environ, responder):
             ###################################################
             # on application error, rollback database
             ###################################################
-            SQLDB.close_all_instances(SQLDB.rollback)
+            if response.custom_rollback: reponse.custom_rollback()
+            else: SQLDB.close_all_instances(SQLDB.rollback)
             try: ticket=e.log(request)
             except:
                  ticket='unknown'
