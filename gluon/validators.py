@@ -95,13 +95,12 @@ class IS_IN_SET(object):
     """
     def __init__(self, theset, labels=None, error_message='value not allowed!'):
         self.theset = [str(item) for item in theset]
-        self.labels = labels
+        if isinstance(theset,dict): self.labels=theset.values()
+        elif not labels: self.labels = [item for item in self.theset]
+        else: self.labels=labels
         self.error_message = error_message
     def options(self):
-        if self.labels:
-             return [(k, self.labels[i]) for i, k in enumerate(self.theset)]
-        else:
-             return [(k, k) for k in self.theset]
+        return [(k, self.labels[i]) for i, k in enumerate(self.theset)]
     def __call__(self, value):
         if value in self.theset: return (value, None)
         return (value, self.error_message)
@@ -149,10 +148,7 @@ class IS_IN_DB(object):
         self.labels=[self.label % dict(r) for r in records]        
     def options(self):
         self.build_set()
-        if self.labels:
-             return [(k,self.labels[i]) for i,k in enumerate(self.theset)]
-        else:
-             return [(k,k) for k in self.theset]
+        return [(k,self.labels[i]) for i,k in enumerate(self.theset)]
     def __call__(self,value):
         if self.theset: 
             if value in self.theset:
