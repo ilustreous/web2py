@@ -874,7 +874,7 @@ class SQLTable(SQLStorage):
         else:
             id=None
         return id
-    def import_from_csv_file(self,csvfile):
+    def import_from_csv_file(self,csvfile,id_map=None):
         """
         import records from csv file. Column headers must have same names as
         table fields. field 'id' is ignored. If column names read 'table.file'
@@ -882,13 +882,23 @@ class SQLTable(SQLStorage):
         """
         reader = csv.reader(csvfile)
         colnames=None
+        if isinstance(id_map,dict) and not id_map.has_key(self._tablename):
+           id_map_self=id_map[self._tablename]={}
+        def fix(col,value,id_map):
+           if id_map and self[col].type[:9]=='reference':
+              try: return (col,id_map[self[col].type[9:].strip()][value])
+              except KeyError: pass
+           return (col,value)
         for line in reader:
             if not colnames:
                 colnames=[x[x.find('.')+1:] for x in line]
                 c=[i for i in xrange(len(line)) if colnames[i]!='id']
+                cid=[i for i in xrange(len(line)) if colnames[i]=='id']
+                if cid: cid=cid[0]
             else:
-                items=[(colnames[i],line[i]) for i in c]
-                self.insert(**dict(items))
+                items=[fix(colnames[i],line[i],id_map) for i in c]
+                new_id=self.insert(**dict(items))
+                if id_map and cid!=[]: id_map_self[line[cid]]=new_id
     def on(self,query):
         return SQLJoin(self,query)
     def _truncate(self):
@@ -1315,11 +1325,16 @@ class SQLRows(object):
         s=cStringIO.StringIO()
         writer = csv.writer(s)
         writer.writerow(self.colnames)
-        c=len(self.colnames)
-        for i in xrange(len(self)):
-            row=[self.response[i][j] for j in xrange(c)]
-            for k in xrange(c):
-                if isinstance(row[k],unicode): row[k]=row[k].encode('utf-8')
+        for record in self:
+            row=[]
+            for col in self.colnames:
+                if not table_field.match(col):
+                    row.append(record._extra[col])
+                else:
+                    t,f=col.split('.')                
+                    if record.has_key(t) and isinstance(record[t],SQLStorage):
+                        row.append(record[t][f])
+                    else: row.append(record[f])
             writer.writerow(row)
         return s.getvalue()
     def xml(self):

@@ -36,7 +36,7 @@ __all__=['wsgibase', 'save_password', 'appfactory', 'HttpServer']
 
 ### Security Checks: validate URL and session_id here, accept_language is validated in languages
 # pattern to replace spaces with underscore in URL
-regex_space=re.compile('(\+|\-|\s|%20)+')
+regex_space=re.compile('(\+|\s|%20)+')
 # pattern to find valid paths in url /application/controller/...
 regex_url=re.compile('(?:^$)|(?:^\w+/?$)|(?:^\w+/[\w\-]+/?$)|(?:^\w+/[\w\-]+/\w+/?$)|(?:^\w+/[\w\-]+/\w+(/[\w\-]+(\.[\w\-]+)*)+$)|(?:^(\w+)/static(/[\w\-]+(\.[\w\-]+)*)+$)')
 # patter used to validate client address
