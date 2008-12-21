@@ -35,6 +35,8 @@ import contrib.memcache
 __all__=['wsgibase', 'save_password', 'appfactory', 'HttpServer']
 
 ### Security Checks: validate URL and session_id here, accept_language is validated in languages
+# pattern to replace spaces with underscore in URL
+regex_space=re.compile('(\+|\-|\s|%20)+')
 # pattern to find valid paths in url /application/controller/...
 regex_url=re.compile('(?:^$)|(?:^\w+/?$)|(?:^\w+/[\w\-]+/?$)|(?:^\w+/[\w\-]+/\w+/?$)|(?:^\w+/[\w\-]+/\w+(/[\w\-]+(\.[\w\-]+)*)+$)|(?:^(\w+)/static(/[\w\-]+(\.[\w\-]+)*)+$)')
 # patter used to validate client address
@@ -125,6 +127,7 @@ def wsgibase(environ, responder):
                 if len(items)>1: request.env.query_string=items[1]
                 else: request.env.query_string=''
             path=request.env.path_info[1:].replace('\\','/')
+            path=regex_space.sub('_',path)
             if not regex_url.match(path):
                 raise HTTP(400,error_message,web2py_error='invalid path')
             items=path.split('/')
