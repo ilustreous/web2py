@@ -283,27 +283,30 @@ class SQLField(SQLXorable):
 
 GQLDB.Field=SQLField ### needed in gluon/globals.py session.connect
 
-def obj_represent(object,fieldtype,db):  
-	if object!=None:
-	    if fieldtype=='date' and not isinstance(object,datetime.date):
-	        y,m,d=[int(x) for x in str(object).strip().split('-')]
-	        object=datetime.date(y,m,d)
-	    elif fieldtype=='time' and not isinstance(object,datetime.time):
-	        time_items=[int(x) for x in str(object).strip().split(':')[:3]]
+def obj_represent(obj,fieldtype,db):  
+	if obj!=None:
+	    if fieldtype=='date' and not isinstance(obj,datetime.date):
+	        y,m,d=[int(x) for x in str(obj).strip().split('-')]
+	        obj=datetime.date(y,m,d)
+	    elif fieldtype=='time' and not isinstance(obj,datetime.time):
+	        time_items=[int(x) for x in str(obj).strip().split(':')[:3]]
 	        if len(time_items)==3: h,mi,s=time_items
 	        else: h,mi,s=time_items+[0]
-	        object=datetime.time(h,mi,s)
-	    elif fieldtype=='datetime' and not isinstance(object,datetime.datetime):
-	        y,m,d=[int(x) for x in str(object)[:10].strip().split('-')]
-	        time_items=[int(x) for x in str(object)[11:].strip().split(':')[:3]]
+	        obj=datetime.time(h,mi,s)
+	    elif fieldtype=='datetime' and not isinstance(obj,datetime.datetime):
+	        y,m,d=[int(x) for x in str(obj)[:10].strip().split('-')]
+	        time_items=[int(x) for x in str(obj)[11:].strip().split(':')[:3]]
 	        if len(time_items)==3: h,mi,s=time_items
 	        else: h,mi,s=time_items+[0]
-	        object=datetime.datetime(y,m,d,h,mi,s)
-	    elif fieldtype=='integer' and not isinstance(object,long):
-	        object = long(object)
+	        obj=datetime.datetime(y,m,d,h,mi,s)
+	    elif fieldtype=='integer' and not isinstance(obj,long):
+	        obj = long(obj)
             elif fieldtype=='blob': pass
-            elif isinstance(object,str): object=object.decode('utf8')
-	return object
+            elif fieldtype=='boolean':
+                if obj and not str(obj)[0].upper()=='F': obj=True
+                else: obj=False
+            elif isinstance(obj,str): obj=obj.decode('utf8')
+	return obj
 
 class QueryException:
     def __init__(self,**a): self.__dict__=a
@@ -406,16 +409,16 @@ class SQLSet(object):
             left,op,val = filter
             cond = "%s %s" % (left.name,op)
             items=items.filter(cond,val)  
-        if attributes.has_key('left') and attributes['left']: 
+        if attributes.get('left',None):
             raise SyntaxError, "SQLSet: no left join in appengine"
-        if attributes.has_key('groupby') and attributes['groupby']: 
+        if attributes.get('groupby',None):
             raise SyntaxError, "SQLSet: no groupby in appengine"
-        if attributes.has_key('orderby') and attributes['orderby']:
+        if attributes.get('orderby',None):
             assert_filter_fields(attributes['orderby'])
             orders = attributes['orderby'].name.split("|")   
             for order in orders:
                 items = items.order(order)
-        if attributes.has_key('limitby') and attributes['limitby']: 
+        if attributes.get('limitby',None):
             lmin,lmax=attributes['limitby']   
             limit,offset=(lmax-lmin,lmin)  
             items = items.fetch(limit,offset=offset)     

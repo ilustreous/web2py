@@ -667,7 +667,7 @@ class SQLTable(SQLStorage):
             field._db=self._db
         self.ALL=SQLALL(self)
     def __str__(self):
-        if self.has_key('_ot'):
+        if self.get('_ot',None):
             return '%s AS %s' % (self._ot,self._tablename)
         return self._tablename
     def with_alias(self,alias):
@@ -1126,7 +1126,7 @@ class SQLSet(object):
         if self.sql_w: return SQLSet(self._db,SQLQuery(self.sql_w)&where)
         else: return SQLSet(self._db,where)
     def _select(self,*fields,**attributes):
-        valid_attributes=['orderby','groupby','limitby','required',
+        valid_attributes=['orderby','groupby','limitby','required','cache',
                           'default','requires','left','distinct','having']
         if [key for key in attributes.keys() if not key in valid_attributes]:
             raise SyntaxError, 'invalid select attribute'
@@ -1170,16 +1170,16 @@ class SQLSet(object):
             ### oracle does not support limitby
             lmin,lmax=attributes['limitby']
             if self._db._dbname=='oracle':
-                if not attributes.has_key('orderby') or not attributes['orderby']:
+                if not attributes.get('orderby',None):
                     sql_o+=' ORDER BY %s'%', '.join([t+'.id' for t in tablenames])
                 return "%s %s FROM (SELECT w_tmp.*, ROWNUM w_row FROM (SELECT %s FROM %s%s%s) w_tmp WHERE ROWNUM<%i) %s WHERE w_row>=%i;" %(sql_s,sql_f,sql_f,sql_t,sql_w,sql_o,lmax,sql_t,lmin)
             elif self._db._dbname=='mssql':
                 if lmin>0: raise SyntaxError, "Not Supported"
-                if not attributes.has_key('orderby') or not attributes['orderby']:
+                if not attributes.get('orderby',None):
                     sql_o+=' ORDER BY %s'%', '.join([t+'.id' for t in tablenames])
                 sql_s+=" TOP %i" %(lmax+lmin)
             elif self._db._dbname=='firebird':
-                if not attributes.has_key('orderby') or not attributes['orderby']:
+                if not attributes.get('orderby',None):
                     sql_o+=' ORDER BY %s'%', '.join([t+'.id' for t in tablenames])
                 sql_s+=" FIRST %i SKIP %i" % (lmax-lmin,lmin)
             else:
@@ -1193,7 +1193,7 @@ class SQLSet(object):
             self._db['_lastsql']=query
             self._db._execute(query)
             return self._db._cursor.fetchall()
-        if not attributes.has_key('cache'):
+        if not attributes.get('cache',None):
             query=self._select(*fields,**attributes)
             r=response(query)
         else:
@@ -1332,7 +1332,7 @@ class SQLRows(object):
                     row.append(record._extra[col])
                 else:
                     t,f=col.split('.')                
-                    if record.has_key(t) and isinstance(record[t],SQLStorage):
+                    if isinstance(record.get(t,None),SQLStorage):
                         row.append(record[t][f])
                     else: row.append(record[f])
             writer.writerow(row)
