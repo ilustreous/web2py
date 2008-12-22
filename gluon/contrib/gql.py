@@ -9,6 +9,7 @@ __all__=['GQLDB','SQLField']
 import re, sys, os, types, cPickle, datetime, thread, cStringIO, csv, copy, socket, logging
 import gluon.validators as validators
 import gluon.sqlhtml as sqlhtml
+import gluon.sql
 from new import classobj
 from google.appengine.ext import db as google_db
 
@@ -82,7 +83,7 @@ class SQLStorage(dict):
 class SQLCallableList(list):
     def __call__(self): return copy.copy(self)
 
-class GQLDB(SQLStorage):
+class GQLDB(gluon.sql.SQLDB):
     """
     an instance of this class represents a database connection
 
@@ -113,7 +114,7 @@ class SQLALL(object):
     def __init__(self,table):
         self.table=table
 
-class SQLTable(SQLStorage):
+class SQLTable(gluon.sql.SQLTable):
     """
     an instance of this class represents a database table
     Example:
@@ -194,34 +195,6 @@ class SQLTable(SQLStorage):
         tmp=self._tableobj(**fields)
         tmp.put()
         return tmp.key().id()
-    def import_from_csv_file(self,csvfile,id_map=None):
-        """
-        import records from csv file. Column headers must have same names as
-        table fields. field 'id' is ignored. If column names read 'table.file'
-        the 'table.' prefix is ignored.
-        """
-        reader = csv.reader(csvfile)
-        colnames=None
-        if isinstance(id_map,dict) and not id_map.has_key(self._tablename):
-           id_map_self=id_map[self._tablename]={}
-        def fix(col,value,id_map):
-           if value=='<NULL>': return (col,None)
-           if id_map and self[col].type[:9]=='reference':
-              try: return (col,id_map[self[col].type[9:].strip()][value])
-              except KeyError: pass
-           return (col,value)
-        for line in reader:
-            if not colnames:
-                colnames=[x[x.find('.')+1:] for x in line]
-                c=[i for i in xrange(len(line)) if colnames[i]!='id']
-                cid=[i for i in xrange(len(line)) if colnames[i]=='id']
-                if cid: cid=cid[0]
-            else:
-                items=[fix(colnames[i],line[i],id_map) for i in c]
-                new_id=self.insert(**dict(items))
-                if id_map and cid!=[]: id_map_self[line[cid]]=new_id
-    def __str__(self):
-        return self._tablename
 
 class SQLXorable(object):
     def __init__(self,name,type='string',db=None):
@@ -531,7 +504,7 @@ def update_record(t,s,id,a):
        setattr(item,key,value)
     item.put()
 
-class SQLRows(object):
+class SQLRows(gluon.sql.SQLRows):
     ### this class still needs some work to care for ID/OID
     """
     A wrapper for the return value of a select. It basically represents a table.
@@ -541,11 +514,6 @@ class SQLRows(object):
         self._db=db
         self.colnames=colnames
         self.response=response
-    def __nonzero__(self):
-        if len(self.response): return 1
-        return 0
-    def __len__(self):
-        return len(self.response)
     def __getitem__(self,i):        
         if i>=len(self.response) or i<0:
             raise SyntaxError, 'SQLRows: no such row'
@@ -598,40 +566,6 @@ class SQLRows(object):
                     row[tablename][referee_table]=SQLSet(self._db,s==id)
         if len(row.keys())==1: return row[row.keys()[0]]
         return row
-    def __iter__(self):
-        """
-        iterator over records
-        """
-        for i in xrange(len(self)):
-            yield self[i]
-    def __str__(self):
-        """
-        serializes the table into a csv file
-        """
-        s=cStringIO.StringIO()
-        writer = csv.writer(s)
-        writer.writerow(self.colnames)
-        def none_exception(value):
-            if isinstance(value,unicode): return value.encode('utf8')
-            if value==None: return '<NULL>'
-            return value
-        for record in self:
-            row=[]
-            for col in self.colnames:
-                if not table_field.match(col):
-                    row.append(record._extra[col])
-                else:
-                    t,f=col.split('.')
-                    if isinstance(record.get(t,None),SQLStorage):
-                        row.append(none_exception(record[t][f]))
-                    else: row.append(none_exception(record[f]))
-            writer.writerow(row)
-        return s.getvalue()
-    def xml(self):
-        """
-        serializes the table using sqlhtml.SQLTABLE (if present)
-        """
-        return sqlhtml.SQLTABLE(self).xml()
         
 def test_all():
     """

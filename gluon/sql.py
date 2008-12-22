@@ -593,7 +593,24 @@ class SQLDB(SQLStorage):
         for tablename in self.tables:
             by=self[tablename]._referenced_by
             by[:]=[item for item in by if not item[0]==other]
-    def __getstate__(self): return dict()
+    def __getstate__(self):
+        return dict()
+    def export_to_csv_file(self,ofile):
+        for table in self.tables:
+            ofile.write('TABLE %s\r\n' % table)
+            self(self[table].id>0).select().export_to_csv_file(ofile)
+            ofile.write('\r\n\r\n')
+        ofile.write('END')
+    def import_from_csv_file(self,ifile,id_map={}):
+        while True:
+            line=ifile.readline()
+            if line.strip()=='END': return
+            if not line.strip(): continue
+            if not line[:6]=='TABLE ' or not line[6:].strip() in self.tables:
+                raise SyntaxError, "invalid file format"
+            table=line[6:].strip()
+            print 'importing '+table
+            self[table].import_from_csv_file(ifile,id_map)
 
 def unpickle_SQLDB(state):
     logging.warning('unpickling SQLDB objects is experimental')
@@ -882,8 +899,10 @@ class SQLTable(SQLStorage):
         """
         reader = csv.reader(csvfile)
         colnames=None
-        if isinstance(id_map,dict) and not id_map.has_key(self._tablename):
-           id_map_self=id_map[self._tablename]={}
+        if isinstance(id_map,dict):
+            if not id_map.has_key(self._tablename):
+                id_map[self._tablename]={}
+            id_map_self=id_map[self._tablename]
         def fix(col,value,id_map):
            if value=='<NULL>': return (col,None)
            if id_map and self[col].type[:9]=='reference':
@@ -891,6 +910,7 @@ class SQLTable(SQLStorage):
               except KeyError: pass
            return (col,value)
         for line in reader:
+            if not line: break
             if not colnames:
                 colnames=[x[x.find('.')+1:] for x in line]
                 c=[i for i in xrange(len(line)) if colnames[i]!='id']
@@ -914,7 +934,8 @@ class SQLTable(SQLStorage):
         queries=self._truncate()
         self._db['_lastsql']='\n'.join(queries)
         for query in queries:
-            logfile.write(query+'\n')
+            if self._dbt: 
+                logfile.write(query+'\n')
             self._db._execute(query)
         self._db.commit()
         if self._dbt:
@@ -1319,12 +1340,8 @@ class SQLRows(object):
         """
         for i in xrange(len(self)):
             yield self[i]
-    def __str__(self):
-        """
-        serializes the table into a csv file
-        """
-        s=cStringIO.StringIO()
-        writer = csv.writer(s)
+    def export_to_csv_file(self,ofile):
+        writer = csv.writer(ofile)
         writer.writerow(self.colnames)
         def none_exception(value):
             if isinstance(value,unicode): return value.encode('utf8')
@@ -1341,7 +1358,14 @@ class SQLRows(object):
                         row.append(none_exception(record[t][f]))
                     else: row.append(none_exception(record[f]))
             writer.writerow(row)
+    def __str__(self):
+        """
+        serializes the table into a csv file
+        """
+        s=cStringIO.StringIO()
+        self.export_to_csv_file(s)
         return s.getvalue()
+
     def xml(self):
         """
         serializes the table using sqlhtml.SQLTABLE (if present)
