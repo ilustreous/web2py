@@ -891,7 +891,7 @@ class SQLTable(SQLStorage):
         else:
             id=None
         return id
-    def import_from_csv_file(self,csvfile,id_map=None):
+    def import_from_csv_file(self,csvfile,id_map=None,null='<NULL>'):
         """
         import records from csv file. Column headers must have same names as
         table fields. field 'id' is ignored. If column names read 'table.file'
@@ -904,7 +904,7 @@ class SQLTable(SQLStorage):
                 id_map[self._tablename]={}
             id_map_self=id_map[self._tablename]
         def fix(col,value,id_map):
-           if value=='<NULL>': return (col,None)
+           if value==null: return (col,None)
            if id_map and self[col].type[:9]=='reference':
               try: return (col,id_map[self[col].type[9:].strip()][value])
               except KeyError: pass
@@ -1340,12 +1340,12 @@ class SQLRows(object):
         """
         for i in xrange(len(self)):
             yield self[i]
-    def export_to_csv_file(self,ofile):
+    def export_to_csv_file(self,ofile,null='<NULL>'):
         writer = csv.writer(ofile)
         writer.writerow(self.colnames)
         def none_exception(value):
             if isinstance(value,unicode): return value.encode('utf8')
-            if value==None: return '<NULL>'
+            if value==None: return null
             return value
         for record in self:
             row=[]
