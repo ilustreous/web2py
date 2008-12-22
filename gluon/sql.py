@@ -885,6 +885,7 @@ class SQLTable(SQLStorage):
         if isinstance(id_map,dict) and not id_map.has_key(self._tablename):
            id_map_self=id_map[self._tablename]={}
         def fix(col,value,id_map):
+           if value=='<NULL>': return (col,None)
            if id_map and self[col].type[:9]=='reference':
               try: return (col,id_map[self[col].type[9:].strip()][value])
               except KeyError: pass
@@ -1325,6 +1326,10 @@ class SQLRows(object):
         s=cStringIO.StringIO()
         writer = csv.writer(s)
         writer.writerow(self.colnames)
+        def none_exception(value):
+            if isinstance(value,unicode): return value.encode('utf8')
+            if value==None: return '<NULL>'
+            return value
         for record in self:
             row=[]
             for col in self.colnames:
@@ -1333,8 +1338,8 @@ class SQLRows(object):
                 else:
                     t,f=col.split('.')                
                     if isinstance(record.get(t,None),SQLStorage):
-                        row.append(record[t][f])
-                    else: row.append(record[f])
+                        row.append(none_exception(record[t][f]))
+                    else: row.append(none_exception(record[f]))
             writer.writerow(row)
         return s.getvalue()
     def xml(self):

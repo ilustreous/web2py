@@ -12,6 +12,8 @@ import gluon.sqlhtml as sqlhtml
 from new import classobj
 from google.appengine.ext import db as google_db
 
+table_field=re.compile('[\w_]+\.[\w_]+')
+
 SQL_DIALECTS={'google':{'boolean':google_db.BooleanProperty,
                         'string':google_db.StringProperty,
                         'text':google_db.TextProperty,
@@ -192,8 +194,34 @@ class SQLTable(SQLStorage):
         tmp=self._tableobj(**fields)
         tmp.put()
         return tmp.key().id()
+    def import_from_csv_file(self,csvfile,id_map=None):
+        """
+        import records from csv file. Column headers must have same names as
+        table fields. field 'id' is ignored. If column names read 'table.file'
+        the 'table.' prefix is ignored.
+        """
+        reader = csv.reader(csvfile)
+        colnames=None
+        if isinstance(id_map,dict) and not id_map.has_key(self._tablename):
+           id_map_self=id_map[self._tablename]={}
+        def fix(col,value,id_map):
+           if value=='<NULL>': return (col,None)
+           if id_map and self[col].type[:9]=='reference':
+              try: return (col,id_map[self[col].type[9:].strip()][value])
+              except KeyError: pass
+           return (col,value)
+        for line in reader:
+            if not colnames:
+                colnames=[x[x.find('.')+1:] for x in line]
+                c=[i for i in xrange(len(line)) if colnames[i]!='id']
+                cid=[i for i in xrange(len(line)) if colnames[i]=='id']
+                if cid: cid=cid[0]
+            else:
+                items=[fix(colnames[i],line[i],id_map) for i in c]
+                new_id=self.insert(**dict(items))
+                if id_map and cid!=[]: id_map_self[line[cid]]=new_id
     def __str__(self):
-        return self._tablename 
+        return self._tablename
 
 class SQLXorable(object):
     def __init__(self,name,type='string',db=None):
@@ -583,11 +611,20 @@ class SQLRows(object):
         s=cStringIO.StringIO()
         writer = csv.writer(s)
         writer.writerow(self.colnames)
-        c=len(self.colnames)
-        for i in xrange(len(self)):
-            row=[self.response[i][j] for j in xrange(c)]
-            for k in xrange(c):
-                if isinstance(row[k],unicode): row[k]=row[k].encode('utf-8')
+        def none_exception(value):
+            if isinstance(value,unicode): return value.encode('utf8')
+            if value==None: return '<NULL>'
+            return value
+        for record in self:
+            row=[]
+            for col in self.colnames:
+                if not table_field.match(col):
+                    row.append(record._extra[col])
+                else:
+                    t,f=col.split('.')
+                    if isinstance(record.get(t,None),SQLStorage):
+                        row.append(none_exception(record[t][f]))
+                    else: row.append(none_exception(record[f]))
             writer.writerow(row)
         return s.getvalue()
     def xml(self):
