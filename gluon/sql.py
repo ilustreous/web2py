@@ -431,7 +431,6 @@ class SQLDB(SQLStorage):
         ### now connect to database
         if self._uri[:14]=='sqlite:memory:': 
             self._dbname='sqlite'
-            self._translator=SQL_DIALECTS[self._dbname]
             self._pool_connection(lambda:sqlite3.Connection(':memory:'))
             self._connection.create_function("web2py_extract",2,
                                              sqlite3_web2py_extract)
@@ -439,7 +438,6 @@ class SQLDB(SQLStorage):
             self._execute=lambda *a,**b: self._cursor.execute(*a,**b)
         elif self._uri[:9]=='sqlite://': 
             self._dbname='sqlite'
-            self._translator=SQL_DIALECTS[self._dbname]
             if uri[9]!='/':
                 dbpath=os.path.join(self._folder,uri[9:])
                 self._pool_connection(lambda:sqlite3.Connection(dbpath))
@@ -451,7 +449,6 @@ class SQLDB(SQLStorage):
             self._execute=lambda *a,**b: self._cursor.execute(*a,**b)
         elif self._uri[:8]=='mysql://':
             self._dbname='mysql'
-            self._translator=SQL_DIALECTS[self._dbname]
             m=re.compile('^(?P<user>[^:@]+)(\:(?P<passwd>[^@]*))?@(?P<host>[^\:/]+)(\:(?P<port>[0-9]+))?/(?P<db>.+)$').match(self._uri[8:])
             user=m.group('user')
             if not user: raise SyntaxError, "User required"
@@ -475,7 +472,6 @@ class SQLDB(SQLStorage):
             self._execute("SET sql_mode='NO_BACKSLASH_ESCAPES';")
         elif self._uri[:11]=='postgres://': 
             self._dbname='postgres'
-            self._translator=SQL_DIALECTS[self._dbname]
             m=re.compile('^(?P<user>[^:@]+)(\:(?P<passwd>[^@]*))?@(?P<host>[^\:/]+)(\:(?P<port>[0-9]+))?/(?P<db>.+)$').match(self._uri[11:])
             user=m.group('user')
             if not user: raise SyntaxError, "User required"
@@ -498,7 +494,6 @@ class SQLDB(SQLStorage):
             self._execute("SET CLIENT_ENCODING TO 'UNICODE';") ### not completely sure but should work
         elif self._uri[:9]=='oracle://':
             self._dbname='oracle'
-            self._translator=SQL_DIALECTS[self._dbname]
             self._pool_connection(lambda:cx_Oracle.connect(self._uri[9:]))
             self._cursor=self._connection.cursor()
             self._execute=lambda a: self._cursor.execute(a[:-1])  ###
@@ -506,7 +501,6 @@ class SQLDB(SQLStorage):
             self._execute("ALTER SESSION SET NLS_TIMESTAMP_FORMAT = 'YYYY-MM-DD HH24:MI:SS';")
             ### read: http://bytes.com/groups/python/460325-cx_oracle-utf8
         elif self._uri[:8]=='mssql://' or self._uri[:9]=='mssql2://':
-            self._dbname='mssql'
             if '@' not in self._uri[8:]: 
                 try:
                     m=re.compile('^(?P<dsn>.+)$').match(self._uri[8:])
@@ -534,14 +528,13 @@ class SQLDB(SQLStorage):
             self._pool_connection(lambda:pyodbc.connect(cnxn))
             self._cursor=self._connection.cursor()
             if self._uri[:8]=='mssql://':
+                self._dbname='mssql'
                 self._execute=lambda *a,**b: self._cursor.execute(*a,**b)
-                self._translator=SQL_DIALECTS['mssql']
             elif self._uri[:9]=='mssql2://':
+                self._dbname='mssql2'
                 self._execute=lambda a: self._cursor.execute(unicode(a,'utf8'))
-                self._translator=SQL_DIALECTS['mssql2']
         elif self._uri[:11]=='firebird://': 
             self._dbname='firebird'
-            self._translator=SQL_DIALECTS[self._dbname]
             m=re.compile('^(?P<user>[^:@]+)(\:(?P<passwd>[^@]*))?@(?P<host>[^\:/]+)(\:(?P<port>[0-9]+))?/(?P<db>.+)$').match(self._uri[11:])
             user=m.group('user')
             if not user: raise SyntaxError, "User required"
@@ -559,7 +552,6 @@ class SQLDB(SQLStorage):
             self._execute('SET NAMES UTF8;')
         elif self._uri[:11]=='informix://': 
             self._dbname='informix'
-            self._translator=SQL_DIALECTS[self._dbname]
             m=re.compile('^(?P<user>[^:@]+)(\:(?P<passwd>[^@]*))?@(?P<host>[^\:/]+)(\:(?P<port>[0-9]+))?/(?P<db>.+)$').match(self._uri[11:])
             user=m.group('user')
             if not user: raise SyntaxError, "User required"
@@ -579,12 +571,12 @@ class SQLDB(SQLStorage):
                 lastrowid=1
                 def __getattr__(self,value): return lambda *a,**b: ''
             self._dbname='sqlite'
-            self._translator=SQL_DIALECTS[self._dbname]
             self._connection=Dummy()
             self._cursor=Dummy()
             self._execute=lambda a: []
         else:
             raise SyntaxError, 'database type not supported'
+        self._translator=SQL_DIALECTS[self._dbname]
         ### register this instance of SQLDB
         sql_locker.acquire()
         if not self._instances.has_key(pid): self._instances[pid]=[]
@@ -913,7 +905,7 @@ class SQLTable(SQLStorage):
             t=self._tablename
             self._db._execute('SELECT %s_sequence.currval FROM dual;' %t)
             id=int(self._db._cursor.fetchone()[0])
-        elif self._db._dbname=='mssql':
+        elif self._db._dbname=='mssql' or self._db._dbname=='mssql2':
             self._db._execute('SELECT @@IDENTITY;')
             id=int(self._db._cursor.fetchone()[0])
         elif self._db._dbname=='firebird':
@@ -1229,7 +1221,7 @@ class SQLSet(object):
                 if not attributes.get('orderby',None):
                     sql_o+=' ORDER BY %s'%', '.join([t+'.id' for t in tablenames])
                 return "%s %s FROM (SELECT w_tmp.*, ROWNUM w_row FROM (SELECT %s FROM %s%s%s) w_tmp WHERE ROWNUM<%i) %s WHERE w_row>=%i;" %(sql_s,sql_f,sql_f,sql_t,sql_w,sql_o,lmax,sql_t,lmin)
-            elif self._db._dbname=='mssql':
+            elif self._db._dbname=='mssql' or self._db._dbname=='mssql2':
                 if lmin>0: raise SyntaxError, "Not Supported"
                 if not attributes.get('orderby',None):
                     sql_o+=' ORDER BY %s'%', '.join([t+'.id' for t in tablenames])
@@ -1258,7 +1250,8 @@ class SQLSet(object):
             query=self._select(*fields,**attributes)       
             key=self._db._uri+'/'+query
             r=cache_model(key,lambda:response(query),time_expire)
-        if self._db._dbname=='mssql': r=r[attributes.get('limitby',(0,))[0]:]
+        if self._db._dbname=='mssql' or self._db._dbname=='mssql2': 
+            r=r[attributes.get('limitby',(0,))[0]:]
         return SQLRows(self._db,r,*self.colnames)      
     def _count(self):
         return self._select('count(*)')
