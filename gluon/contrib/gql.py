@@ -187,6 +187,7 @@ class SQLTable(gluon.sql.SQLTable):
         # nothing to do, here for backward compatility     
         self._db(self.id>0).delete()
     def insert(self,**fields):  
+        self._db['_lastsql']='insert'
         for field in self.fields:
             if not fields.has_key(field) and self[field].default!=None:
                 fields[field]=self[field].default       
@@ -447,7 +448,7 @@ class SQLSet(object):
         if isinstance(self.where,QueryException): return self._select_except()
         items,tablename,fields=self._select(*fields,**attributes)
         self.colnames=['%s.%s'%(tablename,t) for t in fields]
-        self._db['_lastsql']=items
+        self._db['_lastsql']='select'
         r=[]
 
         for item in items:
@@ -458,8 +459,10 @@ class SQLSet(object):
             r.append(new_item)
         return SQLRows(self._db,r,*self.colnames)      
     def count(self):
+        self._db['_lastsql']='count'
         return len(self.select())
     def delete(self):
+        self._db['_lastsql']='delete'
         if isinstance(self.where,QueryException):
             item,tablename,fields=self._getitem_exception()
             if not item: return 0
@@ -474,6 +477,7 @@ class SQLSet(object):
                 counter+=1
             return counter
     def update(self,**update_fields):
+        self._db['_lastsql']='update'
         db=self._db
         if isinstance(self.where,QueryException):
             item,tablename,fields=self._getitem_exception()
