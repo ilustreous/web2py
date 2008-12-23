@@ -635,7 +635,6 @@ class SQLDB(SQLStorage):
             if not line[:6]=='TABLE ' or not line[6:].strip() in self.tables:
                 raise SyntaxError, "invalid file format"
             table=line[6:].strip()
-            print 'importing '+table
             self[table].import_from_csv_file(ifile,id_map)
 
 def unpickle_SQLDB(state):
