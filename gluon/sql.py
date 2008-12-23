@@ -184,6 +184,28 @@ SQL_DIALECTS={'sqlite':{'boolean':'CHAR(1)',
                       'random':'NEWID()',
                       'notnull':'NOT NULL DEFAULT %(default)s',
                       'substring' : 'SUBSTRING(%(field)s,%(pos)s,%(length)s)'},
+             'mssql2':{'boolean':'CHAR(1)',
+                      'string':'NVARCHAR(%(length)s)',
+                      'text':'NTEXT',
+                      'password':'NVARCHAR(%(length)s)',
+                      'blob':'IMAGE',
+                      'upload':'NVARCHAR(128)',
+                      'integer':'INT',
+                      'double':'FLOAT',
+                      'date':'DATETIME',
+                      'time':'CHAR(8)',
+                      'datetime':'DATETIME',
+                      'id':'INT IDENTITY PRIMARY KEY',
+                      'reference':'INT, CONSTRAINT %(table_name)s_%(field_name)s__constraint FOREIGN KEY (%(field_name)s) REFERENCES %(foreign_key)s ON DELETE %(on_delete_action)s',
+                      'lower':'LOWER(%(field)s)',
+                      'upper':'UPPER(%(field)s)',
+                      'is null':'IS NULL',
+                      'is not null':'IS NOT NULL',
+                      'extract':'DATEPART(%(name)s,%(field)s)',
+                      'left join':'LEFT OUTER JOIN',
+                      'random':'NEWID()',
+                      'notnull':'NOT NULL DEFAULT %(default)s',
+                      'substring' : 'SUBSTRING(%(field)s,%(pos)s,%(length)s)'},
             'firebird':{'boolean':'CHAR(1)',
                       'string':'VARCHAR(%(length)s)',
                       'text':'BLOB SUB_TYPE 1',
@@ -409,6 +431,7 @@ class SQLDB(SQLStorage):
         ### now connect to database
         if self._uri[:14]=='sqlite:memory:': 
             self._dbname='sqlite'
+            self._translator=SQL_DIALECTS[self._dbname]
             self._pool_connection(lambda:sqlite3.Connection(':memory:'))
             self._connection.create_function("web2py_extract",2,
                                              sqlite3_web2py_extract)
@@ -416,6 +439,7 @@ class SQLDB(SQLStorage):
             self._execute=lambda *a,**b: self._cursor.execute(*a,**b)
         elif self._uri[:9]=='sqlite://': 
             self._dbname='sqlite'
+            self._translator=SQL_DIALECTS[self._dbname]
             if uri[9]!='/':
                 dbpath=os.path.join(self._folder,uri[9:])
                 self._pool_connection(lambda:sqlite3.Connection(dbpath))
@@ -427,6 +451,7 @@ class SQLDB(SQLStorage):
             self._execute=lambda *a,**b: self._cursor.execute(*a,**b)
         elif self._uri[:8]=='mysql://':
             self._dbname='mysql'
+            self._translator=SQL_DIALECTS[self._dbname]
             m=re.compile('^(?P<user>[^:@]+)(\:(?P<passwd>[^@]*))?@(?P<host>[^\:/]+)(\:(?P<port>[0-9]+))?/(?P<db>.+)$').match(self._uri[8:])
             user=m.group('user')
             if not user: raise SyntaxError, "User required"
@@ -450,6 +475,7 @@ class SQLDB(SQLStorage):
             self._execute("SET sql_mode='NO_BACKSLASH_ESCAPES';")
         elif self._uri[:11]=='postgres://': 
             self._dbname='postgres'
+            self._translator=SQL_DIALECTS[self._dbname]
             m=re.compile('^(?P<user>[^:@]+)(\:(?P<passwd>[^@]*))?@(?P<host>[^\:/]+)(\:(?P<port>[0-9]+))?/(?P<db>.+)$').match(self._uri[11:])
             user=m.group('user')
             if not user: raise SyntaxError, "User required"
@@ -472,13 +498,14 @@ class SQLDB(SQLStorage):
             self._execute("SET CLIENT_ENCODING TO 'UNICODE';") ### not completely sure but should work
         elif self._uri[:9]=='oracle://':
             self._dbname='oracle'
+            self._translator=SQL_DIALECTS[self._dbname]
             self._pool_connection(lambda:cx_Oracle.connect(self._uri[9:]))
             self._cursor=self._connection.cursor()
             self._execute=lambda a: self._cursor.execute(a[:-1])  ###
             self._execute("ALTER SESSION SET NLS_DATE_FORMAT = 'YYYY-MM-DD';")
             self._execute("ALTER SESSION SET NLS_TIMESTAMP_FORMAT = 'YYYY-MM-DD HH24:MI:SS';")
             ### read: http://bytes.com/groups/python/460325-cx_oracle-utf8
-        elif self._uri[:8]=='mssql://':
+        elif self._uri[:8]=='mssql://' or self._uri[:9]=='mssql2://':
             self._dbname='mssql'
             if '@' not in self._uri[8:]: 
                 try:
@@ -506,9 +533,15 @@ class SQLDB(SQLStorage):
                 cnxn="Driver={SQL Server};server=%s;database=%s;uid=%s;pwd=%s" % (host,db,user,passwd)
             self._pool_connection(lambda:pyodbc.connect(cnxn))
             self._cursor=self._connection.cursor()
-            self._execute=lambda *a,**b: self._cursor.execute(*a,**b)
+            if self._uri[:8]=='mssql://':
+                self._execute=lambda *a,**b: self._cursor.execute(*a,**b)
+                self._translator=SQL_DIALECTS['mssql']
+            elif self._uri[:9]=='mssql2://':
+                self._execute=lambda a: self._cursor.execute(unicode(a,'utf8'))
+                self._translator=SQL_DIALECTS['mssql2']
         elif self._uri[:11]=='firebird://': 
             self._dbname='firebird'
+            self._translator=SQL_DIALECTS[self._dbname]
             m=re.compile('^(?P<user>[^:@]+)(\:(?P<passwd>[^@]*))?@(?P<host>[^\:/]+)(\:(?P<port>[0-9]+))?/(?P<db>.+)$').match(self._uri[11:])
             user=m.group('user')
             if not user: raise SyntaxError, "User required"
@@ -526,6 +559,7 @@ class SQLDB(SQLStorage):
             self._execute('SET NAMES UTF8;')
         elif self._uri[:11]=='informix://': 
             self._dbname='informix'
+            self._translator=SQL_DIALECTS[self._dbname]
             m=re.compile('^(?P<user>[^:@]+)(\:(?P<passwd>[^@]*))?@(?P<host>[^\:/]+)(\:(?P<port>[0-9]+))?/(?P<db>.+)$').match(self._uri[11:])
             user=m.group('user')
             if not user: raise SyntaxError, "User required"
@@ -545,12 +579,12 @@ class SQLDB(SQLStorage):
                 lastrowid=1
                 def __getattr__(self,value): return lambda *a,**b: ''
             self._dbname='sqlite'
+            self._translator=SQL_DIALECTS[self._dbname]
             self._connection=Dummy()
             self._cursor=Dummy()
             self._execute=lambda a: []
         else:
             raise SyntaxError, 'database type not supported'
-        self._translator=SQL_DIALECTS[self._dbname]
         ### register this instance of SQLDB
         sql_locker.acquire()
         if not self._instances.has_key(pid): self._instances[pid]=[]
