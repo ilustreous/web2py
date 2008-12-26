@@ -35,19 +35,15 @@ class CacheInRam(object):
         self.locker.release()
     def __call__(self,key,f,time_expire=300):
         dt=time_expire
+        self.locker.acquire()        
+        item=self.storage.get(key,None)
+        if item and f==None: del self.storage[key]
+        self.locker.release()
+        if f is None: return None
+        if item and item[0]>time.time()-dt: return item[1]
+        value=f()
         self.locker.acquire()
-        value=None
-        if self.storage.has_key(key) and self.storage[key][0]>time.time()-dt:
-            value=self.storage[key][1]            
-        elif f is None:
-            if self.storage.has_key(key): del self.storage[key]
-        else:
-            try:
-                value=f()
-                self.storage[key]=(time.time(),value)
-            except BaseException, e:
-                self.locker.release()
-                raise e
+        self.storage[key]=(time.time(),value)
         self.locker.release()
         return value
     def increment(self,key,value=1):
@@ -82,20 +78,16 @@ class CacheOnDisk(object):
         dt=time_expire
         portalocker.lock(self.locker, portalocker.LOCK_EX)
         storage=shelve.open(self.shelve_name)
-        value=None
-        if storage.has_key(key) and storage[key][0]>time.time()-dt:
-            value=storage[key][1]
-        elif f is None:
-            if storage.has_key(key): del storage[key]
-        else:
-            try:
-                value=f()
-                storage[key]=(time.time(),value)
-                storage.sync()
-            except BaseException, e:
-                portalocker.unlock(self.locker)       
-                raise e
+        item=storage.get(key,None)
+        if item and f==None: del storage[key]
         portalocker.unlock(self.locker)
+        if f is None: return None
+        if item and item[0]>time.time()-dt: return item[1]
+        value=f()
+        portalocker.lock(self.locker, portalocker.LOCK_EX)
+        storage[key]=(time.time(),value)
+        storage.sync()
+        portalocker.unlock(self.locker)       
         return value
     def increment(self,key,value=1):
         portalocker.lock(self.locker, portalocker.LOCK_EX)
