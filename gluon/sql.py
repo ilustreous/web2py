@@ -302,6 +302,17 @@ def sql_represent(obj,fieldtype,dbname):
     else: obj=str(obj)
     return "'%s'" % obj.replace("'","''")
 
+def delete_uploaded_files(table,records,fields=True):
+    if fields==True: fields=table.fields
+    for record in records:
+        for fieldname in fields:
+            if table[fieldname].type=='upload' and \
+               table[fieldname].uploadfield==True and \
+               record.get(fieldname,None):
+                oldname=os.path.join(table._db._folder,
+                        '../uploads/',record[fieldname])
+                os.unlink(oldname)
+
 def cleanup(text):
     if re.compile('[^0-9a-zA-Z_]').findall(text):
         raise SyntaxError, 'only [0-9a-zA-Z_] allowed in table and field names'
@@ -1264,8 +1275,10 @@ class SQLSet(object):
         if self.sql_w: sql_w=' WHERE '+self.sql_w
         else: sql_w=''
         return 'DELETE FROM %s%s;' % (tablename,sql_w)
-    def delete(self):
+    def delete(self,delete_uploads=False):
         query=self._delete()
+        if delete_uploads:
+            delete_uploaded_files(self._db[self._tables[0]],self.select())
         self._db['_lastsql']=query
         self._db._execute(query)
         try: return self._db._cursor.rowcount

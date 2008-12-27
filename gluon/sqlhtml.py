@@ -7,11 +7,10 @@ License: GPL v2
 import urllib, re, sys, os, uuid, shutil, cStringIO
 from html import FORM,INPUT,TEXTAREA,SELECT,OPTION,TABLE,TR,TD,TH,A,B,DIV,LABEL,ON,TAG,THEAD,TBODY,B
 from validators import IS_IN_SET, IS_NOT_IN_DB, CRYPT, IS_NULL_OR
-from sql import SQLStorage, SQLDB
+from sql import SQLStorage, SQLDB, delete_uploaded_files
 
 table_field=re.compile('[\w_]+\.[\w_]+')
 re_extension=re.compile('\.\w+$')
-
 
 class SQLFORM(FORM):
     """
@@ -157,14 +156,7 @@ class SQLFORM(FORM):
         if vars.get('delete_this_record',False) and vars.has_key('id'):
             if vars['id']!=self.record_id:
                 raise SyntaxError, "user is tampering with form"
-            if delete_uploads:
-                for fieldname in self.table.fields:
-                    if self.table[fieldname].type=='upload' and \
-                       self.table[fieldname].uploadfield==True and \
-                       self.record.get(fieldname,None):
-                       oldname=os.path.join(self.table._db._folder,
-                                '../uploads/',self.record[fieldname])
-                       os.unlink(oldname)
+            if delete_uploads: delete_uploaded_files(self.table,[self.record])
             self.table._db(self.table.id==int(vars['id'])).delete()
             return True
         else:
@@ -222,12 +214,8 @@ class SQLFORM(FORM):
                         fields[fieldname]=''
                     else: 
                         fields[fieldname]=self.record[fieldname]
-                    if delete_uploads and field.uploadfield==True and \
-                       self.record.get(fieldname,None) and \
-                       (f!='' or vars.get(fd,False)):
-                        oldname=os.path.join(self.table._db._folder,
-                                '../uploads/',self.record[fieldname])
-                        os.unlink(oldname)
+                    if delete_uploads and (f!='' or vars.get(fd,False)):
+                        delete_uploaded_files(self.table,[self.record],[fieldname])
                     continue
                 elif vars.has_key(fieldname): fields[fieldname]=vars[fieldname]
                 elif field.default==None: return False
