@@ -174,7 +174,8 @@ class SQLFORM(FORM):
             if not ret:
                 for fieldname in self.fields:
                     field=self.table[fieldname]
-                    if field.widget and vars.has_key(fieldname):
+                    if hasattr(field,'widget') and field.widget and \
+                        vars.has_key(fieldname):
                          self.trows[fieldname][1][0]=field.widget(field,vars[fieldname])           
                 return ret
             vars=self.vars
