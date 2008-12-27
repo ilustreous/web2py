@@ -12,6 +12,7 @@ from sql import SQLStorage, SQLDB
 table_field=re.compile('[\w_]+\.[\w_]+')
 re_extension=re.compile('\.\w+$')
 
+
 class SQLFORM(FORM):
     """
     SQLFORM is used to map a table (and a current record) into an HTML form
@@ -145,15 +146,25 @@ class SQLFORM(FORM):
         if record:
             self.components=[TABLE(*xfields),INPUT(_type='hidden',_name='id',_value=record['id'])]
         else: self.components=[TABLE(*xfields)]
-    def accepts(self,vars,session=None,formname='%(tablename)s',keepvalues=False):
+    def accepts(self,vars,session=None,formname='%(tablename)s',keepvalues=False,delete_uploads=False):
         """
         same as FORM.accepts but also does insert, update or delete in SQLDB
+        one additional option is delete_uplaods. If set True and record
+        if deleted, all uploaded files, linked by this record will be deleted.
         """
         if formname: formname=formname % dict(tablename=self.table._tablename)
         raw_vars=dict(vars.items())
         if vars.get('delete_this_record',False) and vars.has_key('id'):
             if vars['id']!=self.record_id:
                 raise SyntaxError, "user is tampering with form"
+            if delete_uploads:
+                for fieldname in self.table.fields:
+                    if self.table[fieldname].type=='upload' and \
+                       self.table[fieldname].uploadfield==True and \
+                       self.record.get(fieldname,None):
+                       oldname=os.path.join(self.table._db._folder,
+                                '../uploads/',self.record[fieldname])
+                       os.unlink(oldname)
             self.table._db(self.table.id==int(vars['id'])).delete()
             return True
         else:
@@ -188,6 +199,7 @@ class SQLFORM(FORM):
                     continue # do not update if password was not changed
                 elif field.type=='upload':
                     f=vars[fieldname]
+                    fd=fieldname+'__delete'
                     if not isinstance(f,(str,unicode)):
                         try: e=re_extension.findall(f.filename.strip())[0]
                         except IndexError: e='.txt'
@@ -206,12 +218,16 @@ class SQLFORM(FORM):
                             dest_file.close()
                         elif field.uploadfield:
                             fields[field.uploadfield]=source_file.read()
-                    else:
-                        fd=fieldname+'__delete'
-                        if vars.get(fd,False) or not self.record:  
-                            fields[fieldname]=''
-                        else: 
-                            fields[fieldname]=self.record[fieldname]
+                    elif vars.get(fd,False) or not self.record:
+                        fields[fieldname]=''
+                    else: 
+                        fields[fieldname]=self.record[fieldname]
+                    if delete_uploads and field.uploadfield==True and \
+                       self.record.get(fieldname,None) and \
+                       (f!='' or vars.get(fd,False)):
+                        oldname=os.path.join(self.table._db._folder,
+                                '../uploads/',self.record[fieldname])
+                        os.unlink(oldname)
                     continue
                 elif vars.has_key(fieldname): fields[fieldname]=vars[fieldname]
                 elif field.default==None: return False
