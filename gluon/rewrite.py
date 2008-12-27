@@ -52,7 +52,11 @@ def rewrite(wsgibase,URL):
             if regex.match(key): 
                 path=regex.sub(value,key)
                 break
-        e['PATH_INFO']=path
+        if path.find('?')<0:
+            e['PATH_INFO']=path
+        else:
+            e['PATH_INFO']=''
+            e['REQUEST_URI']=path
         return e
     def filter_out(url):
         items=url.split('?',1)
