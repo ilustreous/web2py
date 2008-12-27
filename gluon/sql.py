@@ -311,7 +311,7 @@ def delete_uploaded_files(table,records,fields=True):
                record.get(fieldname,None):
                 oldname=os.path.join(table._db._folder,
                         '../uploads/',record[fieldname])
-                os.unlink(oldname)
+                if os.path.exists(oldname): os.unlink(oldname)
 
 def cleanup(text):
     if re.compile('[^0-9a-zA-Z_]').findall(text):
