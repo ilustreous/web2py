@@ -151,9 +151,7 @@ class SQLFORM(FORM):
         """
         if formname: formname=formname % dict(tablename=self.table._tablename)
         raw_vars=dict(vars.items())
-        if vars.has_key('delete_this_record') and \
-           vars['delete_this_record']=='on' and \
-           vars.has_key('id'):
+        if vars.get('delete_this_record',False) and vars.has_key('id'):
             if vars['id']!=self.record_id:
                 raise SyntaxError, "user is tampering with form"
             self.table._db(self.table.id==int(vars['id'])).delete()
@@ -182,12 +180,11 @@ class SQLFORM(FORM):
                 if not self.table.has_key(fieldname): continue
                 field=self.table[fieldname]
                 if field.type=='boolean':
-                    if vars.has_key(fieldname) and vars[fieldname]=='on': 
+                    if vars.get(fieldname,False): 
                         fields[fieldname]=True
                     else: fields[fieldname]=False
                 elif field.type=='password' and self.record and \
-                    raw_vars.has_key(fieldname) and \
-                    raw_vars[fieldname]=='********':
+                    raw_vars.get(fieldname,None)=='********':
                     continue # do not update if password was not changed
                 elif field.type=='upload':
                     f=vars[fieldname]
@@ -211,7 +208,7 @@ class SQLFORM(FORM):
                             fields[field.uploadfield]=source_file.read()
                     else:
                         fd=fieldname+'__delete'
-                        if (vars.has_key(fd) and vars[fd]=='on') or not self.record:  
+                        if vars.get(fd,False) or not self.record:  
                             fields[fieldname]=''
                         else: 
                             fields[fieldname]=self.record[fieldname]
