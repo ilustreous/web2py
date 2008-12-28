@@ -117,7 +117,7 @@ class IS_IN_DB(object):
 
     used for reference fields, rendered as a dropbox
     """
-    def __init__(self,dbset,field,label=None,error_message='value not in database!',cache=None):
+    def __init__(self,dbset,field,label=None,error_message='value not in database!',orderby=None,cache=None):
         if hasattr(dbset,'define_table'): self.dbset=dbset()
         else: self.dbset=dbset        
         self.field=field
@@ -136,15 +136,18 @@ class IS_IN_DB(object):
         self.ks=ks
         self.error_message=error_message
         self.theset=None
+        self.orderby=orderby
         self.cache=cache
     def build_set(self):
         if self.dbset._db._dbname!='gql':
-           dd=dict(orderby=', '.join(self.fields),cache=self.cache)
+           orderby=self.orderby or ', '.join(self.fields)
+           dd=dict(orderby=orderby,cache=self.cache)
            records=self.dbset.select(*self.fields,**dd)
         else:
            import contrib.gql
-           dd=dict(orderby=contrib.gql.SQLXorable('|'.join([k for k in self.ks if k!='id'])),cache=self.cache)
-           if not dd: dd=None
+           orderby=self.orderby or \
+             contrib.gql.SQLXorable('|'.join([k for k in self.ks if k!='id']))
+           dd=dict(orderby=orderby,cache=self.cache)
            records=self.dbset.select(self.dbset._db[self.ktable].ALL,**dd)
         self.theset=[str(r[self.kfield]) for r in records]
         self.labels=[self.label % dict(r) for r in records]        
