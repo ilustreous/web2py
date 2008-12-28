@@ -26,10 +26,10 @@ db().select(db.users.name)""")}}
 <li>FORMs and SQLFORMs perform validation of input. Example:
 {{=CODE("""if form.accepts(response.vars,session):
 response.flash='record inserted'""")}}</li>
-<li>Supports database migrations (with PostgreSQL, partially with sqlite)</li>
+<li>Supports database migrations (for all supported databases)</li>
 <li>Designed for security. URLs are validated, forms are validated, template variables are escaped, SQL is escaped, no client side storage (other than session cookie) and it never exposes application code. FORMs enforce navigation and prevent double submission.</li>
-<li>A powerful and granular cache system can cache in ram/disk/both a single function, a database select, a controller or an entire page.
-<li>Does not require any third party library. Only Python 2.5 standard libraries.</li>
+<li>A powerful and granular cache system can cache in ram/disk/memcache a single function, a database select, a controller or an entire page.
+<li>Does not require any third party library. Only Python 2.5 or 2.6 standard libraries.</li>
 <li>Runs on Google App Engine</li>
 <li>Includes libraries to read and parse RSS, CSV, JSON and to write RTF.
 <li>Applications can be compiled and distributed without source code</li>
