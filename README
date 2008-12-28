@@ -271,3 +271,16 @@ check for upgrade via ajax
 On GAE upload data goes automatically in datastore (blob created automatically)
 New appadmin runs on GAE (most of it, not all)
 Martin Hufsky patch allow slicing of fields in DAL expressions
+
+1.54
+fixed minor bugs
+
+1.55?
+rowcount
+fixed bug when IS_IN_DB involved multiple fields on GAE
+T.set_current_languages
+better unittests
+response.custom_commit and response.custom_rollback
+you can next cache calls (like cache a controller that caches a select). Thanks Iceberg
+db(....id==None).select() no longer returns an error but an empty SQLRows on GAE
+db(...).delete(delete_uploads=True) and SQLFORM.accepts(....delete_uploads=True) will delete all referenced uploaded files

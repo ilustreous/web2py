@@ -102,6 +102,9 @@ class DIV(object):
         self.attributes=attributes
         self._fixup()
         self._postprocessing()  ### converts special attributes in components attributes
+    def update(self,**kargs):
+        for key,value in kargs.items(): self[key]=value
+        return self
     def append(self,value):
         return self.components.append(value)
     def insert(self,i,value):
@@ -162,6 +165,17 @@ class DIV(object):
         return '<%s%s>%s</%s>' % (self.tag,fa,co,self.tag)
     def __str__(self):
         return self.xml()
+    def element(self,**kargs):
+        components=self.components
+        for c in components:
+            try:
+                components+=c.components
+                check=True
+                for key,value in kargs.items():
+                    if c[key]!=value: check=False
+                if check: return c
+            except: pass
+        return None
 
 class __TAG__(object):
     """
