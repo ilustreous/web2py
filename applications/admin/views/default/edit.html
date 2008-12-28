@@ -3,11 +3,17 @@
 editAreaLoader.init({id: "body",start_highlight: true,allow_resize: "both",allow_toggle: true,language: "en",syntax: "{{=filetype}}",replace_tab_by_spaces: 4});
 </script>
 
-<h1>Editing file "{{=filename}}"</h1><br/><br/>
+<h1>Editing file "{{=filename}}"</h1>
 
-{{if controller:}}
-<div style="text-align:right;">[<a href="{{=controller}}">edit controller</a>]</div>
+{{if functions:}}
+<div style="text-align:left;">exposes {{=XML(', '.join([A(f,_href=URL(a=app,c=controller,f=f)).xml() for f in functions]))}}</div>
 {{pass}}
+
+{{if edit_controller:}}
+<div style="text-align:right;">[<a href="{{=edit_controller}}">edit controller</a>]</div>
+{{pass}}
+
+<br/><br/>
 
 <form action="/{{=request.application}}/default/edit/{{=filename}}" method="post">
 <input type="submit" value="save"/><br/>
@@ -15,3 +21,4 @@ editAreaLoader.init({id: "body",start_highlight: true,allow_resize: "both",allow
 <input type="hidden" name="file_hash" value="{{=file_hash}}" />
 <input type="submit" name="restore" value="restore" /><br/>
 </form>
+

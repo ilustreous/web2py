@@ -303,12 +303,17 @@ def edit():
             open(path,'w').write(data)
             file_hash=md5.new(data).hexdigest()    
             response.flash=T("file saved on %(time)s",dict(time=time.ctime()))
-    controller=None
+    edit_controller=None
     if filetype=='html' and request.args>=3:
         cfilename=os.path.join(request.args[0],'controllers',request.args[2]+'.py')
         if os.path.exists(apath(cfilename)):
-            controller=URL(r=request,f='edit',args=[cfilename])
-    return dict(app=request.args[0],filename=filename,filetype=filetype,data=data,controller=controller,file_hash=file_hash)
+            edit_controller=URL(r=request,f='edit',args=[cfilename])
+    if len(request.args)>2 and request.args[1]=='controllers':
+        controller=request.args[2][:-3]
+        functions=regex_expose.findall(data)
+    else:
+        controller,functions=None,None
+    return dict(app=request.args[0],filename=filename,filetype=filetype,data=data,edit_controller=edit_controller,file_hash=file_hash,controller=controller,functions=functions)
 
 def resolve():
     import difflib
