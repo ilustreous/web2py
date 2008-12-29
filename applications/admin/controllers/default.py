@@ -1,4 +1,3 @@
-# This sees request, response, session, expose, redirect, HTTP
 
 ############################################################
 ### import required modules/functions
@@ -503,6 +502,50 @@ def errors():
     tickets=sorted(os.listdir(apath('%s/errors/' % app)), key=lambda p: os.stat(apath('%s/errors/%s' % (app,p))).st_mtime,reverse=True)
     return dict(app=app,tickets=tickets)
 
+
+editable = {"controllers": ".py",
+            "models" : ".py",
+            "views" : ".html",
+            }
+
+
+def make_link (path):
+    tryFile = path.replace("\\", "/")
+    if (os.path.isabs(tryFile) and os.path.isfile(tryFile)):
+        (dir, file) = os.path.split(tryFile)
+        (base, ext) = os.path.splitext(file)
+        app = request.args[0]
+        for key in editable.keys():
+           if (ext.lower() == editable[key]) and dir.endswith(app + "/" + key):
+                return A('"'+tryFile+'"',_href=URL(r=request,f='edit/%s/%s/%s' % (app, key, file))).xml()
+    return ''
+
+
+def make_links(traceback):
+    lwords = traceback.split('"')
+    result = lwords[0] if len(lwords) != 0 else ''
+    i = 1 
+    while i < len(lwords):
+        link = make_link(lwords[i])
+        if link == '' :
+            result += '"' + lwords[i]
+        else:
+            result += link
+            if (i+1 < len(lwords)):
+                result += lwords[i+1]
+                i = i + 1
+        i = i + 1
+    return result
+
+
+class TRACEBACK:
+    def __init__ (self, text):
+        self.s = make_links(CODE(text).xml())
+        
+    def xml (self):
+        return self.s
+
+
 def ticket():        
     """ admin controller function """
     if len(request.args)!=2:
@@ -512,8 +555,9 @@ def ticket():
     ticket=request.args[1]
     e=RestrictedError()
     e.load(apath('%s/errors/%s' % (app,ticket)))
-    return dict(app=app,ticket=ticket,traceback=e.traceback,code=e.code,layer=e.layer)
+    return dict(app=app,ticket=ticket,traceback=TRACEBACK(e.traceback),code=e.code,layer=e.layer)
     
+
 
 def update_languages():
     """ admin controller function """
