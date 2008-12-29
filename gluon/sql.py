@@ -1412,30 +1412,31 @@ class SQLRows(object):
         """
         import sqlhtml
         return sqlhtml.SQLTABLE(self).xml()
-    def json(self, column_headers=True):
+    def json(self, mode=dict):
         """
         serializes the table to a JSON list of objects
         """
+        if not mode in [dict,list]: raise SyntaxError, "invalid mode"
         items=[]
-        if column_headers: items.append(self.colnames)
         def none_exception(value):
             if value in [None, True, False] or \
                isinstance(value,(int,long,float)):
                 return value
             return str(value)
         for record in self:
-            row=[]
+            row=mode()
             for col in self.colnames:
                 if not table_field.match(col):
-                    row.append(record._extra[col])
+                    item=record._extra[col]
                 else:
                     t,f=col.split('.')                
                     if isinstance(record.get(t,None),SQLStorage):
-                        row.append(none_exception(record[t][f]))
-                    else: row.append(none_exception(record[f]))
+                        item=none_exception(record[t][f])
+                    else: item=none_exception(record[f])
+                if mode==dict: row[col]=item
+                elif mode==list: row.append(item)
             items.append(row)
         return simplejson.dumps(items) 
-
 
 def test_all():
     """    
