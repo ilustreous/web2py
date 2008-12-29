@@ -1418,6 +1418,11 @@ class SQLRows(object):
         """
         items=[]
         if column_headers: items.append(self.colnames)
+        def none_exception(value):
+            if value in [None, True, False] or \
+               isinstance(value,(int,long,float)):
+                return value
+            return str(value)
         for record in self:
             row=[]
             for col in self.colnames:
@@ -1426,8 +1431,8 @@ class SQLRows(object):
                 else:
                     t,f=col.split('.')                
                     if isinstance(record.get(t,None),SQLStorage):
-                        row.append(record[t][f])
-                    else: row.append(record[f])
+                        row.append(none_exception(record[t][f]))
+                    else: row.append(none_exception(record[f]))
             items.append(row)
         return simplejson.dumps(items) 
 
