@@ -513,9 +513,15 @@ class SQLDB(SQLStorage):
             self._execute("ALTER SESSION SET NLS_TIMESTAMP_FORMAT = 'YYYY-MM-DD HH24:MI:SS';")
             ### read: http://bytes.com/groups/python/460325-cx_oracle-utf8
         elif self._uri[:8]=='mssql://' or self._uri[:9]=='mssql2://':
-            if '@' not in self._uri[8:]: 
+            if self._uri[:8]=='mssql://':
+                skip=8
+                self._dbname='mssql'
+            elif self._uri[:9]=='mssql2://':
+                skip=9
+                self._dbname='mssql2'
+            if '@' not in self._uri[skip:]: 
                 try:
-                    m=re.compile('^(?P<dsn>.+)$').match(self._uri[8:])
+                    m=re.compile('^(?P<dsn>.+)$').match(self._uri[skip:])
                     if not m: raise SyntaxError, "Parsing has no result"
                     dsn=m.group('dsn')
                     if not dsn:  raise SyntaxError, "DSN required"
@@ -524,7 +530,7 @@ class SQLDB(SQLStorage):
                     raise e
                 cnxn="DSN=%s" % dsn
             else:
-                m=re.compile('^(?P<user>[^:@]+)(\:(?P<passwd>[^@]*))?@(?P<host>[^\:/]+)(\:(?P<port>[0-9]+))?/(?P<db>.+)$').match(self._uri[8:])
+                m=re.compile('^(?P<user>[^:@]+)(\:(?P<passwd>[^@]*))?@(?P<host>[^\:/]+)(\:(?P<port>[0-9]+))?/(?P<db>.+)$').match(self._uri[skip:])
                 user=m.group('user')
                 if not user: raise SyntaxError, "User required"
                 passwd=m.group('passwd')
@@ -540,10 +546,8 @@ class SQLDB(SQLStorage):
             self._pool_connection(lambda:pyodbc.connect(cnxn))
             self._cursor=self._connection.cursor()
             if self._uri[:8]=='mssql://':
-                self._dbname='mssql'
                 self._execute=lambda *a,**b: self._cursor.execute(*a,**b)
             elif self._uri[:9]=='mssql2://':
-                self._dbname='mssql2'
                 self._execute=lambda a: self._cursor.execute(unicode(a,'utf8'))
         elif self._uri[:11]=='firebird://': 
             self._dbname='firebird'
