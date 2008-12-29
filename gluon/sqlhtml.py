@@ -74,7 +74,7 @@ class PasswordWidget:
 
 class UploadWidget:
     @staticmethod
-    def widget(field,value,download_url):
+    def widget(field,value,download_url=None):
         id='%s_%s' % (field._tablename,field.name)
         inp=INPUT(_type='file',_id=id,_class=field.type,
                   _name=field.name, requires=field.requires)
