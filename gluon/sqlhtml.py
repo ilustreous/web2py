@@ -8,9 +8,80 @@ import urllib, re, sys, os, uuid, shutil, cStringIO
 from html import FORM,INPUT,TEXTAREA,SELECT,OPTION,TABLE,TR,TD,TH,A,B,DIV,LABEL,ON,TAG,THEAD,TBODY,B
 from validators import IS_IN_SET, IS_NOT_IN_DB, CRYPT, IS_NULL_OR
 from sql import SQLStorage, SQLDB, delete_uploaded_files
+from storage import Storage
 
 table_field=re.compile('[\w_]+\.[\w_]+')
 re_extension=re.compile('\.\w+$')
+
+class StringWidget:
+    @staticmethod
+    def widget(field,value):
+        if value==None: value=''
+        id='%s_%s' % (field._tablename,field.name)
+        return INPUT(_type='text', _id=id,_class=field.type,
+                      _name=field.name,value=str(value),
+                      requires=field.requires)
+
+class IntegerWidget(StringWidget): pass
+class DoubleWidget(StringWidget): pass
+class TimeWidget(StringWidget): pass
+class DateWidget(StringWidget):pass
+class DatetimeWidget(StringWidget): pass
+
+class TextWidget:
+    @staticmethod
+    def widget(field,value):
+        id='%s_%s' % (field._tablename,field.name)
+        return TEXTAREA(_type='text',_id=id,_class=field.type,
+               _name=field.name,value=value, requires=field.requires)
+
+class BooleanWidget:
+    @staticmethod
+    def widget(field,value):
+        id='%s_%s' % (field._tablename,field.name)
+        return INPUT(_type='checkbox',_id=id,_class=field.type,
+                    _name=field.name,value=value, requires=field.requires)
+
+class OptionsWidget:
+    @staticmethod
+    def has_options(field):
+        return hasattr(field.requires,'options') or \
+               (isinstance(field.requires,IS_NULL_OR) and \
+                hasattr(field.requires.other,'options'))
+    @staticmethod
+    def widget(field,value):
+        id='%s_%s' % (field._tablename,field.name)
+        if isinstance(field.requires,IS_NULL_OR) and \
+           hasattr(field.requires.other,'options'):
+            opts=[OPTION(_value="")]
+            options=field.requires.other.options()
+        elif hasattr(field.requires,'options'):
+            opts=[]        
+            options=field.requires.options()
+        else: raise SyntaxError, "widget cannot determine options"
+        opts+=[OPTION(v,_value=k) for k,v in options]
+        return SELECT(*opts,**dict(_id=id,_class=field.type,
+                     _name=field.name,value=value,requires=field.requires))
+
+class PasswordWidget:
+    @staticmethod
+    def widget(field,value):
+        id='%s_%s' % (field._tablename,field.name)
+        if value: value='******'
+        return INPUT(_type='password', _id=id,
+                      _name=field.name,_value=value,_class=field.type,
+                      requires=field.requires)
+
+class UploadWidget:
+    @staticmethod
+    def widget(field,value,download_url):
+        id='%s_%s' % (field._tablename,field.name)
+        inp=INPUT(_type='file',_id=id,_class=field.type,
+                  _name=field.name, requires=field.requires)
+        if download_url and value:
+            inp=DIV(inp,'[',A('file',_href=download_url+'/'+value),'|',
+                INPUT(_type='checkbox',_name=field.name+'__delete'),'delete]')
+        return inp
 
 class SQLFORM(FORM):
     """
@@ -42,7 +113,19 @@ class SQLFORM(FORM):
     # - add label for delete checkbox
     # - add translatable label for record ID
     # - add third column to right of fields, populated from the col3 dict
-    
+    widgets=Storage(dict(
+      string=StringWidget,
+      text=TextWidget,
+      password=PasswordWidget,
+      integer=IntegerWidget,
+      double=DoubleWidget,
+      time=TimeWidget,
+      date=DateWidget,
+      datetime=DatetimeWidget,
+      upload=UploadWidget,
+      boolean=BooleanWidget,
+      blob=None,
+      options=OptionsWidget))
     def __init__(self,table,record=None,deletable=False,
                  linkto=None,upload=None,fields=None,labels=None,col3={},
                  submit_button='Submit', delete_label='Check to delete:', 
@@ -87,44 +170,20 @@ class SQLFORM(FORM):
             row_id=field_id+'__row'
             if hasattr(field,'widget') and field.widget:
                 inp=field.widget(field,default)
-            elif field.type=='text':
-                inp=TEXTAREA(_type='text',_id=field_id,_class=field.type,
-                    _name=fieldname,value=default, requires=field.requires)
+            elif field.type=='text': 
+                inp=self.widgets.text.widget(field,default)
+            elif field.type=='upload':
+                inp=self.widgets.upload.widget(field,default,upload)
+            elif field.type=='boolean': 
+                inp=self.widgets.boolean.widget(field,default)
+            elif OptionsWidget.has_options(field):
+                inp=self.widgets.options.widget(field,default)
+            elif field.type=='password':
+                inp=self.widgets.password.widget(field,default)
             elif field.type=='blob':
                 continue
-            elif field.type=='upload':
-                inp=INPUT(_type='file',_id=field_id,_class=field.type,
-                          _name=fieldname, requires=field.requires)
-                if upload and default:
-                    inp=DIV(inp,'[',A('file',_href=upload+'/'+default),'|',
-                        INPUT(_type='checkbox',_name=fieldname+'__delete'),'delete]')
-            elif field.type=='boolean':
-                inp=INPUT(_type='checkbox',_id=field_id,_class=field.type,
-                    _name=fieldname,value=default, requires=field.requires)
-            elif hasattr(field.requires,'options'):
-                opts=[]
-                for k,v in field.requires.options():
-                    opts.append(OPTION(v,_value=k))
-                inp=SELECT(*opts,**dict(_id=field_id,_class=field.type,
-                     _name=fieldname,value=default,requires=field.requires))
-            elif isinstance(field.requires,IS_NULL_OR) and \
-                 hasattr(field.requires.other,'options'):
-                opts=[OPTION(_value="")]
-                for k,v in field.requires.other.options():
-                    opts.append(OPTION(v,_value=k))
-                inp=SELECT(*opts,**dict(_id=field_id,_class=field.type,
-                     _name=fieldname,value=default,requires=field.requires))
-            elif field.type=='password':
-                if self.record: v='********'
-                else: v=''
-                inp=INPUT(_type='password', _id=field_id,
-                      _name=fieldname,_value=v,_class=field.type,
-                      requires=field.requires)
             else:
-                if default==None: default=''
-                inp=INPUT(_type='text', _id=field_id,_class=field.type,
-                      _name=fieldname,value=str(default),
-                      requires=field.requires)
+                inp=self.widgets.string.widget(field,default)
             tr=self.trows[fieldname]=TR(label,inp,comment,_id=row_id)
             xfields.append(tr)
         if record and linkto:
@@ -219,7 +278,9 @@ class SQLFORM(FORM):
                         delete_uploaded_files(self.table,[self.record],[fieldname])
                     continue
                 elif vars.has_key(fieldname): fields[fieldname]=vars[fieldname]
-                elif field.default==None: return False
+                elif field.default==None:
+                    self.errors[fieldname]='no data'
+                    return False
                 if field.type[:9] in ['integer', 'reference']:
                     if fields[fieldname]!=None:
                         fields[fieldname]=int(fields[fieldname])
@@ -234,7 +295,6 @@ class SQLFORM(FORM):
             else: 
                 self.vars.id=self.table.insert(**fields)                
         return ret   
-
 
 class SQLTABLE(TABLE):
     """

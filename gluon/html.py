@@ -51,6 +51,7 @@ def URL(a=None,c=None,f=None,r=None,args=[],vars={}):
     if not (application and controller and function):
         raise SyntaxError, 'not enough information to build the url'
     other=''
+    if args!=[] and not isinstance(args,(list,tuple)): args=[args]
     if args: other='/'+'/'.join([str(x) for x in args])
     if vars: other=other+'?'+urllib.urlencode(vars)
     url='/%s/%s/%s%s' % (application, controller, function, other)
