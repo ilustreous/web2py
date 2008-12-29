@@ -11,6 +11,7 @@ __all__=['SQLDB','SQLField']
 
 import re, sys, os, types, cPickle, datetime, thread, cStringIO
 import csv, copy, socket, logging, copy_reg, base64
+import contrib.simplejson as simplejson
 
 table_field=re.compile('[\w_]+\.[\w_]+')
 
@@ -1405,13 +1406,31 @@ class SQLRows(object):
         s=cStringIO.StringIO()
         self.export_to_csv_file(s)
         return s.getvalue()
-
     def xml(self):
         """
         serializes the table using sqlhtml.SQLTABLE (if present)
         """
         import sqlhtml
-        return sqlhtml.SQLTABLE(self).xml()         
+        return sqlhtml.SQLTABLE(self).xml()
+    def json(self, column_headers=True):
+        """
+        serializes the table to a JSON list of objects
+        """
+        items=[]
+        if column_headers: items.append(self.colnames)
+        for record in self:
+            row=[]
+            for col in self.colnames:
+                if not table_field.match(col):
+                    row.append(record._extra[col])
+                else:
+                    t,f=col.split('.')                
+                    if isinstance(record.get(t,None),SQLStorage):
+                        row.append(record[t][f])
+                    else: row.append(record[f])
+            items.append(row)
+        return simplejson.dumps(items) 
+
 
 def test_all():
     """    
