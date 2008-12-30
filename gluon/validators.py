@@ -93,7 +93,8 @@ class IS_IN_SET(object):
     
     the argument of IS_IN_SET must be a list or set
     """
-    def __init__(self, theset, labels=None, error_message='value not allowed!'):
+    def __init__(self, theset, labels=None, error_message='value not allowed!',multiple=False):
+        self.multiple=multiple
         self.theset = [str(item) for item in theset]
         if isinstance(theset,dict): self.labels=theset.values()
         else: self.labels=labels
@@ -103,8 +104,11 @@ class IS_IN_SET(object):
             return [(k, k) for i, k in enumerate(self.theset)]
         return [(k, self.labels[i]) for i, k in enumerate(self.theset)]
     def __call__(self, value):
-        if value in self.theset: return (value, None)
-        return (value, self.error_message)
+        if self.multiple: values=re.compile("\w+").findall(str(value))
+        else: values=[value]
+        failures=[x for x in values if not x in self.theset]
+        if failures: return (value, self.error_message)
+        return (value, None)
 
 regex1 = re.compile('[\w_]+\.[\w_]+')
 regex2 = re.compile('%\((?P<name>[^\)]+)\)s')
@@ -117,7 +121,7 @@ class IS_IN_DB(object):
 
     used for reference fields, rendered as a dropbox
     """
-    def __init__(self,dbset,field,label=None,error_message='value not in database!',orderby=None,cache=None):
+    def __init__(self,dbset,field,label=None,error_message='value not in database!',orderby=None,cache=None,multiple=False):
         if hasattr(dbset,'define_table'): self.dbset=dbset()
         else: self.dbset=dbset        
         self.field=field
@@ -138,6 +142,7 @@ class IS_IN_DB(object):
         self.theset=None
         self.orderby=orderby
         self.cache=cache
+        self.multiple=multiple
     def build_set(self):
         if self.dbset._db._dbname!='gql':
            orderby=self.orderby or ', '.join(self.fields)
@@ -155,7 +160,11 @@ class IS_IN_DB(object):
         self.build_set()
         return [(k,self.labels[i]) for i,k in enumerate(self.theset)]
     def __call__(self,value):
-        if self.theset: 
+        if self.multiple:
+            values=re.compile("\w+").findall(str(value))
+            if not [x for x in values if not x in self.theset]:
+                return (value,None)
+        elif self.theset:
             if value in self.theset:
                 return (value,None)
         else:
@@ -712,3 +721,11 @@ class CRYPT(object):
         if have_hashlib: return (hashlib.md5(value).hexdigest(), None)
         else: return (md5.new(value).hexdigest(), None)
 
+class IS_IN_SUBSET(IS_IN_SET):
+    def __init__(self,*a,**b):
+        IS_IN_SET.__init__(self,*a,**b)
+    def __call__(self,value):
+        values=re.compile("\w+").findall(str(value))
+        failures=[x for x in values if IS_IN_SET.__call__(self,x)[1]]
+        if failures: return (value,self.error_message)
+        return (value,None)

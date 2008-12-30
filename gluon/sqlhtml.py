@@ -56,12 +56,29 @@ class OptionsWidget:
             opts=[OPTION(_value="")]
             options=field.requires.other.options()
         elif hasattr(field.requires,'options'):
-            opts=[]        
+            opts=[]
             options=field.requires.options()
         else: raise SyntaxError, "widget cannot determine options"
         opts+=[OPTION(v,_value=k) for k,v in options]
         return SELECT(*opts,**dict(_id=id,_class=field.type,
                      _name=field.name,value=value,requires=field.requires))
+
+class MultipleOptionsWidget:
+    @staticmethod
+    def widget(field,value,size=5):
+        id='%s_%s' % (field._tablename,field.name)
+        if isinstance(field.requires,IS_NULL_OR) and \
+           hasattr(field.requires.other,'options'):
+            opts=[OPTION(_value="")]
+            options=field.requires.other.options()
+        elif hasattr(field.requires,'options'):
+            opts=[]
+            options=field.requires.options()
+        else: raise SyntaxError, "widget cannot determine options"
+        opts+=[OPTION(v,_value=k) for k,v in options]
+        return SELECT(*opts,**dict(_id=id,_class=field.type,
+                      _multiple='multiple',value=value,_name=field.name,
+                      requires=field.requires,_size=size))
 
 class PasswordWidget:
     @staticmethod
@@ -125,7 +142,8 @@ class SQLFORM(FORM):
       upload=UploadWidget,
       boolean=BooleanWidget,
       blob=None,
-      options=OptionsWidget))
+      options=OptionsWidget,
+      multiple=MultipleOptionsWidget))
     def __init__(self,table,record=None,deletable=False,
                  linkto=None,upload=None,fields=None,labels=None,col3={},
                  submit_button='Submit', delete_label='Check to delete:', 
@@ -170,14 +188,17 @@ class SQLFORM(FORM):
             row_id=field_id+'__row'
             if hasattr(field,'widget') and field.widget:
                 inp=field.widget(field,default)
-            elif field.type=='text': 
-                inp=self.widgets.text.widget(field,default)
             elif field.type=='upload':
                 inp=self.widgets.upload.widget(field,default,upload)
             elif field.type=='boolean': 
                 inp=self.widgets.boolean.widget(field,default)
             elif OptionsWidget.has_options(field):
-                inp=self.widgets.options.widget(field,default)
+                if not field.requires.multiple:
+                    inp=self.widgets.options.widget(field,default)
+                else:
+                    inp=self.widgets.multiple.widget(field,default)
+            elif field.type=='text': 
+                inp=self.widgets.text.widget(field,default)
             elif field.type=='password':
                 inp=self.widgets.password.widget(field,default)
             elif field.type=='blob':
@@ -235,7 +256,7 @@ class SQLFORM(FORM):
                     field=self.table[fieldname]
                     if hasattr(field,'widget') and field.widget and \
                         vars.has_key(fieldname):
-                         self.trows[fieldname][1][0]=field.widget(field,vars[fieldname])           
+                         self.trows[fieldname][1][0][0]=field.widget(field,vars[fieldname])
                 return ret
             vars=self.vars
             for fieldname in self.fields:
