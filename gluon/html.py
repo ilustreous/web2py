@@ -167,10 +167,10 @@ class DIV(object):
     def __str__(self):
         return self.xml()
     def element(self,**kargs):
-        components=self.components
+        components=copy.copy(self.components)
         for c in components:
             try:
-                components+=c.components
+                components+=copy.copy(c.components)
                 check=True
                 for key,value in kargs.items():
                     if c[key]!=value: check=False
