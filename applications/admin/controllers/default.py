@@ -401,7 +401,7 @@ def about():
 def design():
     """ admin controller function """
     app=request.args[0] 
-    if not response.slash and app==request.application:
+    if not response.flash and app==request.application:
         response.flash=T('ATTENTION: you cannot edit the running application!')
     if os.path.exists(apath('%s/compiled' % app)):
         session.flash=T('application is compiled and cannot be designed')
