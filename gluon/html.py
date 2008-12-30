@@ -368,7 +368,8 @@ class INPUT(DIV):
         name=str(name)
         if self['_type']!='checkbox':
             self['old_value']=self['value'] or self['_value'] or ''
-            value=self.request_vars.get(name,self['value'] or '')
+            #value=self.request_vars.get(name,self['value'] or '')
+            value=self.request_vars.get(name,'')
             if not isinstance(value,cgi.FieldStorage): value=str(value)
         else:
             self['old_value']=self['value'] or False
@@ -452,10 +453,17 @@ class SELECT(INPUT):
         self.components=components
     def _postprocessing(self):
         if self['value']!=None:
-            for c in self.components:
-                if self['value'] and str(c['_value'])==str(self['value']):
-                    c['_selected']='selected'
-                else: c['_selected']=None
+            if not self['_multiple']:
+                for c in self.components:
+                    if self['value'] and str(c['_value'])==str(self['value']):
+                        c['_selected']='selected'
+                    else: c['_selected']=None
+            else:
+                values=re.compile('\w+').findall(str(self['value']))
+                for c in self.components:
+                    if self['value'] and str(c['_value']) in values:
+                        c['_selected']='selected'
+                    else: c['_selected']=None
 
 class FIELDSET(DIV): tag='fieldset'
 
