@@ -11,7 +11,7 @@ __all__=['SQLDB','SQLField']
 
 import re, sys, os, types, cPickle, datetime, thread, cStringIO
 import csv, copy, socket, logging, copy_reg, base64
-import contrib.simplejson as simplejson
+import contrib.simplejson as json
 
 table_field=re.compile('[\w_]+\.[\w_]+')
 
@@ -300,7 +300,10 @@ def sql_represent(obj,fieldtype,dbname):
     elif fieldtype=='time':
         if isinstance(obj,datetime.time): obj=obj.strftime('%H:%M:%S')
         else: obj=str(obj)
-    else: obj=str(obj)
+    elif dbname=='mssql2' and (fieldtype=='string' or fieldtype=='text'):
+        return "N'%s'" % str(obj).replace("'","''")
+    else:
+        obj=str(obj)
     return "'%s'" % obj.replace("'","''")
 
 def delete_uploaded_files(table,records,fields=True):
@@ -1416,32 +1419,41 @@ class SQLRows(object):
         """
         import sqlhtml
         return sqlhtml.SQLTABLE(self).xml()
-    def json(self, mode=dict):
+    def json(self, mode='object'):
         """
         serializes the table to a JSON list of objects
         """
-        if not mode in [dict,list]: raise SyntaxError, "invalid mode"
-        items=[]
-        def none_exception(value):
-            if value in [None, True, False] or \
-               isinstance(value,(int,long,float)):
-                return value
-            return str(value)
-        for record in self:
-            row=mode()
-            for col in self.colnames:
-                if not table_field.match(col):
-                    item=record._extra[col]
-                else:
-                    t,f=col.split('.')                
-                    if isinstance(record.get(t,None),SQLStorage):
-                        item=none_exception(record[t][f])
-                    else: item=none_exception(record[f])
-                if mode==dict: row[col]=item
-                elif mode==list: row.append(item)
-            items.append(row)
-        return simplejson.dumps(items) 
+        mode = mode.lower()
+        if not mode in ['object','array']:
+            raise SyntaxError, "Invalid JSON serialization mode."
 
+        def none_exception(value):
+            if isinstance(value,(int,long,float,bool,str)) or value == None:
+                return value
+            else:
+                return str(value)
+
+        def inner_loop(record, col):
+            t,f=col.split('.')
+            res = None
+            if not table_field.match(col):
+                res = record._extra[col]
+            else:
+                if isinstance(record.get(t,None),SQLStorage):
+                    res = none_exception(record[t][f])
+                else:
+                    res = none_exception(record[f])
+            if mode == 'object':
+                 return (f, res)
+            else:
+                return res
+
+        if mode == 'object':
+            items = [dict([inner_loop(record, col) for col in self.colnames]) for record in self]
+        else:
+            items = [[inner_loop(record, col) for col in self.colnames] for record in self]
+
+        return json.dumps(items)
 def test_all():
     """    
 
