@@ -74,11 +74,9 @@ def build_environment(request,response,session):
     environment={}
     for key in html.__all__: environment[key]=getattr(html,key)
     for key in validators.__all__: environment[key]=getattr(validators,key)
-    environment['URL'].request=request
     environment['T']=translator(request)
     environment['HTTP']=HTTP
     environment['redirect']=redirect
-    redirect.session=session
     environment['request']=request
     environment['response']=response
     environment['session']=session
