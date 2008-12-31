@@ -104,7 +104,7 @@ class IS_IN_SET(object):
             return [(k, k) for i, k in enumerate(self.theset)]
         return [(k, self.labels[i]) for i, k in enumerate(self.theset)]
     def __call__(self, value):
-        if self.multiple: values=re.compile("\w+").findall(str(value))
+        if self.multiple: values=re.compile("[^\s\|]+").findall(str(value))
         else: values=[value]
         failures=[x for x in values if not x in self.theset]
         if failures: return (value, self.error_message)
@@ -162,7 +162,7 @@ class IS_IN_DB(object):
         return [(k,self.labels[i]) for i,k in enumerate(self.theset)]
     def __call__(self,value):
         if self.multiple:
-            values=re.compile("\w+").findall(str(value))
+            values=re.compile("[^\s\|]+").findall(str(value))
             if not [x for x in values if not x in self.theset]:
                 return ('|%s|'%'|'.join(values),None)
         elif self.theset:
