@@ -678,7 +678,7 @@ class IS_UPPER(object):
 
 class IS_NULL_OR(object):
     def __init__(self, other, null=None):
-        self.other, self.null = other, null
+        self.other, self.null, self.multiple = other, null, False
     def set_self_id(self, id):
         if hasattr(self.other, 'set_self_id'):
             self.other.set_self_id(id)
