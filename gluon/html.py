@@ -39,6 +39,7 @@ def URL(a=None,c=None,f=None,r=None,args=[],vars={}):
     within the present application and controller.
     """
     application=controller=function=None
+    if hasattr(URL,'request'): r=URL.request
     if r:
         application=r.application
         controller=r.controller

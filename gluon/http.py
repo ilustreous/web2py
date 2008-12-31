@@ -73,7 +73,8 @@ class HTTP(BaseException):
         self.headers['Content-Length']=len(body)
         return [body]
 
-def redirect(location,how=303): 
+def redirect(location,how=303,flash=None): 
+    if flash and hasattr(redirect,'session'): redirect.session.flash=flash
     raise HTTP(how,
                'You are being redirected <a href="%s">here</a>' % location,
                Location=location)
