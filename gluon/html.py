@@ -45,6 +45,7 @@ def URL(a=None,c=None,f=None,r=None,args=[],vars={}):
         function=r.function
     if a: application=a    
     if c: controller=c
+    items=[]
     if f:
          if isinstance(f,str):
             items=f.split('?')
