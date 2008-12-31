@@ -1243,7 +1243,7 @@ class SQLSet(object):
                 if not attributes.get('orderby',None):
                     sql_o+=' ORDER BY %s'%', '.join([t+'.id' for t in tablenames])
                 #return "%s %s FROM (SELECT %s, ROW_NUMBER() OVER(%s) AS w_rown FROM %s WHERE w_rown>%i AND w_rown<=%i) %s%s;" % (sql_s,sql_f,sql_f,sql_o,sql_t,lmin,lmax,sql_w,sql_o)
-                if lmin>0: raise SyntaxError, "Not Supported"
+                #if lmin>0: raise SyntaxError, "Not Supported"
                 sql_s+=" TOP %i" %(lmax+lmin)
             elif self._db._dbname=='firebird':
                 if not attributes.get('orderby',None):
