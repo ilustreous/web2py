@@ -78,7 +78,7 @@ class MultipleOptionsWidget:
         opts+=[OPTION(v,_value=k) for k,v in options]
         return SELECT(*opts,**dict(_id=id,_class=field.type,
                       _multiple='multiple',value=value,_name=field.name,
-                      requires=field.requires,_size=size))
+                      requires=field.requires,_size=min(size,len(opts))))
 
 class PasswordWidget:
     @staticmethod
