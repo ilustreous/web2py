@@ -52,6 +52,9 @@ all:
 	### build web2py_src.zip
 	mv web2py_src.zip web2py_src_old.zip | echo 'no old'
 	cd ..; zip -r web2py/web2py_src.zip web2py/gluon/*.py web2py/gluon/contrib/* web2py/*.py web2py/*.tar web2py/ABOUT  web2py/LICENSE web2py/README web2py/VERSION web2py/Makefile web2py/epydoc.css web2py/epydoc.conf web2py/app.yaml web2py/scripts/*.sh web2py/scripts/*.py
+
+mdp:
+	make all
 	make app
 	make win
 app:
