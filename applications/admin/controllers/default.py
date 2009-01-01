@@ -1,6 +1,6 @@
 
 ############################################################
-### import required modules/functions
+### Import required modules/functions
 ############################################################
 from gluon.fileutils import listdir,cleanpath,tar,tar_compiled,untar,fix_newlines
 from gluon.languages import findT, update_all_languages
@@ -242,6 +242,7 @@ def delete():
     """ admin controller function """
     filename='/'.join(request.args)
     sender=request.vars.sender
+    if isinstance(sender,list): sender=sender[0] ### fix a problem with Vista
     try:
         if not request.vars.has_key('delete'): return dict(filename=filename,sender=sender)
         elif request.vars['delete']!='YES':

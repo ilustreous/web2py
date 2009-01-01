@@ -10,6 +10,8 @@ from validators import *
 from highlight import highlight
 import sanitizer
 
+regex_crlf=re.compile('\r|\n')
+
 __all__=['A', 'B', 'BEAUTIFY', 'BODY', 'BR', 'CENTER', 'CODE', 'DIV', 'EM', 'EMBED', 'FIELDSET', 'FORM', 'H1', 'H2', 'H3', 'H4', 'H5', 'H6', 'HEAD', 'HR', 'HTML', 'IFRAME', 'IMG', 'INPUT', 'LABEL', 'LI', 'LINK', 'OL', 'UL', 'META', 'OBJECT', 'ON', 'OPTION', 'P', 'PRE', 'SCRIPT', 'SELECT', 'SPAN', 'STYLE', 'TABLE', 'TAG', 'TD', 'TEXTAREA', 'TH', 'THEAD', 'TBODY', 'TFOOT', 'TITLE', 'TR', 'TT', 'URL', 'XML', 'xmlescape', 'embed64']
 
 def xmlescape(data,quote=False):
@@ -45,22 +47,17 @@ def URL(a=None,c=None,f=None,r=None,args=[],vars={}):
         function=r.function
     if a: application=a    
     if c: controller=c
-    items=[]
     if f:
-         if isinstance(f,str):
-            items=f.split('?')
-            function=urllib.quote(items[0])
+         if isinstance(f,str): function=f
          else: function=f.__name__
     if not (application and controller and function):
         raise SyntaxError, 'not enough information to build the url'
     other=''
     if args!=[] and not isinstance(args,(list,tuple)): args=[args]
     if args: other=urllib.quote('/'+'/'.join([str(x) for x in args]))
-    if len(items)>1:
-        other=other+'?'+items[1]
-        if vars: other=other+'&'+urllib.urlencode(vars)
-    elif vars: other=other+'?'+urllib.urlencode(vars)
+    if vars: other+='?%s' % urllib.urlencode(vars)
     url='/%s/%s/%s%s' % (application, controller, function, other)
+    if regex_crlf.search(url): raise SyntaxError, "CRLF Injection Detected"
     return url
 
 ON=True
