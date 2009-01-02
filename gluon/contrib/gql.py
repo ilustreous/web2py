@@ -402,7 +402,7 @@ class SQLSet(object):
         return self._db[tablenames[0]]._tableobj
     def _select(self,*fields,**attributes):
         valid_attributes=['orderby','groupby','limitby','required',
-                          'default','requires','left']  
+                          'default','requires','left','cache']  
         if [key for key in attributes.keys() if not key in valid_attributes]:
             raise SyntaxError, 'invalid select attribute'
         if fields and isinstance(fields[0],SQLALL):
@@ -447,6 +447,7 @@ class SQLSet(object):
     def select(self,*fields,**attributes):
         """
         Always returns a SQLRows object, even if it may be empty
+        cache attribute ignored on GAE
         """
         if isinstance(self.where,QueryException): return self._select_except()
         items,tablename,fields=self._select(*fields,**attributes)
