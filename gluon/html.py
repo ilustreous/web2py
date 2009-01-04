@@ -412,7 +412,7 @@ class INPUT(DIV):
     def xml(self):
         name=self.attributes.get('_name',None)
         if name and hasattr(self,'errors') and self.errors.get(name,None):
-            return DIV.xml(self)+DIV(self.errors[name],_class='error',errors=None).xml()
+            return DIV.xml(self)+DIV(self.errors[name],_class='error',errors=None,_id='%s__error'%name).xml()
         else: return DIV.xml(self)
         
 class TEXTAREA(INPUT): 
