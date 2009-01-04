@@ -144,7 +144,7 @@ class Session(Storage):
              else: table_migrate=False
              table=db.define_table(tablename+'_'+masterapp,
                  db.Field('locked','boolean',default=False),
-                 db.Field('client_ip'),
+                 db.Field('client_ip',length=64),
                  db.Field('created_datetime','datetime',default=now),
                  db.Field('modified_datetime','datetime'),
                  db.Field('unique_key',length=64),
