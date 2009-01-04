@@ -30,6 +30,7 @@ def file_create_form(location):
 [ <a href="#models">models</a>
 | <a href="#controllers">controllers</a>
 | <a href="#views">views</a>
+| <a href="#modules">modules</a>
 | <a href="#languages">languages</a>
 | <a href="#static">static</a> ]</div>
 <br/>
@@ -134,3 +135,20 @@ for file in statics+['']:
 <li>{{=file_upload_form('%s/static/' % app)}}</li>
 </ul>
 </div>
+
+<h2 id="modules" onclick="collapse('modules_inner');">Modules</h2>
+<div id="modules_inner"><i>additional code for your application</i>
+<br/><br/>
+{{if not modules:}}
+There are no modules
+{{pass}}
+<ul>
+{{for m in modules:}}<li>{{=peekfile('modules',m)}}
+[ {{=editfile('modules',m)}} {{if m!='__init__.py':}} |
+<a href="/{{=request.application}}/default/delete/{{=app}}/modules/{{=m}}?sender={{=request.function}}/{{=app}}">delete</a>{{pass}} ]
+</li>{{pass}}
+<li>{{=file_create_form('%s/modules/' % app)}}</li>
+<li>{{=file_upload_form('%s/modules/' % app)}}</li>
+</ul>
+</div>
+

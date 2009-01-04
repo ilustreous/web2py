@@ -430,10 +430,12 @@ def design():
         if items: extend[c]=items[0][1]
         items=regex_include.findall(data)
         include[c]=[i[1] for i in items]
+    modules=listdir(apath('%s/modules/' % app), '.*\.py$')
+    modules.sort()
     statics=listdir(apath('%s/static/' % app),'[^\.#].*')
     statics.sort()
     languages=listdir(apath('%s/languages/' % app), '[\w-]*\.py')
-    return dict(app=app,models=models,defines=defines,controllers=controllers,functions=functions,views=views,extend=extend,include=include,statics=statics,languages=languages)
+    return dict(app=app,models=models,defines=defines,controllers=controllers,functions=functions,views=views,modules=modules,extend=extend,include=include,statics=statics,languages=languages)
 
 
 def create_file():
@@ -461,6 +463,10 @@ def create_file():
             if len(filename)==5: raise SyntaxError
             text="{{extend 'layout.html'}}\n<h1>%s</h1>\n{{=BEAUTIFY(response._vars)}}" % \
                  T('This is the %(filename)s template',dict(filename=filename))
+        elif path[-9:]=='/modules/':
+            if not filename[-3:]=='.py': filename+='.py'
+            if len(filename)==3: raise SyntaxError
+            text="from gluon.html import *\nfrom gluon.http import *\nfrom gluon.validators import *\nfrom gluon.sqlhtml import *\n# request, response, session, cache, T, db(s) must be passed and cannot be imported!"
         elif path[-8:]=='/static/':
             text=""
         else:
@@ -480,8 +486,10 @@ def upload_file():
     """ admin controller function """
     try:
         path=apath(request.vars.location)
-        filename=re.sub('[^\w\./]+','_',request.vars.filename)
+        if request.vars.filename: filename=re.sub('[^\w\./]+','_',request.vars.filename)
+        else: filename=os.path.split(request.vars.file.filename)[-1]
         if path[-8:]=='/models/' and not filename[-3:]=='.py': filename+='.py'
+        if path[-9:]=='/modules/' and not filename[-3:]=='.py': filename+='.py'
         if path[-13:]=='/controllers/' and not filename[-3:]=='.py': filename+='.py'
         if path[-7:]=='/views/' and not filename[-5:]=='.html': filename+='.html'
         if path[-11:]=='/languages/' and not filename[-3:]=='.py': filename+='.py'
