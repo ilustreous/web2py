@@ -162,7 +162,8 @@ class IS_IN_DB(object):
         return [(k,self.labels[i]) for i,k in enumerate(self.theset)]
     def __call__(self,value):
         if self.multiple:
-            values=re.compile("[^\s\|]+").findall(str(value))
+            values=re.compile("[\w\-:]+").findall(str(value))
+            print values,self.theset
             if not [x for x in values if not x in self.theset]:
                 return ('|%s|'%'|'.join(values),None)
         elif self.theset:

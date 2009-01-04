@@ -462,7 +462,7 @@ class SELECT(INPUT):
                         c['_selected']='selected'
                     else: c['_selected']=None
             else:
-                values=re.compile('[^\s\|]+').findall(str(self['value']))
+                values=re.compile('[\w\-:]+').findall(str(self['value']))
                 for c in self.components:
                     if self['value'] and str(c['_value']) in values:
                         c['_selected']='selected'
