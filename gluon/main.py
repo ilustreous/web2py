@@ -40,7 +40,7 @@ regex_space=re.compile('(\+|\s|%20)+')
 # pattern to find valid paths in url /application/controller/...
 regex_url=re.compile('(?:^$)|(?:^\w+/?$)|(?:^\w+/[\w\-]+/?$)|(?:^\w+/[\w\-]+/\w+/?$)|(?:^\w+/[\w\-]+/\w+(/[\w\-]+(\.[\w\-]+)*)+$)|(?:^(\w+)/static(/[\w\-]+(\.[\w\-]+)*)+$)')
 # patter used to validate client address
-regex_client=re.compile('[\w\-]+(\.[\w\-]+)*\.?')
+regex_client=re.compile('[\w\-:]*(\.[\w\-]+)*\.?') ### to account for IPV6
 
 working_folder=os.getcwd()
 
