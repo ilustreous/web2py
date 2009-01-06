@@ -163,7 +163,6 @@ class IS_IN_DB(object):
     def __call__(self,value):
         if self.multiple:
             values=re.compile("[\w\-:]+").findall(str(value))
-            print values,self.theset
             if not [x for x in values if not x in self.theset]:
                 return ('|%s|'%'|'.join(values),None)
         elif self.theset:
