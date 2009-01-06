@@ -4,7 +4,7 @@ Developed by Massimo Di Pierro <mdipierro@cs.depaul.edu>
 and Limodou <limodou@gmail.com>
 License: GPL v2
 """
-import time, os, sys
+import time, os, sys, traceback
 import win32serviceutil
 import win32service
 import win32event
@@ -28,15 +28,16 @@ class Service(win32serviceutil.ServiceFramework):
             self.ReportServiceStatus(win32service.SERVICE_RUNNING)
             self.start()
             win32event.WaitForSingleObject(self.stop_event, win32event.INFINITE)
-        except Exception, x:
-            self.log(x)
+        except:
+            self.log(traceback.format_exc(sys.exc_info))
             self.SvcStop()
+        self.ReportServiceStatus(win32service.SERVICE_STOPPED)
     def SvcStop(self):
         self.ReportServiceStatus(win32service.SERVICE_STOP_PENDING)
         try:
             self.stop()
-        except Exception, x:
-            self.log(x)
+        except:
+            self.log(traceback.format_exc(sys.exc_info))
         win32event.SetEvent(self.stop_event)
         self.ReportServiceStatus(win32service.SERVICE_STOPPED)
     # to be overridden
@@ -58,7 +59,7 @@ class Web2pyService(Service):
             os.chdir(dir)
             return True
         except:
-            self.log("Cann't change to web2py working path, server is stopped")
+            self.log("Can't change to web2py working path, server is stopped")
             return False
 
     def start(self):
