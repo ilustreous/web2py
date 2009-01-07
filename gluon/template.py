@@ -69,7 +69,7 @@ def parse(text):
                   s+=text[:i]
                   text=text[i:]
                   m=regexes[state].search(text)
-                  if not m: raise SyntaxError, "Unbalanced quotes"
+                  if not m: continue
                   i=m.end()
                   s+=text[:i].replace('\n','\\n')
                   text=text[i:]
@@ -120,10 +120,7 @@ def parse_template(filename,path='views/',cache='cache/',context=dict()):
             raise restricted.RestrictedError('Processing View '+filename,text,
                   '','Unable to open included view file: '+t)
         text=replace(re_include,text,lambda x: child,1)
-    try: return parse(text)
-    except SyntaxError:
-        raise restricted.RestrictedError('Processing View '+filename,text,
-              '','Unbalanced quotation')
+    return parse(text)
 
 if __name__=='__main__':
     print parse_template(sys.argv[1],path='../applications/welcome/views/')
