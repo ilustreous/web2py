@@ -33,6 +33,7 @@ def reindent(text):
     credit=k=0
     for raw_line in lines:
        line=raw_line.strip()
+       if not line: continue
        if line[:1]=='=': line='response.write(%s)' % line[1:]
        if line[:5]=='elif ' or line[:5]=='else:' or    \
             line[:7]=='except:' or line[:7]=='except ' or \
@@ -55,8 +56,8 @@ def reindent(text):
 
 def parse(text):
     s,i,state='',0,0
-    ### state==0 -> in html
-    ### state==1 -> in code
+    ### state==0 -> in html (exit at {{)
+    ### state==1 -> in code (exit at }})
     ### state==2 -> in invalid code (unclosed quotes)
     while text:
         if not state:  ### html
@@ -72,11 +73,11 @@ def parse(text):
                   s+='%s\n' % re_nl.sub('',text) # multiline statements
                   break
              key,i=m.group(),m.end()
-             if key=='}}':
+             if key=='}}': # end of code
                   s+='%s\n' % re_nl.sub('',text[:i-2]) # multiline statements
                   text=text[i:]
                   state=0
-             else:
+             else: # found start of a comment or string
                   s+=text[:i]
                   text=text[i:]
                   m=regexes[key].search(text)
