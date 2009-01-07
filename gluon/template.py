@@ -8,14 +8,15 @@ import re, cgi, sys, os
 
 __all__=['reindent','parse','parse_template']
 
-re_open=re.compile('#|\'(\'{2})?|\"(\"{2})?|\}\}',re.M)
-re_nl=re.compile('\\\\\s*\\n\s*',re.M)
+re_open=re.compile('#|\'(\'{2})?|\"(\"{2})?|\}\}',re.MULTILINE)
+re_close=re.compile('\}\}',re.MULTILINE)
+re_nl=re.compile('\\\\\s*\\n\s*',re.MULTILINE)
 regexes={
 '#': re.compile('\\n|\}\}'),
 "'": re.compile("(?<!\\\\)(\\\\\\\\)*'"),
 '"': re.compile('(?<!\\\\)(\\\\\\\\)*"'),
-"'''": re.compile("'''",re.M),
-'"""': re.compile('"""',re.M),
+"'''": re.compile("'''",re.MULTILINE),
+'"""': re.compile('"""',re.MULTILINE),
 }
 
 #
@@ -54,6 +55,9 @@ def reindent(text):
 
 def parse(text):
     s,i,state='',0,0
+    ### state==0 -> in html
+    ### state==1 -> in code
+    ### state==2 -> in invalid code (unclosed quotes)
     while text:
         if not state:  ### html
 	     i=text.find('{{')
@@ -62,24 +66,27 @@ def parse(text):
              text=text[i+2:]
              state=1
         else:
-             m=re_open.search(text)             
+             if state==2: m=re_close.search(text)
+             else: m=re_open.search(text)             
              if not m:
-                  s+='%s\n' % re_nl.sub('',text)
+                  s+='%s\n' % re_nl.sub('',text) # multiline statements
                   break
-             state,i=m.group(),m.end()
-             if state=='}}':
-                  s+='%s\n' % re_nl.sub('',text[:i-2])
+             key,i=m.group(),m.end()
+             if key=='}}':
+                  s+='%s\n' % re_nl.sub('',text[:i-2]) # multiline statements
                   text=text[i:]
                   state=0
              else:
                   s+=text[:i]
                   text=text[i:]
-                  m=regexes[state].search(text)
+                  m=regexes[key].search(text)
                   if m:
                       i=m.end()
-                      if text[i-2:i]=='}}': i-=2
-                      s+=text[:i].replace('\n','\\n')
-                      text=text[i:]            
+                      if text[i-2:i]=='}}': i-=2 # this or newline closes a comment
+                      if len(key)==1: s+=text[:i] # comments and single quotes
+                      else: s+=text[:i].replace('\n','\\n') # multi-line only
+                      text=text[i:]
+                  else: state=2
     return reindent(s)
 
 def replace(regex,text,f,count=0):
