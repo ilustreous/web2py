@@ -8,13 +8,19 @@ import re, cgi, sys, os
 
 __all__=['reindent','parse','parse_template']
 
-re_open=re.compile('\'(\'{2})?|\"(\"{2})?|\}\}',re.M)
+re_open=re.compile('#|\'(\'{2})?|\"(\"{2})?|\}\}',re.M)
+re_nl=re.compile('\\\\\s*\\n\s*',re.M)
 regexes={
-"'": re.compile("(?<!\\\\)(\\\\\\\\)*'",re.M),
-'"': re.compile('(?<!\\\\)(\\\\\\\\)*"',re.M),
+'#': re.compile('\\n|\}\}'),
+"'": re.compile("(?<!\\\\)(\\\\\\\\)*'"),
+'"': re.compile('(?<!\\\\)(\\\\\\\\)*"'),
 "'''": re.compile("'''",re.M),
 '"""': re.compile('"""',re.M),
 }
+
+#
+# deal with newlines and strings in comments
+#
 
 re_include_nameless=re.compile('\{\{\s*include\s*\}\}')
 re_include=re.compile('\{\{\s*include\s+(?P<name>.+?)\s*\}\}',re.DOTALL)
@@ -58,21 +64,22 @@ def parse(text):
         else:
              m=re_open.search(text)             
              if not m:
-                  s+='%s\n' % text
+                  s+='%s\n' % re_nl.sub('',text)
                   break
              state,i=m.group(),m.end()
              if state=='}}':
-                  s+='%s\n' % text[:i-2]
+                  s+='%s\n' % re_nl.sub('',text[:i-2])
                   text=text[i:]
                   state=0
              else:
                   s+=text[:i]
                   text=text[i:]
                   m=regexes[state].search(text)
-                  if not m: continue
-                  i=m.end()
-                  s+=text[:i].replace('\n','\\n')
-                  text=text[i:]
+                  if m:
+                      i=m.end()
+                      if text[i-2:i]=='}}': i-=2
+                      s+=text[:i].replace('\n','\\n')
+                      text=text[i:]            
     return reindent(s)
 
 def replace(regex,text,f,count=0):
