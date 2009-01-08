@@ -226,9 +226,9 @@ def compile_app():
     try:
         compile_application(folder)
         session.flash=T('application compiled')
-    except Exception, e:
+    except (Exception, RestrictedError), e:
         remove_compiled_application(folder)
-        session.flash=T('please debug the application first (%(e)s)',dict(e=str(e)))
+        session.flash=T('cannot compile. there are errors in your app. run it to debug it')
     redirect(URL(r=request,f='site'))
 
 def remove_compiled_app():
