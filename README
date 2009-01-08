@@ -286,3 +286,10 @@ db(....id==None).select() no longer returns an error but an empty SQLRows on GAE
 db(...).delete(delete_uploads=True) and SQLFORM.accepts(....delete_uploads=True) will delete all referenced uploaded files
 DIV.element and DIV.update
 sqlrows.json()
+SQLFORM.widgets
+URL(r=request,args=0)
+IS_IN_DB(...,multiple=True) for Many2Many (sort of)
+In URL(...,f) f is url encoded
+In routes_in=[['a/b/c/','a/b/c/?var=value']]
+simplejson 2.0.7
+New template system 6 times faster!
