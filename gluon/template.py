@@ -49,7 +49,7 @@ def parse(text):
     ### state==1 -> in code (exit at }})
     while text:
         if not state:  ### html
-	     i=text.find('{{')
+             i=text.find('{{')
              if i<0: i=len(text)
              s+='response.write(%s,False)\n' % repr(text[:i])
              text=text[i+2:]
