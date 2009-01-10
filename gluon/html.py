@@ -514,7 +514,7 @@ class FORM(DIV):
         if self.session and self.session.get('_formkey[%s]'%self.formname,None)!=self.request_vars._formkey: status=False
         if self.formname!=self.request_vars._formname: status=False
         status=self._traverse(status)
-        if status and onvalidation: onvalidation(self):
+        if status and onvalidation: onvalidation(self)
         if self.errors: status=False
         if session!=None:
             self.formkey=session['_formkey[%s]'%formname]=str(uuid.uuid4())
