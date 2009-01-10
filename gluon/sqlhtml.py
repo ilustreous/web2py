@@ -225,7 +225,7 @@ class SQLFORM(FORM):
         if record:
             self.components=[TABLE(*xfields),INPUT(_type='hidden',_name='id',_value=record['id'])]
         else: self.components=[TABLE(*xfields)]
-    def accepts(self,vars,session=None,formname='%(tablename)s',keepvalues=False,delete_uploads=False,onaccept=None):
+    def accepts(self,vars,session=None,formname='%(tablename)s',keepvalues=False,delete_uploads=False,onvalidation=None):
         """
         same as FORM.accepts but also does insert, update or delete in SQLDB
         one additional option is delete_uplaods. If set True and record
@@ -250,7 +250,7 @@ class SQLFORM(FORM):
             ### END
             fields={}
             for key in self.vars.keys(): fields[key]=self.vars[key]            
-            ret=FORM.accepts(self,vars,session,formname,keepvalues)
+            ret=FORM.accepts(self,vars,session,formname,keepvalues,onvalidation)
             if not ret:
                 for fieldname in self.fields:
                     field=self.table[fieldname]
@@ -258,7 +258,6 @@ class SQLFORM(FORM):
                         vars.has_key(fieldname):
                          self.trows[fieldname][1][0][0]=field.widget(field,vars[fieldname])
                 return ret
-            if onaccept and not onaccept(self): return False
             vars=self.vars
             for fieldname in self.fields:
                 if fieldname=='id': continue

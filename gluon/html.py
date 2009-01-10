@@ -502,7 +502,7 @@ class FORM(DIV):
         self.vars=Storage()
         self.errors=Storage()
         self.latest=Storage()
-    def accepts(self,vars,session=None,formname='default',keepvalues=False):
+    def accepts(self,vars,session=None,formname='default',keepvalues=False,onvalidation=None):
         self.errors.clear()
         self.request_vars=Storage()
         self.request_vars.update(vars)
@@ -513,7 +513,9 @@ class FORM(DIV):
         status=True
         if self.session and self.session.get('_formkey[%s]'%self.formname,None)!=self.request_vars._formkey: status=False
         if self.formname!=self.request_vars._formname: status=False
-        status=self._traverse(status)        
+        status=self._traverse(status)
+        if onvalidation: onvalidation(self):
+        if self.errors: status=False
         if session!=None:
             self.formkey=session['_formkey[%s]'%formname]=str(uuid.uuid4())
         if status and not keepvalues: self._traverse(False)
