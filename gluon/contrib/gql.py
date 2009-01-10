@@ -330,7 +330,7 @@ class SQLQuery(object):
         if isinstance(right,(SQLField,SQLXorable)):
             raise SyntaxError, 'SQLQuery: right side of filter must be a value or entity'
         if isinstance(left,SQLField) and left.name=='id':
-            if not right: rigth=0
+            if not right: right=0
             try: value=long(right)
             except: raise SyntaxError, "id value must be integer"
             if op=='=': 
