@@ -5,7 +5,7 @@ License: GPL v2
 """
 
 import sys; sys.path.append('../gluon')
-import os, stat, thread
+import os, stat, thread, copy
 from template import parse_template
 from restricted import restricted
 from fileutils import listdir
@@ -86,6 +86,7 @@ def build_environment(request,response,session):
     environment['SQLField']=SQLField
     environment['SQLFORM']=SQLFORM
     environment['SQLTABLE']=SQLTABLE
+    response._view_environment=copy.copy(environment)
     return environment
 
 def save_pyc(filename):
