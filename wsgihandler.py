@@ -1,3 +1,4 @@
+#!/usr/bin/python
 """
 This is a WSGI handler for Apache
 Requires apache+mod_wsgi. In httpd.conf put something like:
@@ -14,6 +15,10 @@ if not path in sys.path: sys.path.append(path)
 os.chdir(path)
 
 import gluon.main
-application=gluon.main.wsgibase
+from gluon.contrib.wsgihooks import ExecuteOnCompletion2, callback
+
+application=ExecuteOnCompletion2(gluon.main.wsgibase, callback)
+
 ## or
 # application=gluon.main.wsgibase_with_logging
+

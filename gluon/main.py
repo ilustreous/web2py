@@ -325,8 +325,9 @@ class HttpServer(object):
         self.pid_filename=pid_filename
         if not server_name: server_name=socket.gethostname()
         logging.info('starting web server...')
+        from contrib.wsgihooks import ExecuteOnCompletion2, callback
         self.server=wsgiserver.CherryPyWSGIServer((ip, port),
-                    appfactory(wsgibase,log_filename,web2py_path=path),
+                    appfactory(ExecuteOnCompletion2(wsgibase,callback),log_filename,web2py_path=path),
                     numthreads=int(numthreads), server_name=server_name,
                     request_queue_size=int(request_queue_size),
                     timeout=int(timeout),

@@ -320,6 +320,8 @@ def console():
                   help='run doctests in web2py environment, TEST_PATH like a/c/f (c,f optional)')
     parser.add_option('-W', '--winservice', dest='winservice', default='',
                   help='-W install|start|stop as windows service')
+    parser.add_option('-C', '--cron', action='store_true', dest='extcron', default=False,
+                  help='trigger a cron run manually, usually invoked from a system crontab')
     parser.add_option('-L', '--config', dest='config', default='',
                   help='Config file')
     parser.add_option('-t', '--taskbar',
@@ -389,6 +391,13 @@ def start():
         except Exception:
             print "Cannot import config file [%s]" % options.config
             sys.exit(1)
+    ### if -C start cron run
+    if options.extcron:
+        from gluon.contrib.cron import extcron
+        cron = extcron()
+        cron.start()
+        return
+
     ### if no password provided and havetk start Tk interface
     ### or start interface if we want to put in taskbar (system tray)
     try: options.taskbar
