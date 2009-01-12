@@ -8,7 +8,7 @@ from gluon.myregex import *
 from gluon.restricted import *
 from gluon.contrib.markdown import WIKI
 from gluon.compileapp import compile_application, remove_compiled_application
-import time,os,sys,re,urllib,socket,md5
+import time,os,sys,re,urllib,socket,md5,cgi
 
 
 ############################################################
