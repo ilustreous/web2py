@@ -97,6 +97,7 @@ def index():
             redirect(send)
         else: response.flash=T('invalid password')
     apps=[file for file in os.listdir(apath()) if file.find('.')<0]    
+    send=XML(cgi.escape(send.replace('\n','_'),True))
     return dict(apps=apps,send=send)
 
 def check_version():
