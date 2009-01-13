@@ -74,6 +74,7 @@ class HTTP(BaseException):
         return [body]
 
 def redirect(location,how=303): 
+    location = location.replace('\r','%0D').replace('\n','%0A') 
     raise HTTP(how,
                'You are being redirected <a href="%s">here</a>' % location,
                Location=location)
