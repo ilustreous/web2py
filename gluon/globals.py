@@ -15,7 +15,6 @@ from sql import SQLField
 from fileutils import up
 import portalocker
 import sys, cPickle, cStringIO, thread, time, shelve, os, stat, uuid, datetime,re
-now=datetime.datetime.today()
 
 regex_session_id=re.compile('^[\w\-]+$')
 
@@ -34,6 +33,7 @@ class Request(Storage):
         self.application=None
         self.function=None        
         self.args=[]
+        self.now=datetime.datetime.today()
 
 class Response(Storage):
     """
@@ -145,7 +145,7 @@ class Session(Storage):
              table=db.define_table(tablename+'_'+masterapp,
                  db.Field('locked','boolean',default=False),
                  db.Field('client_ip',length=64),
-                 db.Field('created_datetime','datetime',default=now),
+                 db.Field('created_datetime','datetime',default=request.now),
                  db.Field('modified_datetime','datetime'),
                  db.Field('unique_key',length=64),
                  db.Field('session_data','blob'),migrate=table_migrate)
@@ -176,7 +176,7 @@ class Session(Storage):
         record_id_name,table,record_id,unique_key=response._dbtable_and_field
         dd=dict(locked=False,
                 client_ip=request.env.remote_addr,
-                modified_datetime=now,
+                modified_datetime=request.now,
                 session_data=cPickle.dumps(dict(self)),
                 unique_key=unique_key)
         if record_id:

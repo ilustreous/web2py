@@ -111,7 +111,7 @@ class SQLFORM(FORM):
     SQLFORM(db.table,record) generates an update form
     SQLFORM(db.table,record,deletable=True) generates an update 
                                             with a delete button
-    
+    if record is an int, record=db(db.table.id==record).select()[0]
     optional arguments:
     
     fields: a list of fields that should be placed in the form, default is all.
@@ -163,6 +163,10 @@ class SQLFORM(FORM):
         self.fields=fields
         if not 'id' in self.fields: self.fields.insert(0,'id')
         self.table=table
+        if record and isinstance(record,(int,long,str,unicode)):
+            records=table._db(table.id==record).select()
+            if records: record=records[0]
+            else: record=None
         self.record=record
         self.record_id=None
         self.trows={}
@@ -188,10 +192,10 @@ class SQLFORM(FORM):
                 continue
             if record: default=record[fieldname]
             else: default=field.default
-            if default: default=field.formatter(default)
+            if not readonly and default: default=field.formatter(default)
             if readonly:
                 if field.represent: inp=field.represent(default)
-                else: inp=field.formatter(default)
+                else: inp=field.formatter(default)            
             elif hasattr(field,'widget') and field.widget:
                 inp=field.widget(field,default)
             elif field.type=='upload':
@@ -326,7 +330,7 @@ class SQLFORM(FORM):
                 self.table._db(self.table.id==id).update(**fields)
             else: 
                 self.vars.id=self.table.insert(**fields)                
-        return ret   
+        return ret
 
 class SQLTABLE(TABLE):
     """
