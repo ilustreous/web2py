@@ -94,7 +94,7 @@ def index():
             if CHECK_VERSION: session.check_version=True
             else: session.check_version=False
             session.last_time=t0
-            if instance(send,list): send=str(send[0]) ### why does this happen?
+            if isinstance(send,list): send=str(send[0]) ### why does this happen?
             redirect(send)
         else: response.flash=T('invalid password')
     apps=[file for file in os.listdir(apath()) if file.find('.')<0]    

@@ -1019,7 +1019,7 @@ class SQLField(SQLXorable):
 
     example:
 
-    a=SQLField(name,'string',length=32,required=False,default=None,requires=IS_NOT_EMPTY(),notnull=False,unique=False,uploadfield=None,widget=None,label=None)
+    a=SQLField(name,'string',length=32,required=False,default=None,requires=IS_NOT_EMPTY(),notnull=False,unique=False,uploadfield=None,widget=None,label=None,comment=None)
     
     to be used as argument of SQLDB.define_table
 
@@ -1036,7 +1036,7 @@ class SQLField(SQLXorable):
                  length=32,default=None,required=False,
                  requires=sqlhtml_validators,ondelete='CASCADE',
                  notnull=False,unique=False,uploadfield=True,
-                 widget=None,label=None):
+                 widget=None,label=None,comment=None):
         self.name=fieldname=cleanup(fieldname)
         if fieldname in dir(SQLTable) or fieldname[0]=='_':
             raise SyntaxError, 'SQLField: invalid field name'
@@ -1054,11 +1054,13 @@ class SQLField(SQLXorable):
         self.uploadfield=uploadfield
         self.widget=widget
         self.label=label
+        self.comment=None
         if self.label==None:
             self.label=' '.join([x.capitalize() for x in fieldname.split('_')])
         if requires==sqlhtml_validators: requires=sqlhtml_validators(type,length)
         elif requires is None: requires=[]
         self.requires=requires             # list of validators
+        self.represent=None
     def formatter(self,value):
         if value is None or not self.requires: return value
         if not isinstance(self.requires,(list,tuple)): requires=[self.requires]
