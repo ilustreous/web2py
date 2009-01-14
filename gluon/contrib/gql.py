@@ -233,7 +233,7 @@ class SQLField(SQLXorable):
 
     example:
 
-    a=SQLField(name,'string',length=32,required=False,default=None,requires=IS_NOT_EMPTY(),notnull=False,unique=False,uploadfield=True,widget=None,label=None,comment=None,writable=True,readable=True)
+    a=SQLField(name,'string',length=32,required=False,default=None,requires=IS_NOT_EMPTY(),notnull=False,unique=False,uploadfield=True,widget=None,label=None,comment=None,writable=True,readable=True,update=None)
     
     to be used as argument of GQLDB.define_table
 
@@ -251,7 +251,7 @@ class SQLField(SQLXorable):
                  requires=sqlhtml_validators,ondelete='CASCADE',
                  notnull=False,unique=False,uploadfield=True,
                  widget=None,label=None,comment=None,
-                 writable=True,readable=True):
+                 writable=True,readable=True,update=None):
         self.name=fieldname=cleanup(fieldname)
         if fieldname in dir(SQLTable) or fieldname[0]=='_':
             raise SyntaxError, 'SQLField: invalid field name'
@@ -272,6 +272,7 @@ class SQLField(SQLXorable):
         self.comment=comment
         self.writable=writable
         self.readable=readable
+        self.update=update
         if self.label==None:
             self.label=' '.join([x.capitalize() for x in fieldname.split('_')])
         if requires==sqlhtml_validators: requires=sqlhtml_validators(type,length)
@@ -491,6 +492,7 @@ class SQLSet(object):
         if isinstance(self.where,QueryException):
             item,tablename,fields=self._getitem_exception()
             table=db[tablename]
+            update_fields.update(dict([(field,table[field].update) for field in table.fields if not field in update_fields and table[field].update!=None]))
             if not item: return 0
             for field,value in update_fields.items():
                 value=obj_represent(update_fields[field],table[field].type,db) 
@@ -500,6 +502,7 @@ class SQLSet(object):
         else:
             items,tablename,fields=self._select()
             table=db[tablename]
+            update_fields.update(dict([(field,table[field].update) for field in table.fields if not field in update_fields and table[field].update!=None]))
             tableobj=table._tableobj
             counter=0
             for item in items:

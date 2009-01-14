@@ -1019,7 +1019,7 @@ class SQLField(SQLXorable):
 
     example:
 
-    a=SQLField(name,'string',length=32,required=False,default=None,requires=IS_NOT_EMPTY(),notnull=False,unique=False,uploadfield=None,widget=None,label=None,comment=None,writable=True,readable=True)
+    a=SQLField(name,'string',length=32,required=False,default=None,requires=IS_NOT_EMPTY(),notnull=False,unique=False,uploadfield=None,widget=None,label=None,comment=None,writable=True,readable=True,update=None)
     
     to be used as argument of SQLDB.define_table
 
@@ -1037,7 +1037,7 @@ class SQLField(SQLXorable):
                  requires=sqlhtml_validators,ondelete='CASCADE',
                  notnull=False,unique=False,uploadfield=True,
                  widget=None,label=None,comment=None,
-                 writable=True,readable=True):
+                 writable=True,readable=True,update=None):
         self.name=fieldname=cleanup(fieldname)
         if fieldname in dir(SQLTable) or fieldname[0]=='_':
             raise SyntaxError, 'SQLField: invalid field name'
@@ -1058,6 +1058,7 @@ class SQLField(SQLXorable):
         self.comment=None
         self.writable=writable
         self.readable=readable
+        self.update=update
         if self.label==None:
             self.label=' '.join([x.capitalize() for x in fieldname.split('_')])
         if requires==sqlhtml_validators: requires=sqlhtml_validators(type,length)
@@ -1296,18 +1297,19 @@ class SQLSet(object):
         self._db._execute(query)
         try: return self._db._cursor.rowcount
         except: return None
-    def _update(self,**fields):
+    def _update(self,**update_fields):
         tablenames=self._tables
         if len(tablenames)!=1: 
             raise SyntaxError, 'SQLSet: unable to determine what to do'
-        tt,fd=self._db[tablenames[0]],self._db._dbname
-        sql_v='SET '+', '.join(['%s=%s' % (field,sql_represent(value,tt[field].type,fd)) for field,value in fields.items()])
         sql_t=tablenames[0]
+        table,dbname=self._db[sql_t],self._db._dbname
+        update_fields.update(dict([(field,table[field].update) for field in table.fields if not field in update_fields and table[field].update!=None]))
+        sql_v='SET '+', '.join(['%s=%s' % (field,sql_represent(value,table[field].type,dbname)) for field,value in update_fields.items()])
         if self.sql_w: sql_w=' WHERE '+self.sql_w
         else: sql_w=''
         return 'UPDATE %s %s%s;' % (sql_t,sql_v,sql_w)
-    def update(self,**fields):
-        query=self._update(**fields)
+    def update(self,**update_fields):        
+        query=self._update(**update_fields)
         self._db['_lastsql']=query
         self._db._execute(query)
         try: return self._db._cursor.rowcount
