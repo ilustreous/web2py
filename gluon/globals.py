@@ -97,6 +97,35 @@ class Response(Storage):
              self.headers['Content-Length']=os.stat(filename)[stat.ST_SIZE]
         self.body=streamer(stream,chunk_size)
         return self.body
+    def download(self,request,db):
+        """
+            example of usage in controller:
+            def donwload(): return response.download(request,db)
+            download from http://..../download/filename
+        """
+        import os
+        import gluon.contenttype as c
+        if not request.args: raise HTTP(404)
+        name=request.args[-1]
+        items=re.compile('(?P<table>.*?)\.(?P<field>.*?)\..*').match(name)
+        if not items: raise HTTP(404)
+        t,f=items.group('table'),items.group('field')
+        field=db[t][f]
+        uploadfield=field.uploadfield
+        authorize=field.authorize
+        if authorize or isinstance(uploadfield,str):
+            rows=db(db[t][f]==name).select()
+            if not rows: raise HTTP(404)
+            row=rows[0]
+        if authorize and not authorize(field,row.id): raise HTTP(404)
+        self.headers['Content-Type']=c.contenttype(name)
+        if isinstance(uploadfield,str): ### if file is in DB
+            return row[uploadfield]
+        else: ### if file is on filesystem
+            return self.stream(os.path.join(request.folder,'uploads',name))
+    def json(self,data):
+        import gluon.contrib.simplejson as sj
+        return sj.dumps(data)
     def xmlrpc(self,request,methods):
         """
         assuming: 

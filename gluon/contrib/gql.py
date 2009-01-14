@@ -233,7 +233,7 @@ class SQLField(SQLXorable):
 
     example:
 
-    a=SQLField(name,'string',length=32,required=False,default=None,requires=IS_NOT_EMPTY(),notnull=False,unique=False,uploadfield=True,widget=None,label=None,comment=None,writable=True,readable=True,update=None)
+    a=SQLField(name,'string',length=32,required=False,default=None,requires=IS_NOT_EMPTY(),notnull=False,unique=False,uploadfield=True,widget=None,label=None,comment=None,writable=True,readable=True,update=None,authorize=None)
     
     to be used as argument of GQLDB.define_table
 
@@ -251,7 +251,8 @@ class SQLField(SQLXorable):
                  requires=sqlhtml_validators,ondelete='CASCADE',
                  notnull=False,unique=False,uploadfield=True,
                  widget=None,label=None,comment=None,
-                 writable=True,readable=True,update=None):
+                 writable=True,readable=True,update=None,
+                 authorize=None):
         self.name=fieldname=cleanup(fieldname)
         if fieldname in dir(SQLTable) or fieldname[0]=='_':
             raise SyntaxError, 'SQLField: invalid field name'
@@ -273,6 +274,7 @@ class SQLField(SQLXorable):
         self.writable=writable
         self.readable=readable
         self.update=update
+        self.authorize=authorize
         if self.label==None:
             self.label=' '.join([x.capitalize() for x in fieldname.split('_')])
         if requires==sqlhtml_validators: requires=sqlhtml_validators(type,length)

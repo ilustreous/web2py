@@ -382,6 +382,9 @@ class SQLTABLE(TABLE):
                     r=field.represent(r)
                     row.append(TD(r))
                     continue
+                if field.type=='blob' and r:
+                    row.append(TD('DATA'))
+                    continue
                 r=str(field.formatter(r))
                 if upload and field.type=='upload' and r!=None:
                     if r: row.append(TD(A('file',_href='%s/%s' % (upload,r))))
