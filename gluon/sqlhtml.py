@@ -157,9 +157,8 @@ class SQLFORM(FORM):
                linkto=ULR(r=request,f='table/db/')
         """
         FORM.__init__(self,*[],**attributes)            
-        if not fields: 
-            if hasattr(table,'exposes'): fields=table.exposes
-            else: fields=table.fields        
+        if fields==None:
+            fields=[f for f in table.fields if not table[f].hidden]
         self.fields=fields
         if not 'id' in self.fields: self.fields.insert(0,'id')
         self.table=table
@@ -316,6 +315,9 @@ class SQLFORM(FORM):
                 elif field.type=='double':
                     if fields[fieldname]!=None:
                        fields[fieldname]=float(fields[fieldname])
+            for fieldname in vars:
+                if fieldname!='id' and fieldname in self.table.fields and \
+                   not fieldname in fields: fields[fieldname]=vars[fieldname]
             if vars.has_key('id'):
                 if vars['id']!=self.record_id:
                     raise SyntaxError, "user is tampering with form"
