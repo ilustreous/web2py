@@ -158,7 +158,8 @@ class SQLFORM(FORM):
         """
         FORM.__init__(self,*[],**attributes)            
         if fields==None:
-            fields=[f for f in table.fields if not table[f].hidden]
+            if readonly: fields=[f for f in table.fields if table[f].readable]
+            else: fields=[f for f in table.fields if table[f].writable]
         self.fields=fields
         if not 'id' in self.fields: self.fields.insert(0,'id')
         self.table=table
