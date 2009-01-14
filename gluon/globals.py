@@ -117,7 +117,7 @@ class Response(Storage):
             rows=db(db[t][f]==name).select()
             if not rows: raise HTTP(404)
             row=rows[0]
-        if authorize and not authorize(field,row.id): raise HTTP(404)
+        if authorize and not authorize(row.id): raise HTTP(404)
         self.headers['Content-Type']=c.contenttype(name)
         if isinstance(uploadfield,str): ### if file is in DB
             return row[uploadfield]
