@@ -108,6 +108,7 @@ def download():
 def csv():
     import gluon.contenttype
     response.headers['Content-Type']=gluon.contenttype.contenttype('.csv')
+    db=get_database(request)
     query=get_query(request)
     if not query: return None
     response.headers['Content-disposition']="attachment; filename=%s_%s.csv"%\
