@@ -289,6 +289,14 @@ class SQLField(SQLXorable):
         for item in requires:
             if hasattr(item,'formatter'): value=item.formatter(value)
         return value
+    def validate(self,value):
+        if not self.requires: return (value, None)
+        requires=self.requires
+        if not isinstance(requires,(list,tuple)): requires=[requires]
+        for validator in requires:
+            value,error=validator(value)
+            if error: return value,error
+        return value,None
     def __str__(self): return '%s.%s' % (self._tablename,self.name)
 
 GQLDB.Field=SQLField ### needed in gluon/globals.py session.connect

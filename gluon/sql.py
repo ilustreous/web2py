@@ -942,15 +942,15 @@ class SQLTable(SQLStorage):
         the 'table.' prefix is ignored.
         """
         reader = csv.reader(csvfile)
-        colnames=None
+        colnames,fields=None,None
         if isinstance(id_map,dict):
             if not id_map.has_key(self._tablename):
                 id_map[self._tablename]={}
             id_map_self=id_map[self._tablename]
-        def fix(col,value,id_map):
-           if value==null: return (col,None)
-           if id_map and self[col].type[:9]=='reference':
-              try: return (col,id_map[self[col].type[9:].strip()][value])
+        def fix(field,value,id_map):
+           if value==null: value=None
+           elif id_map and field.type[:9]=='reference':
+              try: value=id_map[field.type[9:].strip()][value]
               except KeyError: pass
            return (col,value)
         for line in reader:
@@ -961,7 +961,7 @@ class SQLTable(SQLStorage):
                 cid=[i for i in xrange(len(line)) if colnames[i]=='id']
                 if cid: cid=cid[0]
             else:
-                items=[fix(colnames[i],line[i],id_map) for i in c]
+                items=[fix(self[c],line[i],id_map) for i in c]
                 new_id=self.insert(**dict(items))
                 if id_map and cid!=[]: id_map_self[line[cid]]=new_id
     def on(self,query):
@@ -1076,6 +1076,14 @@ class SQLField(SQLXorable):
         for item in requires:
             if hasattr(item,'formatter'): value=item.formatter(value)
         return value
+    def validate(self,value):
+        if not self.requires: return (value, None)
+        requires=self.requires
+        if not isinstance(requires,(list,tuple)): requires=[requires]
+        for validator in requires:
+            value,error=validator(value)
+            if error: return value,error
+        return value,None
     def lower(self):
         s=self._db._translator["lower"] % dict(field=str(self))
         return SQLXorable(s,'string',self._db)
@@ -1402,6 +1410,7 @@ class SQLRows(object):
         writer.writerow(self.colnames)
         def none_exception(value):
             if isinstance(value,unicode): return value.encode('utf8')
+            if hasattr(value,'isoformat'): return value.isoformat()[:19].replace('T',' ')
             if value==None: return null
             return value
         for record in self:
