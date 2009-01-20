@@ -1125,6 +1125,7 @@ class SQLField(SQLXorable):
         return '%s.%s' % (self._tablename,self.name)
 
 SQLDB.Field=SQLField # necessary in gluon/globals.py session.connect
+SQLDB.Table=SQLTable # necessary in gluon/globals.py session.connect
 
 class SQLQuery(object):
     """
@@ -1243,8 +1244,13 @@ class SQLSet(object):
             sql_o+=' GROUP BY %s'% attributes['groupby']
             if attributes.get('having',False):
                 sql_o+=' HAVING %s'% attributes['having']
-        if attributes.get('orderby',False):
-            if str(attributes.get('orderby',''))=='<random>':
+        orderby=attributes.get('orderby',False)
+        if orderby:
+            if isinstance(orderby,(list,tuple)):
+                orderby2=orderby[0]
+                for item in orderby[1:]: orderby2=orderby2|item
+                orderby=orderby2
+            if str(orderby)=='<random>':
                 sql_o+=' ORDER BY %s' % self._db._translator['random']
             else:
                 sql_o+=' ORDER BY %s' % attributes['orderby']

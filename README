@@ -292,4 +292,87 @@ IS_IN_DB(...,multiple=True) for Many2Many (sort of)
 In URL(...,f) f is url encoded
 In routes_in=[['a/b/c/','a/b/c/?var=value']]
 simplejson 2.0.7
-New template system 6 times faster!
+
+
+1.56
+Consider the following table:
+
+db.define_table('cirlce',
+   db.Field('radius','double'),
+   db.Field('area','double'),
+   db.Field('modified_on','datetime'))
+
+now you can do:
+
+# add a comment in the forms
+db.circle.area.comment="(this is a comment)"
+
+# do not show area in create/edit forms
+db.circle.area.writable=False
+
+ # do not show now in display forms
+db.circle.modified_on.readable=False
+
+# automatically timestamp when record cretaed
+db.circle.modified_on.default=request.now
+
+# automatically timestamp when record is modified
+db.circle.modified_on.update=request.now
+
+# make the radius appear in bold in display and table
+db.circle.radius.represent=lambda value: B(value)
+
+# make a form that automatically computes area
+pi=3.1415
+form=SQLFOM(db.circle)
+if form.accepts(request.vars,
+onvalidation=lambda form: form.vars.area=pi*form.vars.radius**2): ...
+
+# make a create form in two possible ways:
+form=SQLFORM(db.circle)
+form=SQLFORM(db.circle,0)
+
+# make an update form in two possible ways:
+form=SQLFORM(db.circle,record)
+form=SQLFORM(db.circle,record_id)
+
+# make a display form in two possible ways:
+form=SQLFORM(db.circle,record,readonly=True)
+form=SQLFORM(db.circle,record_id,readonly=True)
+
+# so now you can do...
+
+form=SQLFORM(db.circle,request.args[-1])
+
+and you get a create form if the URL ends in /0, you get an update
+form if the URL ends in /[valid_record_id]
+
+#you can also define once for all
+
+timestamp=SQLTable(None,'timestamp',
+            SQLField('created_on','datetime',
+                          writable=False,
+                          default=request.now),
+            SQLField('modified_on','datetime',
+                          writable=False,
+                          default=request.now,update=request.now))
+
+#and use it in all your tables
+
+db.define_table('mytable',db.Field('somefield'),timestamp) 
+
+###
+
+One more feature in trunk....
+
+    db.define_table('image',SQLField('file','upload'))
+
+    db.image.file.authorize=lambda row: True or False
+
+then controller
+
+    def download(): return response.download(request,db)
+
+- 'id' is now a hidden field sqlform
+- gql references converted to long
+- admin login has autofocus

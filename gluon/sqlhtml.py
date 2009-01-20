@@ -234,9 +234,9 @@ class SQLFORM(FORM):
         if not readonly:
             xfields.append(TR('',INPUT(_type='submit',_value=submit_button),col3.get('submit_button',''),_id='submit_record__row'))
         if record:
-            self.components=[TABLE(*xfields),INPUT(_type='hidden',_name='id',_value=record['id'])]
-        else:
-            self.components=[TABLE(*xfields)]
+            if not self['hidden']: self['hidden']={}
+            self['hidden']['id']=record['id']
+        self.components=[TABLE(*xfields)]
     def accepts(self,vars,session=None,formname='%(tablename)s',keepvalues=False,delete_uploads=False,onvalidation=None):
         """
         same as FORM.accepts but also does insert, update or delete in SQLDB
@@ -245,6 +245,7 @@ class SQLFORM(FORM):
         """
         if formname: formname=formname % dict(tablename=self.table._tablename)
         raw_vars=dict(vars.items())
+        request_vars=vars
         if vars.get('delete_this_record',False) and vars.has_key('id'):
             if vars['id']!=self.record_id:
                 raise SyntaxError, "user is tampering with form"
@@ -323,10 +324,10 @@ class SQLFORM(FORM):
             for fieldname in vars:
                 if fieldname!='id' and fieldname in self.table.fields and \
                    not fieldname in fields: fields[fieldname]=vars[fieldname]
-            if vars.has_key('id'):
-                if vars['id']!=self.record_id:
+            if request_vars.has_key('id'):
+                if request_vars['id']!=self.record_id:
                     raise SyntaxError, "user is tampering with form"
-                id=int(vars['id'])
+                id=int(request_vars['id'])
                 self.table._db(self.table.id==id).update(**fields)
             else: 
                 self.vars.id=self.table.insert(**fields)                

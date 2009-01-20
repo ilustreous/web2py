@@ -49,7 +49,7 @@ def parse(text):
 def replace(regex,text,f,count=0):
     i=0
     output=[]
-    for item in regex.finditer(text):
+    for item in regex.finditer(text,i):
         output.append(text[i:item.start()])
         output.append(f(item.group()))
         i=item.end()

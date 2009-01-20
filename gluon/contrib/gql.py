@@ -300,6 +300,7 @@ class SQLField(SQLXorable):
     def __str__(self): return '%s.%s' % (self._tablename,self.name)
 
 GQLDB.Field=SQLField ### needed in gluon/globals.py session.connect
+GQLDB.Table=SQLTable ### needed in gluon/globals.py session.connect
 
 def obj_represent(obj,fieldtype,db):  
 	if obj!=None:
@@ -318,6 +319,8 @@ def obj_represent(obj,fieldtype,db):
 	        else: h,mi,s=time_items+[0]
 	        obj=datetime.datetime(y,m,d,h,mi,s)
 	    elif fieldtype=='integer' and not isinstance(obj,long):
+	        obj = long(obj)
+	    elif fieldtype[:9]=='reference' and not isinstance(obj,long):
 	        obj = long(obj)
             elif fieldtype=='blob': pass
             elif fieldtype=='boolean':
@@ -434,9 +437,14 @@ class SQLSet(object):
             raise SyntaxError, "SQLSet: no left join in appengine"
         if attributes.get('groupby',None):
             raise SyntaxError, "SQLSet: no groupby in appengine"
-        if attributes.get('orderby',None):
-            assert_filter_fields(attributes['orderby'])
-            orders = attributes['orderby'].name.split("|")   
+        orderby=attributes.get('orderby',False)
+        if orderby:
+            if isinstance(orderby,(list,tuple)):
+                orderby2=orderby[0]
+                for item in orderby[1:]: orderby2=orderby2|item
+                orderby=orderby2
+            assert_filter_fields(orderby)
+            orders = orderby.name.split("|")   
             for order in orders:
                 items = items.order(order)
         if attributes.get('limitby',None):
