@@ -624,7 +624,7 @@ class SQLDB(SQLStorage):
         sql_locker.release()
         self.tables.append(tablename)
         return t
-    def __call__(self,where=''):
+    def __call__(self,where=None):
         return SQLSet(self,where)
     def commit(self):
         self._connection.commit()
@@ -1137,7 +1137,7 @@ class SQLQuery(object):
     set=db(query)
     records=set.select()
     """
-    def __init__(self,left,op=None,right=None):        
+    def __init__(self,left,op=None,right=None):
         if op is None and right is None: self.sql=left
         elif right is None:
             if op=='=': 
@@ -1207,7 +1207,7 @@ class SQLSet(object):
         self._db=db
         self._tables=[]
         # find out wchich tables are involved
-        self.sql_w=str(where)
+        self.sql_w=str(where or '')
         #print self.sql_w
         self._tables=parse_tablenames(self.sql_w)
         #print self._tables

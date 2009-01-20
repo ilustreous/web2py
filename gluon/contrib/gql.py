@@ -108,6 +108,7 @@ class GQLDB(gluon.sql.SQLDB):
         t._create()
         return t
     def __call__(self,where=''):
+        if not where: where=''
         return SQLSet(self,where)
 
 class SQLALL(object):
