@@ -1182,6 +1182,12 @@ def parse_tablenames(text):
     for item in items: tables[item]=True
     return tables.keys()        
 
+def xorify(orderby):
+    if not orderby: return None
+    orderby2=orderby[0]
+    for item in orderby[1:]: orderby2=orderby2|item
+    return orderby2
+
 class SQLSet(object):
     """
     sn SQLSet represents a set of records in the database,
@@ -1246,14 +1252,11 @@ class SQLSet(object):
                 sql_o+=' HAVING %s'% attributes['having']
         orderby=attributes.get('orderby',False)
         if orderby:
-            if isinstance(orderby,(list,tuple)):
-                orderby2=orderby[0]
-                for item in orderby[1:]: orderby2=orderby2|item
-                orderby=orderby2
+            if isinstance(orderby,(list,tuple)): orderby=xorify(orderby)
             if str(orderby)=='<random>':
                 sql_o+=' ORDER BY %s' % self._db._translator['random']
             else:
-                sql_o+=' ORDER BY %s' % attributes['orderby']
+                sql_o+=' ORDER BY %s' % orderby
         if attributes.get('limitby',False):
             ### oracle does not support limitby
             lmin,lmax=attributes['limitby']

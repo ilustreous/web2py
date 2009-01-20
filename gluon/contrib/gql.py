@@ -440,9 +440,7 @@ class SQLSet(object):
         orderby=attributes.get('orderby',False)
         if orderby:
             if isinstance(orderby,(list,tuple)):
-                orderby2=orderby[0]
-                for item in orderby[1:]: orderby2=orderby2|item
-                orderby=orderby2
+                orderby=gluon.sql.xorify(orderby)
             assert_filter_fields(orderby)
             orders = orderby.name.split("|")   
             for order in orders:
