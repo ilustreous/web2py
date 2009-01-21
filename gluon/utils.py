@@ -796,7 +796,7 @@ class Crud(object):
         self.messages=Storage()
     def __call__(self):
         args=self.environment.request.args
-        if len(args)<1: raise HTTP(404)
+        if len(args)<1: redirect(URL(r=self.environment.request,args='tables'))
         elif args[0]=='tables' and self.has_permission(*args): return self.tables()
         elif len(args)<2: raise HTTP(404)
         elif args[0]=='create' and self.has_permission(*args): return self.create(args[1])
