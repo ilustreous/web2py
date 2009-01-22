@@ -311,11 +311,11 @@ def delete_uploaded_files(table,records,fields=True):
     for record in records:
         for fieldname in fields:
             if table[fieldname].type=='upload' and \
-               table[fieldname].uploadfield==True and \
-               record.get(fieldname,None):
-                oldname=os.path.join(table._db._folder,
-                        '../uploads/',record[fieldname])
-                if os.path.exists(oldname): os.unlink(oldname)
+               table[fieldname].uploadfield==True:
+                oldname=record.get(fieldname,None)
+                if not oldname: continue
+                oldpath=os.path.join(table._db._folder,'..','uploads',oldname)
+                if os.path.exists(oldpath): os.unlink(oldpath)
 
 def cleanup(text):
     if re.compile('[^0-9a-zA-Z_]').findall(text):

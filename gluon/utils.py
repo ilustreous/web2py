@@ -828,7 +828,7 @@ class Crud(object):
             if not table in self.db.tables: raise HTTP(404)
             table=self.db[table]
         form=SQLFORM(table,record)      
-        if form.accepts(request.vars,session):
+        if form.accepts(request.vars,session,delete_uploads=True):
             session.flash=self.messages.record_updated
             if self.settings.on_update: self.setting.on_update(form)
             redirect('../../select/%s' % table)
@@ -845,7 +845,7 @@ class Crud(object):
         if isinstance(table,str):
             if not table in self.db.tables: raise HTTP(404)
             table=self.db[table]
-        self.db(table.id==record_id).delete()
+        self.db(table.id==record_id).delete(delete_uploads=True)
         if self.settings.on_delete: self.setting.on_delete(record_id)
         redirect('../../select/%s' % table)
     def select(self,table,query=None,fields=None,orderby=None,limitby=None):
