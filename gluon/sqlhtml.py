@@ -84,7 +84,7 @@ class PasswordWidget:
     @staticmethod
     def widget(field,value):
         id='%s_%s' % (field._tablename,field.name)
-        if value: value='******'
+        if value: value='********'
         return INPUT(_type='password', _id=id,
                       _name=field.name,_value=value,_class=field.type,
                       requires=field.requires)
@@ -323,13 +323,14 @@ class SQLFORM(FORM):
                        fields[fieldname]=float(fields[fieldname])
             for fieldname in vars:
                 if fieldname!='id' and fieldname in self.table.fields and \
-                   not fieldname in fields: fields[fieldname]=vars[fieldname]
+                   not fieldname in fields and not fieldname in raw_vars:
+                       fields[fieldname]=vars[fieldname]
             if request_vars.has_key('id'):
                 if request_vars['id']!=self.record_id:
                     raise SyntaxError, "user is tampering with form"
                 id=int(request_vars['id'])
-                self.table._db(self.table.id==id).update(**fields)
-            else: 
+                if fields: self.table._db(self.table.id==id).update(**fields)
+            else:
                 self.vars.id=self.table.insert(**fields)                
         return ret
 
