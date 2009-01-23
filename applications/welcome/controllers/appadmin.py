@@ -91,7 +91,6 @@ def download():
     import os
     db=get_database(request)
     filename=request.args[1]
-    print filename
     ### for GAE only ###
     table,field=filename.split('.')[:2]
     if table in db.tables and field in db[table].fields:

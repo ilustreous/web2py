@@ -376,3 +376,10 @@ then controller
 - 'id' is now a hidden field sqlform
 - gql references converted to long
 - admin login has autofocus
+
+new notation proposed by Robin, db.table[id]
+
+new UploadWidget shows images
+
+new generic.html shows request, response, session
+

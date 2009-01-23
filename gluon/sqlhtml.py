@@ -5,8 +5,8 @@ License: GPL v2
 """
 
 import urllib, re, sys, os, uuid, shutil, cStringIO
-from html import FORM,INPUT,TEXTAREA,SELECT,OPTION,TABLE,TR,TD,TH,A,B,DIV,LABEL,ON,TAG,THEAD,TBODY,B
-from validators import IS_IN_SET, IS_NOT_IN_DB, CRYPT, IS_NULL_OR
+from html import *
+from validators import *
 from sql import SQLStorage, SQLDB, delete_uploaded_files
 from storage import Storage
 
@@ -96,9 +96,19 @@ class UploadWidget:
         inp=INPUT(_type='file',_id=id,_class=field.type,
                   _name=field.name, requires=field.requires)
         if download_url and value:
-            inp=DIV(inp,'[',A('file',_href=download_url+'/'+value),'|',
-                INPUT(_type='checkbox',_name=field.name+'__delete'),'delete]')
+            url=download_url+'/'+value
+            br,image='',''
+            if UploadWidget.is_image(value):
+                br,image=BR(),IMG(_src=url,_width="150px")
+            inp=DIV(inp,'[',A('file',_href=url),'|',
+                INPUT(_type='checkbox',_name=field.name+'__delete'),'delete]',
+                br,image)
         return inp
+    @staticmethod
+    def is_image(value):
+        extension=value.split('.')[-1].lower()
+        if extension in ['gif','png','jpg','jpeg','bmp']: return True
+        return False
 
 class SQLFORM(FORM):
     """
@@ -244,13 +254,15 @@ class SQLFORM(FORM):
         if deleted, all uploaded files, linked by this record will be deleted.
         """
         if formname: formname=formname % dict(tablename=self.table._tablename)
-        raw_vars=dict(vars.items())
+        record_id=vars.get('id',None)
+        if isinstance(record_id,(list,tuple)): record_id=record_id[0]
+        if record_id and record_id!=self.record_id: 
+             raise SyntaxError, "user is tampering with form"
+        raw_vars=dict(vars.items())        
         request_vars=vars
-        if vars.get('delete_this_record',False) and vars.has_key('id'):
-            if vars['id']!=self.record_id:
-                raise SyntaxError, "user is tampering with form"
+        if vars.get('delete_this_record',False):
             if delete_uploads: delete_uploaded_files(self.table,[self.record])
-            self.table._db(self.table.id==int(vars['id'])).delete()
+            self.table._db(self.table.id==record_id).delete()
             return True
         else:
             ### THIS IS FOR UNIQUE RECORDS, read IS_NOT_IN_DB            
@@ -324,12 +336,9 @@ class SQLFORM(FORM):
             for fieldname in vars:
                 if fieldname!='id' and fieldname in self.table.fields and \
                    not fieldname in fields and not fieldname in raw_vars:
-                       fields[fieldname]=vars[fieldname]
-            if request_vars.has_key('id'):
-                if request_vars['id']!=self.record_id:
-                    raise SyntaxError, "user is tampering with form"
-                id=int(request_vars['id'])
-                if fields: self.table._db(self.table.id==id).update(**fields)
+                       fields[fieldname]=vars[fieldname]            
+            if record_id:
+                if fields: self.table[record_id]=fields
             else:
                 self.vars.id=self.table.insert(**fields)                
         return ret
