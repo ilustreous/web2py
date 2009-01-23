@@ -269,7 +269,7 @@ class SQLFORM(FORM):
                     field=self.table[fieldname]
                     if hasattr(field,'widget') and field.widget and \
                         vars.has_key(fieldname):
-                         self.trows[fieldname][1][0][0]=field.widget(field,vars[fieldname])
+                         self.trows[fieldname][1][0].components=[field.widget(field,vars[fieldname])]
                 return ret
             vars=self.vars
             for fieldname in self.fields:

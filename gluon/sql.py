@@ -694,7 +694,12 @@ class SQLJoin(object):
     def __str__(self):
         return '%s ON %s' % (self.table,self.query)
 
-class SQLTable(SQLStorage):
+def is_integer(x):
+    try: long(x)
+    except ValueError: return False
+    return True
+
+class SQLTable(dict):
     """
     an instance of this class represents a database table
     Example:
@@ -727,6 +732,25 @@ class SQLTable(SQLStorage):
             field._table=self
             field._db=self._db
         self.ALL=SQLALL(self)
+    def __getitem__(self, key):
+        if is_integer(key):
+            return self._db(self.id==key).select()[0]
+        return dict.__getitem__(self,str(key))
+    def __setitem__(self, key,value):
+        if is_integer(key):
+            value=[(k,v) for k,v in value.items() if k in self.fields and k!='id']
+            self._db(self.id==key).update(**dict(value))
+        dict.__setitem__(self,str(key),value)
+    def __delitem__(self, key):
+        if not is_integer(key) or not self._db(self.id==key).delete():
+            raise SyntaxError, "No such record"
+    def __getattr__(self, key):
+        return self[key]
+    def __setattr__(self, key, value):
+        if self.has_key(key):
+            raise SyntaxError, 'Object exists and cannot be redefined'
+        self[key] = value
+    def __repr__(self): return '<SQLSTable ' + dict.__repr__(self) + '>'
     def __str__(self):
         if self.get('_ot',None):
             return '%s AS %s' % (self._ot,self._tablename)
