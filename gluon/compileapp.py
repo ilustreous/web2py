@@ -250,6 +250,10 @@ def remove_compiled_application(folder):
         path=os.path.join(folder,'compiled/')
         for file in listdir(path): os.unlink(os.path.join(path,file))
         os.rmdir(path)
+        path=os.path.join(folder,'controllers/')
+        for file in os.listdir(path):
+             if file.endswith('.pyc'):
+                  os.unlink(os.path.join(path,file))
     except OSError: pass
 
 def compile_application(folder):
