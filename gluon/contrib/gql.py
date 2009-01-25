@@ -169,7 +169,7 @@ class SQLTable(gluon.sql.SQLTable):
                 if not self._db.has_key(referenced):
                     raise SyntaxError, 'SQLTable: table does not exist'
                 referee=self._db[referenced]
-                ftype=self._db._translator[field.type[:9]](self._db[referenced]._tableobj)
+                ftype=self._db._translator[field.type[:9]](self._db[referenced])
                 if self._tablename in referee.fields:  ### THIS IS OK
                     raise SyntaxError, 'SQLField: table name has same name as a field in referenced table'
                 self._db[referenced]._referenced_by.append((self._tablename,field.name))
@@ -603,13 +603,12 @@ class SQLRows(gluon.sql.SQLRows):
 def test_all():
     """
     How to run from web2py dir:
-     export PYTHONPATH=.:YOUR_PLATFORMS_APPENGINE_PATH
-     eg. on OSX:
-       echo $PYTHONPATH 
-       .:/Applications/GoogleAppEngineLauncher.app/Contents/Resources/GoogleAppEngine-default.bundle/Contents/Resources/google_appengine
-    python gluon/contrib/gql.py 
+    eg. OSX:
+     export PYTHONPATH=.:/usr/local/google_appengine
+     python gluon/contrib/gql.py 
+    no output means all tests passed
 
-    Setup the UTC timezone and database stubs       
+    Setup the UTC timezone and database stubs
 
     >>> import os
     >>> os.environ['TZ'] = 'UTC'
@@ -621,7 +620,7 @@ def test_all():
     >>>
     >>> from google.appengine.api import apiproxy_stub_map 
     >>> from google.appengine.api import datastore_file_stub
-    >>> apiproxy_stub_map.apiproxy = apiproxy_stub_map.APIProxyStubMap()       
+    >>> apiproxy_stub_map.apiproxy = apiproxy_stub_map.APIProxyStubMap()
     >>> apiproxy_stub_map.apiproxy.RegisterStub('datastore_v3',\
             datastore_file_stub.DatastoreFileStub('doctests_your_app_id', '/dev/null', '/dev/null'))
 
@@ -738,15 +737,18 @@ def test_all():
     >>> db(db.posts.id>0).count() == many + 1
     True
     >>> db(db.posts.id==post_id).delete()
+    1
     >>> db(db.posts.id>0).count() == many
     True
 
     >>> id = db.posts.insert(total='0')   # coerce str to integer 
-    >>> db(db.posts.id==id).delete() 
+    >>> db(db.posts.id==id).delete()
+    1
     >>> db(db.posts.id > 0).count() == many 
     True
     >>> set=db(db.posts.id>0)  
     >>> set.update(total=0)                # update entire set
+    20
     >>> db(db.posts.total == 0).count() == many 
     True
 
@@ -767,7 +769,8 @@ def test_all():
     >>> me=db(db.person.id==person_id).select()[0] # test select
     >>> me.name
     'Massimo'
-    >>> db(db.person.name=='Massimo').update(name='massimo') # test update   
+    >>> db(db.person.name=='Massimo').update(name='massimo') # test update
+    1
     >>> me = db(db.person.id==person_id).select()[0]
     >>> me.name
     'massimo'
@@ -780,6 +783,7 @@ def test_all():
     >>> me.birth
     datetime.date(1971, 12, 21)
     >>> db(db.person.name=='Marco').delete() # test delete
+    1
     >>> len(db().select(db.person.ALL))
     1
 
@@ -918,6 +922,22 @@ def test_all():
     >>> db.authorship.drop()
     >>> db.author.drop()
     >>> db.paper.drop()
+    
+    # self reference
+    
+    >>> tmp = db.define_table('employees',
+    ...   SQLField('name'),
+    ...   SQLField('email'),
+    ...   SQLField('phone'),
+    ...   SQLField('foto','upload'),
+    ...   SQLField('manager','reference employees')
+    ...   )
+    >>> id1=db.employees.insert(name='Barack')
+    >>> id2=db.employees.insert(name='Hillary',manager=id1)
+    >>> barack = db.employees[id1]
+    >>> hillary = db.employees[id2]
+    >>> hillary.manager == barack.id
+    True
     """
 
 if __name__=='__main__':

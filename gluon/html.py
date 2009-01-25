@@ -12,7 +12,7 @@ import sanitizer
 
 regex_crlf=re.compile('\r|\n')
 
-__all__=['A', 'B', 'BEAUTIFY', 'BODY', 'BR', 'CENTER', 'CODE', 'DIV', 'EM', 'EMBED', 'FIELDSET', 'FORM', 'H1', 'H2', 'H3', 'H4', 'H5', 'H6', 'HEAD', 'HR', 'HTML', 'IFRAME', 'IMG', 'INPUT', 'LABEL', 'LI', 'LINK', 'OL', 'UL', 'META', 'OBJECT', 'ON', 'OPTION', 'P', 'PRE', 'SCRIPT', 'SELECT', 'SPAN', 'STYLE', 'TABLE', 'TAG', 'TD', 'TEXTAREA', 'TH', 'THEAD', 'TBODY', 'TFOOT', 'TITLE', 'TR', 'TT', 'URL', 'XML', 'xmlescape', 'embed64']
+__all__=['A', 'B', 'BEAUTIFY', 'BODY', 'BR', 'CENTER', 'CODE', 'DIV', 'EM', 'EMBED', 'FIELDSET', 'FORM', 'H1', 'H2', 'H3', 'H4', 'H5', 'H6', 'HEAD', 'HR', 'HTML', 'IFRAME', 'IMG', 'INPUT', 'LABEL', 'LEGEND', 'LI', 'LINK', 'OL', 'UL', 'META', 'OBJECT', 'ON', 'OPTION', 'P', 'PRE', 'SCRIPT', 'SELECT', 'SPAN', 'STYLE', 'TABLE', 'TAG', 'TD', 'TEXTAREA', 'TH', 'THEAD', 'TBODY', 'TFOOT', 'TITLE', 'TR', 'TT', 'URL', 'XML', 'xmlescape', 'embed64']
 
 def xmlescape(data,quote=False):
     try: 
@@ -469,6 +469,8 @@ class SELECT(INPUT):
                     else: c['_selected']=None
 
 class FIELDSET(DIV): tag='fieldset'
+
+class LEGEND(DIV): tag='legend'
 
 class FORM(DIV): 
     """
