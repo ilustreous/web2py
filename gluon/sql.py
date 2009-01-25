@@ -734,7 +734,9 @@ class SQLTable(dict):
         self.ALL=SQLALL(self)
     def __getitem__(self, key):
         if is_integer(key):
-            return self._db(self.id==key).select()[0]
+            rows=self._db(self.id==key).select()
+            if rows: return rows[0]
+            return None
         return dict.__getitem__(self,str(key))
     def __setitem__(self, key,value):
         if is_integer(key):
