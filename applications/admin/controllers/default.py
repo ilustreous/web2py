@@ -284,14 +284,21 @@ def edit():
     ### check if file is not there
     path=apath(filename)
     if request.vars.restore and os.path.exists(path+'.bak'):
-        data=open(path+'.bak','r').read()
-        data1=open(path,'r').read()
+        try:
+            data=open(path+'.bak','r').read()
+            data1=open(path,'r').read()
+        except IOError:
+            session.flash='Invalid action' 
+            redirect(URL(r=request,f='site'))
         file_hash=md5.new(data).hexdigest()
         open(path,'w').write(data)
         open(path+".bak",'w').write(data1)
         response.flash=T('file "%s" restored',filename)
     else:
-        data=open(path,'r').read()
+        try: data=open(path,'r').read()
+        except IOError:
+            session.flash='Invalid action' 
+            redirect(URL(r=request,f='site'))
         file_hash=md5.new(data).hexdigest()    
         if request.vars.file_hash and request.vars.file_hash!=file_hash: 
             session.flash=T("file changed on disk")
