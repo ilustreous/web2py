@@ -383,3 +383,12 @@ new UploadWidget shows images
 
 new generic.html shows request, response, session
 
+new LEGEND helper (thanks Marcus)
+
+fixed doctests in sql (thanks Robin)
+
+new notation for DB
+
+record=db.table[id]
+db.table[id]=dict(...)
+del db.table[i]
