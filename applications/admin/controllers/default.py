@@ -102,7 +102,7 @@ def index():
 
 def check_version():
     try:
-         myversion=open(apath('../VERSION'),'r').read()
+         myversion=request.env.web2py_version
          version=urllib.urlopen(WEB2PY_VERSION_URL).read()
          if version>myversion: 
              return A(T('A new version of web2py is available'),_href=WEB2PY_URL)
@@ -118,7 +118,7 @@ def logout():
 
 def site():
     """ admin controller function """
-    myversion=open(apath('../VERSION'),'r').read()
+    myversion=request.env.web2py_version
     if request.vars.filename and not request.vars.has_key('file'):
         try:
             appname=cleanpath(request.vars.filename).replace('.','_')

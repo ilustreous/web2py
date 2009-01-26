@@ -42,7 +42,8 @@ regex_url=re.compile('(?:^$)|(?:^\w+/?$)|(?:^\w+/[\w\-]+/?$)|(?:^\w+/[\w\-]+/\w+
 # patter used to validate client address
 regex_client=re.compile('[\w\-:]+(\.[\w\-]+)*\.?') ### to account for IPV6
 
-working_folder=os.getcwd()
+web2py_path=os.environ.get('web2py_path',os.getcwd())
+web2py_version=open(os.path.join(web2py_path,'VERSION'),'r').read()
 
 def get_client(env):
     g=regex_client.search(env.get('http_x_forwarded_for',''))
@@ -115,8 +116,8 @@ def wsgibase(environ, responder):
             ###################################################
             for key, value in environ.items():
                 request.env[key.lower().replace('.','_')]=value
-            if not request.env.web2py_path:
-                request.env.web2py_path=working_folder
+            request.env.web2py_path=web2py_path
+            request.env.web2py_version=web2py_version
             ###################################################
             # valudate the path in url
             ###################################################
@@ -288,7 +289,7 @@ def save_password(password,port):
     else: file.write('password=None\n')
     file.close()
 
-def appfactory(wsgiapp=wsgibase,logfilename='httpsever.log',web2py_path=working_folder):
+def appfactory(wsgiapp=wsgibase,logfilename='httpsever.log',web2py_path=web2py_path):
     def app_with_logging(environ, responder):
         environ['web2py_path']=web2py_path
         status_headers=[]
@@ -317,7 +318,7 @@ class HttpServer(object):
                  request_queue_size=5,
                  timeout=10,
                  shutdown_timeout=5,
-                 path=working_folder):
+                 path=web2py_path):
         """
         starts the web server.
         """
