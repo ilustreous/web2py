@@ -1,6 +1,7 @@
 #########################################################################
 ## This scaffolding model makes your app work on Google App Engine too   
 #########################################################################
+
 try:
     from gluon.contrib.gql import *         # if running on Google App Engine
 except:
