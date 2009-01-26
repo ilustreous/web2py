@@ -6,7 +6,7 @@ License: GPL v2
 
 import cPickle, portalocker
 
-__all__=['Storage','load_storage','save_storage']
+__all__=['Storage','Settings','load_storage','save_storage']
 
 class Storage(dict):
     """
@@ -55,3 +55,11 @@ def save_storage(storage,filename):
     cPickle.dump(dict(storage),file)
     portalocker.unlock(file)    
     file.close()
+
+class Settings(Storage):
+    def __setattr__(self,key,value):
+        if key!='lock_keys' and self.lock_keys and not self.has_key(key):
+            raise SyntaxError, "setting key does not exist"
+        if key!='lock_values' and self.lock_values:
+            raise SyntaxError, "setting value cannot be changed"
+        self[key]=value
