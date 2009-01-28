@@ -576,13 +576,17 @@ class BEAUTIFY(DIV):
                     components.append(TABLE(*rows,**attributes))
                     continue
                 except: pass
-            if isinstance(c,(list,tuple)):
+            if isinstance(c,str):
+                components.append(str(c))
+            elif isinstance(c,unicode):
+                components.append(c.encode('utf8'))
+            elif isinstance(c,(list,tuple)):
                 items=[TR(TD(BEAUTIFY(item,**attributes))) for item in c]
                 components.append(TABLE(*items,**attributes))
-                continue
-            elif isinstance(c,str): components.append(str(c))
-            elif isinstance(c,unicode): components.append(c.encode('utf8'))
-            else: components.append(repr(c))
+            elif isinstance(c,cgi.FieldStorage):
+                components.append('FieldStorage object')
+            else: 
+                components.append(repr(c))
         self.components=components
 
 def embed64(filename=None,file=None,data=None,extension='image/gif'):

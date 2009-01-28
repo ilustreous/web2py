@@ -306,17 +306,6 @@ def sql_represent(obj,fieldtype,dbname):
         obj=str(obj)
     return "'%s'" % obj.replace("'","''")
 
-def delete_uploaded_files(table,records,fields=True):
-    if fields==True: fields=table.fields
-    for record in records:
-        for fieldname in fields:
-            if table[fieldname].type=='upload' and \
-               table[fieldname].uploadfield==True:
-                oldname=record.get(fieldname,None)
-                if not oldname: continue
-                oldpath=os.path.join(table._db._folder,'..','uploads',oldname)
-                if os.path.exists(oldpath): os.unlink(oldpath)
-
 def cleanup(text):
     if re.compile('[^0-9a-zA-Z_]').findall(text):
         raise SyntaxError, 'only [0-9a-zA-Z_] allowed in table and field names'
@@ -1045,7 +1034,7 @@ class SQLField(SQLXorable):
 
     example:
 
-    a=SQLField(name,'string',length=32,required=False,default=None,requires=IS_NOT_EMPTY(),notnull=False,unique=False,uploadfield=True,widget=None,label=None,comment=None,writable=True,readable=True,update=None,authorize=None)
+    a=SQLField(name,'string',length=32,required=False,default=None,requires=IS_NOT_EMPTY(),notnull=False,unique=False,uploadfield=True,widget=None,label=None,comment=None,writable=True,readable=True,update=None,authorize=None,autodelete=False)
     
     to be used as argument of SQLDB.define_table
 
@@ -1064,7 +1053,7 @@ class SQLField(SQLXorable):
                  notnull=False,unique=False,uploadfield=True,
                  widget=None,label=None,comment=None,
                  writable=True,readable=True,update=None,
-                 authorize=None):
+                 authorize=None,autodelete=False):
         self.name=fieldname=cleanup(fieldname)
         if fieldname in dir(SQLTable) or fieldname[0]=='_':
             raise SyntaxError, 'SQLField: invalid field name'
@@ -1087,6 +1076,7 @@ class SQLField(SQLXorable):
         self.readable=readable
         self.update=update
         self.authorize=None
+        self.autodelete=autodelete
         if self.label==None:
             self.label=' '.join([x.capitalize() for x in fieldname.split('_')])
         if requires==sqlhtml_validators: requires=sqlhtml_validators(type,length)
@@ -1334,10 +1324,9 @@ class SQLSet(object):
         if self.sql_w: sql_w=' WHERE '+self.sql_w
         else: sql_w=''
         return 'DELETE FROM %s%s;' % (tablename,sql_w)
-    def delete(self,delete_uploads=False):
+    def delete(self):
         query=self._delete()
-        if delete_uploads:
-            delete_uploaded_files(self._db[self._tables[0]],self.select())
+        self.delete_uploaded_files()
         self._db['_lastsql']=query
         self._db._execute(query)
         try: return self._db._cursor.rowcount
@@ -1353,12 +1342,29 @@ class SQLSet(object):
         if self.sql_w: sql_w=' WHERE '+self.sql_w
         else: sql_w=''
         return 'UPDATE %s %s%s;' % (sql_t,sql_v,sql_w)
-    def update(self,**update_fields):        
+    def update(self,**update_fields):
         query=self._update(**update_fields)
+        self.delete_uploaded_files(update_fields)
         self._db['_lastsql']=query
         self._db._execute(query)
         try: return self._db._cursor.rowcount
         except: return None
+    def delete_uploaded_files(self,upload_fields=None):
+        table=self._db[self._tables[0]]
+        ### mind uploadfield==True means file is not in DB
+        if upload_fields: fields=upload_fields.keys()
+        else: fields=table.fields
+        fields=[f for f in fields if table[f].type=='upload' and \
+                                     table[f].uploadfield==True and \
+                                     table[f].autodelete]
+        if not fields: return
+        for record in self.select(*[table[f] for f in fields]):
+            for fieldname in fields:
+                oldname=record.get(fieldname,None)
+                if not oldname: continue
+                if upload_fields and  oldname==upload_fields[fieldname]: continue
+                oldpath=os.path.join(self._db._folder,'..','uploads',oldname)
+                if os.path.exists(oldpath): os.unlink(oldpath)
 
 def update_record(t,s,a):
     s.update(**a)

@@ -234,7 +234,7 @@ class SQLField(SQLXorable):
 
     example:
 
-    a=SQLField(name,'string',length=32,required=False,default=None,requires=IS_NOT_EMPTY(),notnull=False,unique=False,uploadfield=True,widget=None,label=None,comment=None,writable=True,readable=True,update=None,authorize=None)
+    a=SQLField(name,'string',length=32,required=False,default=None,requires=IS_NOT_EMPTY(),notnull=False,unique=False,uploadfield=True,widget=None,label=None,comment=None,writable=True,readable=True,update=None,authorize=None,autodelete=False)
     
     to be used as argument of GQLDB.define_table
 
@@ -253,7 +253,7 @@ class SQLField(SQLXorable):
                  notnull=False,unique=False,uploadfield=True,
                  widget=None,label=None,comment=None,
                  writable=True,readable=True,update=None,
-                 authorize=None):
+                 authorize=None,autodelete=False):
         self.name=fieldname=cleanup(fieldname)
         if fieldname in dir(SQLTable) or fieldname[0]=='_':
             raise SyntaxError, 'SQLField: invalid field name'
@@ -276,6 +276,7 @@ class SQLField(SQLXorable):
         self.readable=readable
         self.update=update
         self.authorize=authorize
+        self.autodelete=autodelete
         if self.label==None:
             self.label=' '.join([x.capitalize() for x in fieldname.split('_')])
         if requires==sqlhtml_validators: requires=sqlhtml_validators(type,length)
@@ -488,7 +489,7 @@ class SQLSet(object):
     def count(self):
         self._db['_lastsql']='count'
         return len(self.select())
-    def delete(self,delete_uploads=False):
+    def delete(self)
         self._db['_lastsql']='delete'
         if isinstance(self.where,QueryException):
             item,tablename,fields=self._getitem_exception()

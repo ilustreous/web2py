@@ -7,7 +7,7 @@ License: GPL v2
 import urllib, re, sys, os, uuid, shutil, cStringIO
 from html import *
 from validators import *
-from sql import SQLStorage, SQLDB, delete_uploaded_files
+from sql import SQLStorage, SQLDB
 from storage import Storage
 
 table_field=re.compile('[\w_]+\.[\w_]+')
@@ -247,7 +247,7 @@ class SQLFORM(FORM):
             if not self['hidden']: self['hidden']={}
             self['hidden']['id']=record['id']
         self.components=[TABLE(*xfields)]
-    def accepts(self,vars,session=None,formname='%(tablename)s',keepvalues=False,delete_uploads=False,onvalidation=None):
+    def accepts(self,vars,session=None,formname='%(tablename)s',keepvalues=False,onvalidation=None):
         """
         same as FORM.accepts but also does insert, update or delete in SQLDB
         one additional option is delete_uplaods. If set True and record
@@ -261,7 +261,6 @@ class SQLFORM(FORM):
         raw_vars=dict(vars.items())        
         request_vars=vars
         if vars.get('delete_this_record',False):
-            if delete_uploads: delete_uploaded_files(self.table,[self.record])
             self.table._db(self.table.id==record_id).delete()
             return True
         else:
@@ -320,8 +319,6 @@ class SQLFORM(FORM):
                         fields[fieldname]=''
                     else: 
                         fields[fieldname]=self.record[fieldname]
-                    if delete_uploads and (f!='' or vars.get(fd,False)):
-                        delete_uploaded_files(self.table,[self.record],[fieldname])
                     continue
                 elif vars.has_key(fieldname): fields[fieldname]=vars[fieldname]
                 elif field.default==None:
@@ -338,6 +335,7 @@ class SQLFORM(FORM):
                    not fieldname in fields and not fieldname in raw_vars:
                        fields[fieldname]=vars[fieldname]            
             if record_id:
+                self.vars.id=self.record.id
                 if fields: self.table[record_id]=fields
             else:
                 self.vars.id=self.table.insert(**fields)                
