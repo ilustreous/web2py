@@ -107,8 +107,9 @@ def run(appname, plain=False, import_models=False, startfile=None):
         if not os.path.isfile(cfile): die(errmsg)
         execfile(cfile, _env)
 
-    
-    if startfile:
+    if f:
+        exec('print %s()' % f,_env)
+    elif startfile:
         exec_pythonrc()
         try: execfile(startfile, _env)
         except RestrictedError, e: print e.traceback

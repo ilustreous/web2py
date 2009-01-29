@@ -215,8 +215,8 @@ def run_controller_in(controller,function,environment):
 
 def run_view_in(environment):
     """ 
-    exectutes the view in resposne.view or generic.html.
-    it tries the precompiled views_controller_funciton.pyc first.
+    executes the view in response.view or generic.html.
+    it tries the precompiled views_controller_function.pyc first.
     """
     folder=environment['request'].folder
     response=environment['response']
