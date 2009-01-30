@@ -489,7 +489,7 @@ class SQLSet(object):
     def count(self):
         self._db['_lastsql']='count'
         return len(self.select())
-    def delete(self)
+    def delete(self):
         self._db['_lastsql']='delete'
         if isinstance(self.where,QueryException):
             item,tablename,fields=self._getitem_exception()
