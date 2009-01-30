@@ -311,6 +311,12 @@ def edit():
             open(path,'w').write(data)
             file_hash=md5.new(data).hexdigest()    
             response.flash=T("file saved on %(time)s",dict(time=time.ctime()))
+    if (request.vars.data or request.vars.restore) and request.args[1]=='modules':
+        try:
+            mopath='.'.join(request.args[2:])[:-3]
+            exec('import applications.%s.modules.%s' % (request.args[0],mopath))
+            reload(sys.modules['applications.%s.modules.%s' % (request.args[0],mopath)])
+        except: response.flash=T('failed to reload module')
     edit_controller=None
     if filetype=='html' and request.args>=3:
         cfilename=os.path.join(request.args[0],'controllers',request.args[2]+'.py')
