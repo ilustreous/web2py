@@ -47,7 +47,7 @@ else:
 # mail.settings.sender='you@gmail.com'         # your email
 # mail.settings.login='username:password'      # your credentials
 # auth=Auth(globals(),db)                      # authentication/authorization
-# auth.setting.mailer=mail                     # for user email verification
+# auth.settings.mailer=mail                     # for user email verification
 # auth.define_tables()                         # creates all needed tables  
 # crud=Crud(globals(),db)                      # for CRUD helpers using auth
 # crud.settings.auth=auth          # (optional) enforces authorization on crud
