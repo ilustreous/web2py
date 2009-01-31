@@ -813,6 +813,11 @@ class Auth(object):
         log=self.settings.del_group_log
         if log: self.log_event(log % dict(group_id=group_id))
 
+    def id_group(self,role):
+        rows=db(self.settings.table_group.role==role).select()
+        if not rows: return None
+        return rows[0].id
+
     def has_membership(self,group_id,user_id=None): 
         """
         checks if user is member of group_id
