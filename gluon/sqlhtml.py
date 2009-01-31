@@ -105,6 +105,17 @@ class UploadWidget:
                 br,image)
         return inp
     @staticmethod
+    def represent(field,value,download_url=None):
+        id='%s_%s' % (field._tablename,field.name)
+        inp='file'
+        if download_url and value:
+            url=download_url+'/'+value
+            br,image='',''
+            if UploadWidget.is_image(value):
+                br,image=BR(),IMG(_src=url,_width="150px")
+            inp=DIV(A('file',_href=url),br,image)
+        return inp
+    @staticmethod
     def is_image(value):
         extension=value.split('.')[-1].lower()
         if extension in ['gif','png','jpg','jpeg','bmp']: return True
@@ -158,7 +169,7 @@ class SQLFORM(FORM):
     def __init__(self,table,record=None,deletable=False,
                  linkto=None,upload=None,fields=None,labels=None,col3={},
                  submit_button='Submit', delete_label='Check to delete:', 
-                 showid=True, readonly=False, **attributes):
+                 showid=True, readonly=False, comments=True,**attributes):
         """
         SQLFORM(db.table,
                record=None,
@@ -184,7 +195,8 @@ class SQLFORM(FORM):
         for fieldname in self.fields:
             if fieldname.find('.')>=0: continue
             field=self.table[fieldname]
-            comment=col3.get(fieldname,field.comment or '')
+            if comments: comment=col3.get(fieldname,field.comment or '')
+            else: comment=''
             if labels!=None and labels.has_key(fieldname):
                 label=labels[fieldname]
             else:
@@ -204,8 +216,14 @@ class SQLFORM(FORM):
             else: default=field.default
             if not readonly and default: default=field.formatter(default)
             if readonly:
+                ### if field.represent is available else
+                ### ignore blob, password and preview uploaded images
+                ### format everything else
                 if field.represent: inp=field.represent(default)
-                else: inp=field.formatter(default)            
+                elif field.type in ['password','blob']: continue
+                elif field.type=='upload':
+                    inp=UploadWidget.represent(field,default,upload)
+                else: inp=field.formatter(default)
             elif hasattr(field,'widget') and field.widget:
                 inp=field.widget(field,default)
             elif field.type=='upload':

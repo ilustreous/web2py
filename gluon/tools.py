@@ -1,4 +1,4 @@
-import uuid, datetime
+import uuid, datetime, re
 from gluon.storage import Storage, Settings
 from gluon.validators import *
 from gluon.html import *
@@ -472,6 +472,7 @@ class Auth(object):
         if log:
             self.log_event(log % self.user) 
         self.environment.session.auth=None
+        self.environment.session.flash=self.messages.logged_out
         redirect(next or self.settings.next)
 
     def register(self,next=DEFAULT,onvalidation=DEFAULT,
@@ -906,27 +907,31 @@ class Crud(object):
     def __init__(self,environment,db):
         self.environment=Storage(environment)
         self.db=db
+        request=self.environment.request
         self.settings=Settings()
         self.settings.auth=None
         self.settings.logger=None
         self.settings.submit_button='Submit'
         self.settings.delete_label='Check to delete:'
-        self.settings.update_log='Record %(id)s created'
+        self.settings.update_log='Record %(id)s updated'
         self.settings.create_log='Record %(id)s created'
         self.settings.read_log='Record %(id)s read'
         self.settings.delete_log='Record %(id)s deleted'
 
-        self.settings.create_next=None
-        self.settings.update_next=None
-        self.settings.delete_next=None
+        self.settings.create_next=URL(r=request)
+        self.settings.update_next=URL(r=request)
+        self.settings.delete_next=URL(r=request)
         self.settings.create_onvalidation=None
         self.settings.update_onvalidation=None
         self.settings.create_onaccept=None
         self.settings.update_onaccept=None
-        self.settings.delete_ondelete=None
+        self.settings.delete_onaccept=None
+        self.settings.showid=False
         self.settings.lock_keys=True
         self.messages=Storage()
+        self.messages.record_created="Record Created"
         self.messages.record_updated="Record Updated"
+        self.messages.record_deleted="Record Deleted"
         self.messages.lock_keys=True
     def __call__(self):
         args=self.environment.request.args
@@ -961,31 +966,34 @@ class Crud(object):
                        for name in self.db.tables])
 
     def update(self,table,record,next=DEFAULT,onvalidation=DEFAULT,
-                          onaccept=DEFAULT,log=DEFAULT):
+                          onaccept=DEFAULT,log=DEFAULT,message=DEFAULT):
         request=self.environment.request
         session=self.environment.session
         if not request.vars._next:
             request.vars._next=request.env.http_referer or ''
         if next==DEFAULT:
-             next=request.vars._next or self.settings.create_next
+             next=request.vars._next or self.settings.update_next
         if onvalidation==DEFAULT:
-             onvalidation=self.settings.create_onvalidation
+             onvalidation=self.settings.update_onvalidation
         if onaccept==DEFAULT:
-             onaccept=self.settings.create_onaccept
+             onaccept=self.settings.update_onaccept
         if log==DEFAULT:
-             log=self.settings.create_log
+             log=self.settings.update_log
+        if message==DEFAULT:
+            message=self.messages.record_updated
         if isinstance(table,str):
             if not table in self.db.tables: raise HTTP(404)
             table=self.db[table]
         if not request.vars._next:
             request.vars._next=request.env.http_referer or ''
         form=SQLFORM(table,record,
+                     upload=URL(r=request,f='download'),
                      hidden=dict(_next=request.vars._next),
                      showid=self.settings.showid,
-                     submit_button=self.settings.submit_botton,
+                     submit_button=self.settings.submit_button,
                      delete_label=self.settings.delete_label)
         if form.accepts(request.vars,session,onvalidation=onvalidation):
-            session.flash=self.messages.record_updated
+            session.flash=message
             log=self.settings.update_log
             if log:
                 self.log_event(log % form)
@@ -1000,10 +1008,14 @@ class Crud(object):
 
     def create(self,table,next=DEFAULT,onvalidation=DEFAULT,
                           onaccept=DEFAULT,log=DEFAULT):
-        if next==DEFAULT: next=self.settings.create_log
-        if onvalidation==DEFAULT: onvalidation=self.settings.create_log
-        if onaccept==DEFAULT: onaccept=self.settings.create_log
-        if log==DEFAULT: log=self.settings.create_log
+        if next==DEFAULT:
+            next=self.settings.create_next
+        if onvalidation==DEFAULT:
+            onvalidation=self.settings.create_onvalidation
+        if onaccept==DEFAULT:
+            onaccept=self.settings.create_onaccept
+        if log==DEFAULT:
+            log=self.settings.create_log
         return self.update(table,None,next,onvalidation,onaccept,log)
 
     def read(self,table,record):
@@ -1012,7 +1024,8 @@ class Crud(object):
         if isinstance(table,str):
             if not table in self.db.tables: raise HTTP(404)
             table=self.db[table]
-        form=SQLFORM(table,record,readonly=True,
+        form=SQLFORM(table,record,readonly=True,comments=False,
+                     upload=URL(r=request,f='download'),
                      showid=self.settings.showid)
         return form
 
@@ -1029,6 +1042,7 @@ class Crud(object):
         if record:
            del table[record_id]
            if self.settings.delete_onaccept: self.settings.delete_onaccept(record)
+           session.flash=self.messages.record_deleted
         redirect(next)
 
     def select(self,table,query=None,fields=None,orderby=None,limitby=None,**attr):
@@ -1041,6 +1055,29 @@ class Crud(object):
         if not attr.has_key('linkto'): attr['linkto']=URL(r=request,args='read')
         if not attr.has_key('upload'): attr['upload']=URL(r=request,f='download')
         return SQLTABLE(self.db(query).select(*fields,**dict(orderby=orderby,limitby=limitby)),**attr)
+
+def fetch(url):
+    try:
+        from google.appengine.api.urlfetch import fetch
+        if url.find('?')>=0:
+            url,payload=url.split('?')
+            return fetch(url,payload=payload).content
+        return fetch(url).content
+    except:
+        import urllib
+        return urllib.urlopen(url).read()
+
+regex_geocode=re.compile('\<coordinates\>(?P<la>[^,]*),(?P<lo>[^,]*).*?\</coordinates\>')
+def geocode(address):
+    import re, urllib
+    try:
+        a=urllib.quote(address)
+        txt=fetch('http://maps.google.com/maps/geo?q=%s&output=xml'%a)
+        item=regex_geocode.search(txt)
+        la,lo=float(item.group('la')),float(item.group('lo'))
+        return la,lo
+    except: return 0.0,0.0
+
 
 """
 to do:

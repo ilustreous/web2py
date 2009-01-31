@@ -181,6 +181,9 @@ gluon.tools.table_field	gluon.tools-module.html#table_field
 gluon.tools.TAG	gluon.tools-module.html#TAG
 gluon.tools.ON	gluon.tools-module.html#ON
 gluon.tools.DEFAULT	gluon.tools-module.html#DEFAULT
+gluon.tools.geocode	gluon.tools-module.html#geocode
+gluon.tools.fetch	gluon.tools-module.html#fetch
+gluon.tools.regex_geocode	gluon.tools-module.html#regex_geocode
 gluon.tools.re_extension	gluon.tools-module.html#re_extension
 gluon.validators	gluon.validators-module.html
 gluon.validators.http_schemes	gluon.validators-module.html#http_schemes
@@ -1401,6 +1404,7 @@ gluon.sqlhtml.TextWidget.widget	gluon.sqlhtml.TextWidget-class.html#widget
 gluon.sqlhtml.TimeWidget	gluon.sqlhtml.TimeWidget-class.html
 gluon.sqlhtml.StringWidget.widget	gluon.sqlhtml.StringWidget-class.html#widget
 gluon.sqlhtml.UploadWidget	gluon.sqlhtml.UploadWidget-class.html
+gluon.sqlhtml.UploadWidget.represent	gluon.sqlhtml.UploadWidget-class.html#represent
 gluon.sqlhtml.UploadWidget.widget	gluon.sqlhtml.UploadWidget-class.html#widget
 gluon.sqlhtml.UploadWidget.is_image	gluon.sqlhtml.UploadWidget-class.html#is_image
 gluon.storage.Settings	gluon.storage.Settings-class.html
