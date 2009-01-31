@@ -1,0 +1,881 @@
+<?xml version="1.0" encoding="ascii"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+          "DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <title>gluon.tools.Auth</title>
+  <link rel="stylesheet" href="epydoc.css" type="text/css" />
+  <script type="text/javascript" src="epydoc.js"></script>
+</head>
+
+<body bgcolor="white" text="black" link="blue" vlink="#204080"
+      alink="#204080">
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+  <!-- Home link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="gluon-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            ><a class="navbar" target="_top" href="http://www.web2py.com">web2py Web Framework</a></th>
+          </tr></table></th>
+  </tr>
+</table>
+<table width="100%" cellpadding="0" cellspacing="0">
+  <tr valign="top">
+    <td width="100%">
+      <span class="breadcrumbs">
+        <a href="gluon-module.html">Package&nbsp;gluon</a> ::
+        <a href="gluon.tools-module.html">Module&nbsp;tools</a> ::
+        Class&nbsp;Auth
+      </span>
+    </td>
+    <td>
+      <table cellpadding="0" cellspacing="0">
+        <!-- hide/show private -->
+        <tr><td align="right"><span class="options">[<a href="javascript:void(0);" class="privatelink"
+    onclick="toggle_private();">hide&nbsp;private</a>]</span></td></tr>
+        <tr><td align="right"><span class="options"
+            >[<a href="frames.html" target="_top">frames</a
+            >]&nbsp;|&nbsp;<a href="gluon.tools.Auth-class.html"
+            target="_top">no&nbsp;frames</a>]</span></td></tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<!-- ==================== CLASS DESCRIPTION ==================== -->
+<h1 class="epydoc">Class Auth</h1><p class="nomargin-top"><span class="codelink"><a href="gluon.tools-pysrc.html#Auth">source&nbsp;code</a></span></p>
+<pre class="base-tree">
+object --+
+         |
+        <strong class="uidshort">Auth</strong>
+</pre>
+
+<hr />
+<pre class="literalblock">
+
+Class for authentication, authorization, role based access control
+Includes registration, login, logout, profile, 
+         username and password retrieval, event logging
+         role creation and assignment,
+         user defined group/role based permission
+
+Authentication Example:
+
+from gluon.contrib.utils import *
+mail=Mail()
+mail.settings.server='smtp.gmail.com:587'
+mail.settings.sender='you@somewhere.com'
+mail.settings.login='username:password'
+auth=Auth(globals(),db)
+auth.settings.mailer=mail
+# auth.settings....=...
+auth.define_tables()
+def authentication(): return dict(form=auth())
+
+exposes:
+- http://.../{application}/{controller}/authentication/login
+- http://.../{application}/{controller}/authentication/logout
+- http://.../{application}/{controller}/authentication/register
+- http://.../{application}/{controller}/authentication/veryfy_email
+- http://.../{application}/{controller}/authentication/retrieve_username
+- http://.../{application}/{controller}/authentication/retrieve_password
+- http://.../{application}/{controller}/authentication/profile
+- http://.../{application}/{controller}/authentication/change_password
+
+On registration a group with role=new_user.id is created 
+and user is given membership of this group.
+
+You can create a group with: 
+
+    group_id=auth.add_group('Manager','can access the manage action')
+    auth.add_permission(group_id,'access to manage')
+
+Here &quot;access to manage&quot; is just a user defined string.
+You can give access to a user
+
+    auth.add_membership(group_id,user_id)
+
+If user id is omitted, it is intended the logged in user
+
+Then you can decorate any action
+
+    @auth.requires_permission('access to manage')
+    def manage(): return dict()
+
+You can restrict a permission to a specific table 
+
+    auth.add_permission('edit',db.sometable)
+    @auth.requires_permission('edit',db.sometable)
+
+Or to a specific record
+
+    auth.add_permission('edit',db.sometable,45)
+    @auth.requires_permission('edit',db.sometable,45)
+
+If authorization is not granted calls
+
+    auth.settings.on_failed_authorization=lambda: raise HTTP(404)
+
+Other options:
+
+    auth.settings.mailer=None
+    auth.settings.expiration=3600 # seconds
+
+    ...
+
+    ### these are messages that can be customized
+    ...
+
+</pre>
+
+<!-- ==================== INSTANCE METHODS ==================== -->
+<a name="section-InstanceMethods"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Instance Methods</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-InstanceMethods"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="gluon.tools.Auth-class.html#__init__" class="summary-sig-name">__init__</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">environment</span>,
+        <span class="summary-sig-arg">db</span>=<span class="summary-sig-default">None</span>)</span><br />
+      auth=Auth(globals(),db)</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="gluon.tools-pysrc.html#Auth.__init__">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="_HTTP"></a><span class="summary-sig-name">_HTTP</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">*a</span>,
+        <span class="summary-sig-arg">**b</span>)</span><br />
+      only used in lambda: self._HTTP(404)</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="gluon.tools-pysrc.html#Auth._HTTP">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="gluon.tools.Auth-class.html#__call__" class="summary-sig-name">__call__</a>(<span class="summary-sig-arg">self</span>)</span><br />
+      usage:</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="gluon.tools-pysrc.html#Auth.__call__">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="define_tables"></a><span class="summary-sig-name">define_tables</span>(<span class="summary-sig-arg">self</span>)</span><br />
+      to be called unless tables are defined manually</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="gluon.tools-pysrc.html#Auth.define_tables">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="gluon.tools.Auth-class.html#log_event" class="summary-sig-name">log_event</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">description</span>,
+        <span class="summary-sig-arg">origin</span>=<span class="summary-sig-default"><code class="variable-quote">'</code><code class="variable-string">auth</code><code class="variable-quote">'</code></span>)</span><br />
+      usage:</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="gluon.tools-pysrc.html#Auth.log_event">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="login"></a><span class="summary-sig-name">login</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">next</span>=<span class="summary-sig-default">&lt;function &lt;lambda&gt; at 0x65eb70&gt;</span>,
+        <span class="summary-sig-arg">onvalidation</span>=<span class="summary-sig-default">&lt;function &lt;lambda&gt; at 0x65eb70&gt;</span>,
+        <span class="summary-sig-arg">onaccept</span>=<span class="summary-sig-default">&lt;function &lt;lambda&gt; at 0x65eb70&gt;</span>,
+        <span class="summary-sig-arg">log</span>=<span class="summary-sig-default">&lt;function &lt;lambda&gt; at 0x65eb70&gt;</span>)</span><br />
+      returns a login form</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="gluon.tools-pysrc.html#Auth.login">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="logout"></a><span class="summary-sig-name">logout</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">next</span>=<span class="summary-sig-default">&lt;function &lt;lambda&gt; at 0x65eb70&gt;</span>,
+        <span class="summary-sig-arg">onlogout</span>=<span class="summary-sig-default">&lt;function &lt;lambda&gt; at 0x65eb70&gt;</span>)</span><br />
+      logout and redirects to login</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="gluon.tools-pysrc.html#Auth.logout">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="register"></a><span class="summary-sig-name">register</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">next</span>=<span class="summary-sig-default">&lt;function &lt;lambda&gt; at 0x65eb70&gt;</span>,
+        <span class="summary-sig-arg">onvalidation</span>=<span class="summary-sig-default">&lt;function &lt;lambda&gt; at 0x65eb70&gt;</span>,
+        <span class="summary-sig-arg">onaccept</span>=<span class="summary-sig-default">&lt;function &lt;lambda&gt; at 0x65eb70&gt;</span>,
+        <span class="summary-sig-arg">log</span>=<span class="summary-sig-default">&lt;function &lt;lambda&gt; at 0x65eb70&gt;</span>)</span><br />
+      returns a registration form</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="gluon.tools-pysrc.html#Auth.register">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="gluon.tools.Auth-class.html#is_logged_in" class="summary-sig-name">is_logged_in</a>(<span class="summary-sig-arg">self</span>)</span><br />
+      checks if the user is logged in and returns True/False.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="gluon.tools-pysrc.html#Auth.is_logged_in">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="verify_email"></a><span class="summary-sig-name">verify_email</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">next</span>=<span class="summary-sig-default">&lt;function &lt;lambda&gt; at 0x65eb70&gt;</span>,
+        <span class="summary-sig-arg">onaccept</span>=<span class="summary-sig-default">&lt;function &lt;lambda&gt; at 0x65eb70&gt;</span>,
+        <span class="summary-sig-arg">log</span>=<span class="summary-sig-default">&lt;function &lt;lambda&gt; at 0x65eb70&gt;</span>)</span><br />
+      action user to verify the registration email, XXXXXXXXXXXXXXXX</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="gluon.tools-pysrc.html#Auth.verify_email">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="retrieve_username"></a><span class="summary-sig-name">retrieve_username</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">next</span>=<span class="summary-sig-default">&lt;function &lt;lambda&gt; at 0x65eb70&gt;</span>,
+        <span class="summary-sig-arg">onvalidation</span>=<span class="summary-sig-default">&lt;function &lt;lambda&gt; at 0x65eb70&gt;</span>,
+        <span class="summary-sig-arg">onaccept</span>=<span class="summary-sig-default">&lt;function &lt;lambda&gt; at 0x65eb70&gt;</span>,
+        <span class="summary-sig-arg">log</span>=<span class="summary-sig-default">&lt;function &lt;lambda&gt; at 0x65eb70&gt;</span>)</span><br />
+      returns a form to retrieve the user username (only if there is a 
+      username field)</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="gluon.tools-pysrc.html#Auth.retrieve_username">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="retrieve_password"></a><span class="summary-sig-name">retrieve_password</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">next</span>=<span class="summary-sig-default">&lt;function &lt;lambda&gt; at 0x65eb70&gt;</span>,
+        <span class="summary-sig-arg">onvalidation</span>=<span class="summary-sig-default">&lt;function &lt;lambda&gt; at 0x65eb70&gt;</span>,
+        <span class="summary-sig-arg">onaccept</span>=<span class="summary-sig-default">&lt;function &lt;lambda&gt; at 0x65eb70&gt;</span>,
+        <span class="summary-sig-arg">log</span>=<span class="summary-sig-default">&lt;function &lt;lambda&gt; at 0x65eb70&gt;</span>)</span><br />
+      returns a form to retrieve the user password</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="gluon.tools-pysrc.html#Auth.retrieve_password">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="change_password"></a><span class="summary-sig-name">change_password</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">next</span>=<span class="summary-sig-default">&lt;function &lt;lambda&gt; at 0x65eb70&gt;</span>,
+        <span class="summary-sig-arg">onvalidation</span>=<span class="summary-sig-default">&lt;function &lt;lambda&gt; at 0x65eb70&gt;</span>,
+        <span class="summary-sig-arg">onaccept</span>=<span class="summary-sig-default">&lt;function &lt;lambda&gt; at 0x65eb70&gt;</span>,
+        <span class="summary-sig-arg">log</span>=<span class="summary-sig-default">&lt;function &lt;lambda&gt; at 0x65eb70&gt;</span>)</span><br />
+      returns a form that lets the user change password</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="gluon.tools-pysrc.html#Auth.change_password">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="profile"></a><span class="summary-sig-name">profile</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">next</span>=<span class="summary-sig-default">&lt;function &lt;lambda&gt; at 0x65eb70&gt;</span>,
+        <span class="summary-sig-arg">onvalidation</span>=<span class="summary-sig-default">&lt;function &lt;lambda&gt; at 0x65eb70&gt;</span>,
+        <span class="summary-sig-arg">onaccept</span>=<span class="summary-sig-default">&lt;function &lt;lambda&gt; at 0x65eb70&gt;</span>,
+        <span class="summary-sig-arg">log</span>=<span class="summary-sig-default">&lt;function &lt;lambda&gt; at 0x65eb70&gt;</span>)</span><br />
+      returns a form that lets the user change his/her profile</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="gluon.tools-pysrc.html#Auth.profile">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="groups"></a><span class="summary-sig-name">groups</span>(<span class="summary-sig-arg">self</span>)</span><br />
+      displays the groups and their roles for the logged in user</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="gluon.tools-pysrc.html#Auth.groups">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="requires_login"></a><span class="summary-sig-name">requires_login</span>(<span class="summary-sig-arg">self</span>)</span><br />
+      decorator that prevents access to action if not logged in</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="gluon.tools-pysrc.html#Auth.requires_login">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="requires_membership"></a><span class="summary-sig-name">requires_membership</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">group_id</span>)</span><br />
+      decorator that prevents access to action if not logged in or if user 
+      logged in is not a member of group_id</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="gluon.tools-pysrc.html#Auth.requires_membership">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="requires_permission"></a><span class="summary-sig-name">requires_permission</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">name</span>,
+        <span class="summary-sig-arg">table_name</span>=<span class="summary-sig-default"><code class="variable-quote">'</code><code class="variable-string"></code><code class="variable-quote">'</code></span>,
+        <span class="summary-sig-arg">record_id</span>=<span class="summary-sig-default">0</span>)</span><br />
+      decorator that prevents access to action if not logged in or if user 
+      logged in is not a member of any group (role) that has 'name' access 
+      to 'table_name', 'record_id'.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="gluon.tools-pysrc.html#Auth.requires_permission">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="add_group"></a><span class="summary-sig-name">add_group</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">role</span>,
+        <span class="summary-sig-arg">description</span>=<span class="summary-sig-default"><code class="variable-quote">'</code><code class="variable-string"></code><code class="variable-quote">'</code></span>)</span><br />
+      creates a group associated to a role</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="gluon.tools-pysrc.html#Auth.add_group">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="del_group"></a><span class="summary-sig-name">del_group</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">group_id</span>)</span><br />
+      deletes a group</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="gluon.tools-pysrc.html#Auth.del_group">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="has_membership"></a><span class="summary-sig-name">has_membership</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">group_id</span>,
+        <span class="summary-sig-arg">user_id</span>=<span class="summary-sig-default">None</span>)</span><br />
+      checks if user is member of group_id</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="gluon.tools-pysrc.html#Auth.has_membership">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="add_membership"></a><span class="summary-sig-name">add_membership</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">group_id</span>,
+        <span class="summary-sig-arg">user_id</span>=<span class="summary-sig-default">None</span>)</span><br />
+      gives user_id membership of group_id if group_id==None than user_id 
+      is that of current logged in user</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="gluon.tools-pysrc.html#Auth.add_membership">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="del_membership"></a><span class="summary-sig-name">del_membership</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">group_id</span>,
+        <span class="summary-sig-arg">user_id</span>=<span class="summary-sig-default">None</span>)</span><br />
+      revokes membership from group_id to user_id if group_id==None than 
+      user_id is that of current logged in user</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="gluon.tools-pysrc.html#Auth.del_membership">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="has_permission"></a><span class="summary-sig-name">has_permission</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">name</span>=<span class="summary-sig-default"><code class="variable-quote">'</code><code class="variable-string">any</code><code class="variable-quote">'</code></span>,
+        <span class="summary-sig-arg">table_name</span>=<span class="summary-sig-default"><code class="variable-quote">'</code><code class="variable-string"></code><code class="variable-quote">'</code></span>,
+        <span class="summary-sig-arg">record_id</span>=<span class="summary-sig-default">0</span>,
+        <span class="summary-sig-arg">user_id</span>=<span class="summary-sig-default">None</span>)</span><br />
+      checks if user_id or current logged in user is member of a group that
+      has 'name' permission on 'table_name' and 'record_id'</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="gluon.tools-pysrc.html#Auth.has_permission">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="add_permission"></a><span class="summary-sig-name">add_permission</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">group_id</span>,
+        <span class="summary-sig-arg">name</span>=<span class="summary-sig-default"><code class="variable-quote">'</code><code class="variable-string">any</code><code class="variable-quote">'</code></span>,
+        <span class="summary-sig-arg">table_name</span>=<span class="summary-sig-default"><code class="variable-quote">'</code><code class="variable-string"></code><code class="variable-quote">'</code></span>,
+        <span class="summary-sig-arg">record_id</span>=<span class="summary-sig-default">0</span>)</span><br />
+      gives group_id 'name' access to 'table_name' and 'record_id'</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="gluon.tools-pysrc.html#Auth.add_permission">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="del_permission"></a><span class="summary-sig-name">del_permission</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">group_id</span>,
+        <span class="summary-sig-arg">name</span>=<span class="summary-sig-default"><code class="variable-quote">'</code><code class="variable-string">any</code><code class="variable-quote">'</code></span>,
+        <span class="summary-sig-arg">table_name</span>=<span class="summary-sig-default"><code class="variable-quote">'</code><code class="variable-string"></code><code class="variable-quote">'</code></span>,
+        <span class="summary-sig-arg">record_id</span>=<span class="summary-sig-default">0</span>)</span><br />
+      revokes group_id 'name' access to 'table_name' and 'record_id'</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="gluon.tools-pysrc.html#Auth.del_permission">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+  <tr>
+    <td colspan="2" class="summary">
+    <p class="indent-wrapped-lines"><b>Inherited from <code>object</code></b>:
+      <code>__delattr__</code>,
+      <code>__getattribute__</code>,
+      <code>__hash__</code>,
+      <code>__new__</code>,
+      <code>__reduce__</code>,
+      <code>__reduce_ex__</code>,
+      <code>__repr__</code>,
+      <code>__setattr__</code>,
+      <code>__str__</code>
+      </p>
+    </td>
+  </tr>
+</table>
+<!-- ==================== PROPERTIES ==================== -->
+<a name="section-Properties"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Properties</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-Properties"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+  <tr>
+    <td colspan="2" class="summary">
+    <p class="indent-wrapped-lines"><b>Inherited from <code>object</code></b>:
+      <code>__class__</code>
+      </p>
+    </td>
+  </tr>
+</table>
+<!-- ==================== METHOD DETAILS ==================== -->
+<a name="section-MethodDetails"></a>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Method Details</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-MethodDetails"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+</table>
+<a name="__init__"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">__init__</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">environment</span>,
+        <span class="sig-arg">db</span>=<span class="sig-default">None</span>)</span>
+    <br /><em class="fname">(Constructor)</em>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="gluon.tools-pysrc.html#Auth.__init__">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <pre class="literalblock">
+
+auth=Auth(globals(),db)
+
+- globals() has to be the web2py environment including
+  request,response,session
+- db has to be the database where to create tables for authentication
+
+</pre>
+  <dl class="fields">
+    <dt>Overrides:
+        object.__init__
+    </dt>
+  </dl>
+</td></tr></table>
+</div>
+<a name="__call__"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">__call__</span>(<span class="sig-arg">self</span>)</span>
+    <br /><em class="fname">(Call operator)</em>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="gluon.tools-pysrc.html#Auth.__call__">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>usage:</p>
+  <p>def authentication(): return dict(form=auth())</p>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="log_event"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">log_event</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">description</span>,
+        <span class="sig-arg">origin</span>=<span class="sig-default"><code class="variable-quote">'</code><code class="variable-string">auth</code><code class="variable-quote">'</code></span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="gluon.tools-pysrc.html#Auth.log_event">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>usage:</p>
+  <p>auth.log_event(description='this happened',origin='auth')</p>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="is_logged_in"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">is_logged_in</span>(<span class="sig-arg">self</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="gluon.tools-pysrc.html#Auth.is_logged_in">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>checks if the user is logged in and returns True/False. if so user is 
+  in auth.user as well as in session.auth.user</p>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<br />
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+  <!-- Home link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="gluon-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            ><a class="navbar" target="_top" href="http://www.web2py.com">web2py Web Framework</a></th>
+          </tr></table></th>
+  </tr>
+</table>
+<table border="0" cellpadding="0" cellspacing="0" width="100%%">
+  <tr>
+    <td align="left" class="footer">
+    Generated by Epydoc 3.0.1 on Sat Jan 31 01:18:44 2009
+    </td>
+    <td align="right" class="footer">
+      <a target="mainFrame" href="http://epydoc.sourceforge.net"
+        >http://epydoc.sourceforge.net</a>
+    </td>
+  </tr>
+</table>
+
+<script type="text/javascript">
+  <!--
+  // Private objects are initially displayed (because if
+  // javascript is turned off then we want them to be
+  // visible); but by default, we want to hide them.  So hide
+  // them unless we have a cookie that says to show them.
+  checkCookie();
+  // -->
+</script>
+</body>
+</html>
