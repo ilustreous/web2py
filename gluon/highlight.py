@@ -191,7 +191,6 @@ def highlight(code,language,link='/exmaples/globals/vars/',counter=1,styles={},a
             margin: 0;
             padding: 5px;
             border: none;
-        background-color: #E0E0E0;
         color: #A0A0A0;
     """
     else: linenumbers_style=styles['LINENUMBERS']
