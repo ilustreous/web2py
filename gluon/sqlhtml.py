@@ -110,10 +110,9 @@ class UploadWidget:
         inp='file'
         if download_url and value:
             url=download_url+'/'+value
-            br,image='',''
             if UploadWidget.is_image(value):
-                br,image=BR(),IMG(_src=url,_width="150px")
-            inp=DIV(A('file',_href=url),br,image)
+                return A(IMG(_src=url,_width="150px"),_href=url)
+            return A('file',_href=url)
         return inp
     @staticmethod
     def is_image(value):

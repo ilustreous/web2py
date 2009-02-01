@@ -1426,6 +1426,7 @@ gluon.tools.Auth.add_permission	gluon.tools.Auth-class.html#add_permission
 gluon.tools.Auth.requires_membership	gluon.tools.Auth-class.html#requires_membership
 gluon.tools.Auth.requires_permission	gluon.tools.Auth-class.html#requires_permission
 gluon.tools.Auth.verify_email	gluon.tools.Auth-class.html#verify_email
+gluon.tools.Auth.id_group	gluon.tools.Auth-class.html#id_group
 gluon.tools.Auth.__init__	gluon.tools.Auth-class.html#__init__
 gluon.tools.Auth.del_group	gluon.tools.Auth-class.html#del_group
 gluon.tools.Auth.del_permission	gluon.tools.Auth-class.html#del_permission
