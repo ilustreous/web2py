@@ -217,10 +217,10 @@ class SQLFORM(FORM):
             if not readonly and default: default=field.formatter(default)
             if readonly:
                 ### if field.represent is available else
-                ### ignore blob, password and preview uploaded images
+                ### ignore blob and preview uploaded images
                 ### format everything else
                 if field.represent: inp=field.represent(default)
-                elif field.type in ['password','blob']: continue
+                elif field.type in ['blob']: continue
                 elif field.type=='upload':
                     inp=UploadWidget.represent(field,default,upload)
                 else: inp=field.formatter(default)
