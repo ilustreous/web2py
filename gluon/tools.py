@@ -233,6 +233,7 @@ class Auth(object):
                                     f='index')
         self.settings.mailer=None
         self.settings.expiration=3600 # seconds
+        self.on_failed_authorization=lambda: self._HTTP(404,"NOT AUTHORIZED")
         ### table names to be used
         self.settings.table_user_name='auth_user'
         self.settings.table_group_name='auth_group'
@@ -822,7 +823,7 @@ class Auth(object):
         """
         checks if user is member of group_id
         """
-        if not user_id: user_id=self.user.id
+        if not user_id and self.user: user_id=self.user.id
         membership=self.settings.table_membership
         if self.db((membership.user_id==user_id) & (membership.group_id==group_id)).select():
             r=True
@@ -837,7 +838,7 @@ class Auth(object):
         gives user_id membership of group_id
         if group_id==None than user_id is that of current logged in user
         """
-        if not user_id: user_id=self.user.id
+        if not user_id and self.user: user_id=self.user.id
         membership=self.settings.table_membership
         id=membership.insert(group_id=group_id,user_id=user_id)
         log=self.settings.add_membership_log
@@ -849,7 +850,7 @@ class Auth(object):
         revokes membership from group_id to user_id
         if group_id==None than user_id is that of current logged in user
         """
-        if not user_id: user_id=self.user.id
+        if not user_id and self.user: user_id=self.user.id
         membership=self.settings.table_membership
         log=self.settings.del_membership_log
         if log: self.log_event(log % dict(user_id=user_id,group_id=group_id)) 
@@ -860,8 +861,8 @@ class Auth(object):
         """
         checks if user_id or current logged in user is member of a group
         that has 'name' permission on 'table_name' and 'record_id'
-        """
-        if not user_id: user_id=self.user.id
+        """                
+        if not user_id and self.user: user_id=self.user.id
         membership=self.settings.table_membership
         rows=self.db(membership.user_id==user_id).select(membership.group_id)
         groups=set([row.group_id for row in rows])
@@ -959,7 +960,7 @@ class Crud(object):
         elif args[0]=='delete' and self.has_permission(*args):
             return self.delete(args[1],args[2])
         else:
-            raise HTTP(404)
+            raise self.settings.auth.on_failed_authorization()
     def log_event(self,message):
         if self.settings.logger: self.settings.logger.log_event(message,'crud')
     def has_permission(self,*args):
