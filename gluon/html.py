@@ -283,7 +283,7 @@ class CODE(DIV):
     def xml(self):
         language=self['language'] or 'PYTHON'
         link=self['link']
-        counter=self['counter'] or 1
+        counter=self.attributes.get('counter',1)
         styles=self['styles'] or {}
         return highlight(''.join(self.components),language=language,link=link,counter=counter,styles=styles,attributes=self.attributes)
 
