@@ -1013,7 +1013,7 @@ class Crud(object):
         return form
 
     def create(self,table,next=DEFAULT,onvalidation=DEFAULT,
-                          onaccept=DEFAULT,log=DEFAULT):
+                          onaccept=DEFAULT,log=DEFAULT,message=DEFAULT):
         if next==DEFAULT:
             next=self.settings.create_next
         if onvalidation==DEFAULT:
@@ -1022,7 +1022,9 @@ class Crud(object):
             onaccept=self.settings.create_onaccept
         if log==DEFAULT:
             log=self.settings.create_log
-        return self.update(table,None,next,onvalidation,onaccept,log)
+        if message==DEFAULT:
+            message=self.messages.record_created
+        return self.update(table,None,next,onvalidation,onaccept,log,message)
 
     def read(self,table,record):
         request=self.environment.request
@@ -1035,10 +1037,13 @@ class Crud(object):
                      showid=self.settings.showid)
         return form
 
-    def delete(self,table,record_id,next=DEFAULT):
+    def delete(self,table,record_id,next=DEFAULT,message=DEFAULT):
         request=self.environment.request
         session=self.environment.session
-        if next==DEFAULT: next=self.settings.delete_next
+        if next==DEFAULT:
+            next=self.settings.delete_next
+        if message==DEFAULT:
+            message=self.messages.record_deleted
         if isinstance(table,str):
             if not table in self.db.tables: raise HTTP(404)
             table=self.db[table]
@@ -1048,7 +1053,7 @@ class Crud(object):
         if record:
            del table[record_id]
            if self.settings.delete_onaccept: self.settings.delete_onaccept(record)
-           session.flash=self.messages.record_deleted
+           session.flash=message
         redirect(next)
 
     def select(self,table,query=None,fields=None,orderby=None,limitby=None,**attr):

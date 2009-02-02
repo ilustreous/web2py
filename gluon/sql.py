@@ -721,17 +721,21 @@ class SQLTable(dict):
             field._table=self
             field._db=self._db
         self.ALL=SQLALL(self)
+    def _filter_fields(self,record):
+        return dict([(k,v) for k,v in record.items() if k in self.fields and k!='id'])
     def __getitem__(self, key):
         if is_integer(key):
             rows=self._db(self.id==key).select()
             if rows: return rows[0]
             return None
-        return dict.__getitem__(self,str(key))
+        else:
+            return dict.__getitem__(self,str(key))
     def __setitem__(self, key,value):
         if is_integer(key):
-            value=[(k,v) for k,v in value.items() if k in self.fields and k!='id']
-            self._db(self.id==key).update(**dict(value))
-        dict.__setitem__(self,str(key),value)
+            if key==0: self.insert(**self._filter_fields(value))
+            elif not self._db(self.id==key).update(**self._filter_fields(value)): raise SyntaxError, "No such record"
+        else:
+            dict.__setitem__(self,str(key),value)
     def __delitem__(self, key):
         if not is_integer(key) or not self._db(self.id==key).delete():
             raise SyntaxError, "No such record"

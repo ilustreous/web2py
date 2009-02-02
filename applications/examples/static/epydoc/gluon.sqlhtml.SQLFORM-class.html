@@ -146,8 +146,7 @@ any named optional attribute is passed to the &lt;form&gt; tag
         <span class="summary-sig-arg">formname</span>=<span class="summary-sig-default"><code class="variable-quote">'</code><code class="variable-string">%(tablename)s</code><code class="variable-quote">'</code></span>,
         <span class="summary-sig-arg">keepvalues</span>=<span class="summary-sig-default">False</span>,
         <span class="summary-sig-arg">onvalidation</span>=<span class="summary-sig-default">None</span>)</span><br />
-      same as FORM.accepts but also does insert, update or delete in SQLDB 
-      one additional option is delete_uplaods.</td>
+      same as FORM.accepts but also does insert, update or delete in SQLDB.</td>
           <td align="right" valign="top">
             <span class="codelink"><a href="gluon.sqlhtml-pysrc.html#SQLFORM.accepts">source&nbsp;code</a></span>
             
@@ -218,13 +217,13 @@ any named optional attribute is passed to the &lt;form&gt; tag
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
         <a href="gluon.sqlhtml.SQLFORM-class.html#widgets" class="summary-name">widgets</a> = <code title="&lt;Storage {'multiple': &lt;class gluon.sqlhtml.MultipleOptionsWidget at 0x\
-126de40&gt;, 'string': &lt;class gluon.sqlhtml.StringWidget at 0x126dc90&gt;, '\
-double': &lt;class gluon.sqlhtml.DoubleWidget at 0x126dcf0&gt;, 'upload': &lt;c\
-lass gluon.sqlhtml.UploadWidget at 0x126dea0&gt;, 'datetime': &lt;class gluo\
-n.sqlhtml.DatetimeWidget at 0x126dd80&gt;, 'boolean': &lt;class gluon.sqlhtm\
-l.BooleanWidget at 0x126dde0&gt;, 'text': &lt;class gluon.sqlhtml.TextWidget\
- at 0x126ddb0&gt;, 'blob': None, 'time': &lt;class gluon.sqlhtml.TimeWidget \
-at 0x126dd20&gt;, 'date': &lt;class gluon.sqlhtml.DateWidget at 0x126dd50&gt;, \
+126ce70&gt;, 'string': &lt;class gluon.sqlhtml.StringWidget at 0x126ccc0&gt;, '\
+double': &lt;class gluon.sqlhtml.DoubleWidget at 0x126cd20&gt;, 'upload': &lt;c\
+lass gluon.sqlhtml.UploadWidget at 0x126ced0&gt;, 'datetime': &lt;class gluo\
+n.sqlhtml.DatetimeWidget at 0x126cdb0&gt;, 'boolean': &lt;class gluon.sqlhtm\
+l.BooleanWidget at 0x126ce10&gt;, 'text': &lt;class gluon.sqlhtml.TextWidget\
+ at 0x126cde0&gt;, 'blob': None, 'time': &lt;class gluon.sqlhtml.TimeWidget \
+at 0x126cd50&gt;, 'date': &lt;class gluon.sqlhtml.DateWidget at 0x126cd80&gt;, \
 ...">&lt;Storage {'multiple': &lt;class gluon.sqlhtml.MultipleO<code class="variable-ellipsis">...</code></code>
     </td>
   </tr>
@@ -300,7 +299,7 @@ SQLFORM(db.table,
        record=None,
        fields=['name'],
        labels={'name':'Your name'},
-       linkto=ULR(r=request,f='table/db/')
+       linkto=URL(r=request,f='table/db/')
 
 </pre>
   <dl class="fields">
@@ -329,9 +328,8 @@ SQLFORM(db.table,
     </td>
   </tr></table>
   
-  <p>same as FORM.accepts but also does insert, update or delete in SQLDB 
-  one additional option is delete_uplaods. If set True and record if 
-  deleted, all uploaded files, linked by this record will be deleted.</p>
+  <p>same as FORM.accepts but also does insert, update or delete in 
+  SQLDB.</p>
   <dl class="fields">
     <dt>Overrides:
         <a href="gluon.html.FORM-class.html#accepts">html.FORM.accepts</a>
@@ -371,13 +369,13 @@ SQLFORM(db.table,
     <dt>Value:</dt>
       <dd><table><tr><td><pre class="variable">
 &lt;Storage {'multiple': &lt;class gluon.sqlhtml.MultipleOptionsWidget at 0x<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
-126de40&gt;, 'string': &lt;class gluon.sqlhtml.StringWidget at 0x126dc90&gt;, '<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
-double': &lt;class gluon.sqlhtml.DoubleWidget at 0x126dcf0&gt;, 'upload': &lt;c<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
-lass gluon.sqlhtml.UploadWidget at 0x126dea0&gt;, 'datetime': &lt;class gluo<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
-n.sqlhtml.DatetimeWidget at 0x126dd80&gt;, 'boolean': &lt;class gluon.sqlhtm<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
-l.BooleanWidget at 0x126dde0&gt;, 'text': &lt;class gluon.sqlhtml.TextWidget<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
- at 0x126ddb0&gt;, 'blob': None, 'time': &lt;class gluon.sqlhtml.TimeWidget <span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
-at 0x126dd20&gt;, 'date': &lt;class gluon.sqlhtml.DateWidget at 0x126dd50&gt;, <span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+126ce70&gt;, 'string': &lt;class gluon.sqlhtml.StringWidget at 0x126ccc0&gt;, '<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+double': &lt;class gluon.sqlhtml.DoubleWidget at 0x126cd20&gt;, 'upload': &lt;c<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+lass gluon.sqlhtml.UploadWidget at 0x126ced0&gt;, 'datetime': &lt;class gluo<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+n.sqlhtml.DatetimeWidget at 0x126cdb0&gt;, 'boolean': &lt;class gluon.sqlhtm<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+l.BooleanWidget at 0x126ce10&gt;, 'text': &lt;class gluon.sqlhtml.TextWidget<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+ at 0x126cde0&gt;, 'blob': None, 'time': &lt;class gluon.sqlhtml.TimeWidget <span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+at 0x126cd50&gt;, 'date': &lt;class gluon.sqlhtml.DateWidget at 0x126cd80&gt;, <span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
 <code class="variable-ellipsis">...</code>
 </pre></td></tr></table>
 </dd>
@@ -416,7 +414,7 @@ at 0x126dd20&gt;, 'date': &lt;class gluon.sqlhtml.DateWidget at 0x126dd50&gt;, <
 <table border="0" cellpadding="0" cellspacing="0" width="100%%">
   <tr>
     <td align="left" class="footer">
-    Generated by Epydoc 3.0.1 on Sat Jan 31 21:54:22 2009
+    Generated by Epydoc 3.0.1 on Sun Feb  1 23:06:13 2009
     </td>
     <td align="right" class="footer">
       <a target="mainFrame" href="http://epydoc.sourceforge.net"

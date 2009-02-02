@@ -147,7 +147,7 @@ class SQLFORM(FORM):
 
     """
     # usability improvements proposal by fpp - 4 May 2008 :
-    # - correct labels (for points to filed id, not field name)
+    # - correct labels (for points to field id, not field name)
     # - add label for delete checkbox
     # - add translatable label for record ID
     # - add third column to right of fields, populated from the col3 dict
@@ -174,7 +174,7 @@ class SQLFORM(FORM):
                record=None,
                fields=['name'],
                labels={'name':'Your name'},
-               linkto=ULR(r=request,f='table/db/')
+               linkto=URL(r=request,f='table/db/')
         """
         FORM.__init__(self,*[],**attributes)            
         if fields==None:
@@ -266,9 +266,7 @@ class SQLFORM(FORM):
         self.components=[TABLE(*xfields)]
     def accepts(self,vars,session=None,formname='%(tablename)s',keepvalues=False,onvalidation=None):
         """
-        same as FORM.accepts but also does insert, update or delete in SQLDB
-        one additional option is delete_uplaods. If set True and record
-        if deleted, all uploaded files, linked by this record will be deleted.
+        same as FORM.accepts but also does insert, update or delete in SQLDB.
         """
         if formname: formname=formname % dict(tablename=self.table._tablename)
         record_id=vars.get('id',None)
@@ -361,11 +359,11 @@ class SQLFORM(FORM):
 class SQLTABLE(TABLE):
     """
     given a SQLRows object, as returned by a db().select(), generates
-    and html table with the rows.
+    an html table with the rows.
 
     optional arguments:
     linkto: URL to edit individual records
-    uplaod: URL to download uploaded files
+    upload: URL to download uploaded files
     orderby: Add an orderby link to column headers.
     headers: dictionary of headers to headers redefinions
     truncate: length at which to truncate text in table cells.
