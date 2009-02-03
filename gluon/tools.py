@@ -236,7 +236,7 @@ class Auth(object):
 
     If authorization is not granted calls
 
-        auth.settings.on_failed_authorization=lambda: raise HTTP(404)
+        auth.settings.on_failed_authorization
 
     Other options:
 
@@ -283,8 +283,6 @@ class Auth(object):
                 f='index')
         self.settings.mailer = None
         self.settings.expiration = 3600  # seconds
-
-        # self.settings.on_failed_authorization=lambda: self._HTTP(404,"NOT AUTHORIZED")
 
         self.settings.on_failed_authorization = None
 
@@ -365,7 +363,6 @@ class Auth(object):
         self.messages.username_sent = 'Your username was emailed to you'
         self.messages.new_password_sent = \
             'A new password was emailed to you'
-        self.messages.invalid_email = 'Invalid email'
         self.messages.password_changed = 'Password changed'
         self.messages.retrieve_username = \
             'Your username is: %(username)s'
@@ -565,7 +562,9 @@ class Auth(object):
                     ).select()
             if not users:
                 session.flash = self.messages.invalid_login
-                redirect(URL(r=request))
+                if not next:
+                    next = URL(r=request)
+                redirect(next)
             user = Storage(dict([(k, v) for (k, v) in users[0].items()
                            if isinstance(v, TYPES)]))
             session.auth = Storage(user=user, last_visit=request.now,

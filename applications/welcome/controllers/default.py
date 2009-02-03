@@ -1,8 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
-# # sample index page with internationalizaiton (T)
 
-
+# # sample index page with internationalization (T)
 def index():
     response.flash = T('Welcome to web2py')
     return dict(message=T('Hello World'))

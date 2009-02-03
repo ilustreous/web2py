@@ -82,4 +82,4 @@ else:
 # # to allow automatic download of all uploaded files and enforce authorization
 # # use the following action in controller default.py
 ##
-# #     def donwload(): return response.download(request,db)
+# #     def download(): return response.download(request,db)
