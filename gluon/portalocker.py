@@ -1,3 +1,5 @@
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
 # portalocker.py - Cross-platform (posix/nt) API for flock-style file locking.
 #                  Requires python 1.5.2 or better.
 
@@ -6,10 +8,10 @@
 Synopsis:
 
    import portalocker
-   file = open("somefile", "r+")
+   file = open(\"somefile\", \"r+\")
    portalocker.lock(file, portalocker.LOCK_EX)
    file.seek(12)
-   file.write("foo")
+   file.write(\"foo\")
    file.close()
 
 If you know what you're doing, you may choose to
@@ -37,58 +39,83 @@ Author: Jonathan Feinberg <jdf@pobox.com>
 Version: $Id: portalocker.py,v 1.3 2001/05/29 18:47:55 Administrator Exp $
 """
 
-import os, logging
+import os
+import logging
 
-os_locking=None
+os_locking = None
 try:
     import fcntl
-    os_locking='posix'
-except: pass
+    os_locking = 'posix'
+except:
+    pass
 try:
     import win32con
     import win32file
     import pywintypes
-    os_locking='windows'
-except: pass
+    os_locking = 'windows'
+except:
+    pass
 
-if os_locking=='windows':
+if os_locking == 'windows':
     LOCK_EX = win32con.LOCKFILE_EXCLUSIVE_LOCK
-    LOCK_SH = 0 # the default
+    LOCK_SH = 0  # the default
     LOCK_NB = win32con.LOCKFILE_FAIL_IMMEDIATELY
+
     # is there any reason not to reuse the following structure?
+
     __overlapped = pywintypes.OVERLAPPED()
+
+
     def lock(file, flags):
         hfile = win32file._get_osfhandle(file.fileno())
         win32file.LockFileEx(hfile, flags, 0, 0x7fff0000, __overlapped)
 
+
     def unlock(file):
         hfile = win32file._get_osfhandle(file.fileno())
         win32file.UnlockFileEx(hfile, 0, 0x7fff0000, __overlapped)
-elif os_locking=='posix':
+
+
+elif os_locking == 'posix':
     LOCK_EX = fcntl.LOCK_EX
     LOCK_SH = fcntl.LOCK_SH
     LOCK_NB = fcntl.LOCK_NB
-    def lock(file, flags): fcntl.flock(file.fileno(), flags)
-    def unlock(file): fcntl.flock(file.fileno(), fcntl.LOCK_UN)
+
+
+    def lock(file, flags):
+        fcntl.flock(file.fileno(), flags)
+
+
+    def unlock(file):
+        fcntl.flock(file.fileno(), fcntl.LOCK_UN)
+
+
 else:
-    logging.warning("no file locking")
+    logging.warning('no file locking')
     LOCK_EX = None
     LOCK_SH = None
     LOCK_NB = None
-    def lock(file, flags): pass
-    def unlock(file): pass
+
+
+    def lock(file, flags):
+        pass
+
+
+    def unlock(file):
+        pass
+
 
 if __name__ == '__main__':
     from time import time, strftime, localtime
     import sys
 
-    log = open('log.txt', "a+")
+    log = open('log.txt', 'a+')
     lock(log, LOCK_EX)
 
-    timestamp = strftime("%m/%d/%Y %H:%M:%S\n", localtime(time()))
-    log.write( timestamp )
+    timestamp = strftime('%m/%d/%Y %H:%M:%S\n', localtime(time()))
+    log.write(timestamp)
 
-    print "Wrote lines. Hit enter to release lock."
+    print 'Wrote lines. Hit enter to release lock.'
     dummy = sys.stdin.readline()
 
     log.close()

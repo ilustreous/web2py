@@ -1,13 +1,15 @@
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
+
 """
 This file is part of web2py Web Framework (Copyrighted, 2007)
 Developed by Massimo Di Pierro <mdipierro@cs.depaul.edu>
 License: GPL v2
 """
 
-__all__=['HTTP','redirect']
+__all__ = ['HTTP', 'redirect']
 
 defined_status = {
-    # Successful
     200: 'OK',
     201: 'CREATED',
     202: 'ACCEPTED',
@@ -15,14 +17,12 @@ defined_status = {
     204: 'NO CONTENT',
     205: 'RESET CONTENT',
     206: 'PARTIAL CONTENT',
-    # Redirection
     301: 'MOVED PERMANENTLY',
     302: 'FOUND',
     303: 'SEE OTHER',
     304: 'NOT MODIFIED',
     305: 'USE PROXY',
     307: 'TEMPORARY REDIRECT',
-    # Client error
     400: 'BAD REQUEST',
     401: 'UNAUTHORIZED',
     403: 'FORBIDDEN',
@@ -40,7 +40,6 @@ defined_status = {
     415: 'UNSUPPORTED MEDIA TYPE',
     416: 'REQUESTED RANGE NOT SATISFIABLE',
     417: 'EXPECTATION FAILED',
-    # Server error
     500: 'INTERNAL SERVER ERROR',
     501: 'NOT IMPLEMENTED',
     502: 'BAD GATEWAY',
@@ -49,38 +48,45 @@ defined_status = {
     505: 'HTTP VERSION NOT SUPPORTED',
     }
 
+
 class HTTP(BaseException):
-    def __init__(self,status,body='',**headers):
-        self.args=(status,body,headers)
+
+    def __init__(
+        self,
+        status,
+        body='',
+        **headers
+        ):
+        self.args = (status, body, headers)
         if status in defined_status:
-            self.status = "%d %s" % (status, defined_status[status])
+            self.status = '%d %s' % (status, defined_status[status])
         else:
-            self.status=str(status)+' '
-        self.body=body
+            self.status = str(status) + ' '
+        self.body = body
         if not headers.has_key('Content-Type'):
-              headers['Content-Type']='text/html'
-        self.headers=headers
-    def to(self,responder):
-        headers=[]
-        for k,v in self.headers.items():
-            if isinstance(v,list):
-               for item in v: headers.append((k,str(item)))
-            else: headers.append((k,str(v)))
-        responder(self.status,headers)
-        if hasattr(self.body,'__iter__') and not isinstance(self.body,str):
+            headers['Content-Type'] = 'text/html'
+        self.headers = headers
+
+    def to(self, responder):
+        headers = []
+        for (k, v) in self.headers.items():
+            if isinstance(v, list):
+                for item in v:
+                    headers.append((k, str(item)))
+            else:
+                headers.append((k, str(v)))
+        responder(self.status, headers)
+        if hasattr(self.body, '__iter__') and not isinstance(self.body,
+                str):
             return self.body
-        body=str(self.body)
-        self.headers['Content-Length']=len(body)
+        body = str(self.body)
+        self.headers['Content-Length'] = len(body)
         return [body]
 
-def redirect(location,how=303): 
-    location = location.replace('\r','%0D').replace('\n','%0A') 
-    raise HTTP(how,
-               'You are being redirected <a href="%s">here</a>' % location,
-               Location=location)
-        
-"""
-examples:
-raise HTTP(301,Location='http://www.google.com')
-redirect('/'+request.application+'/default/index')
-"""
+
+def redirect(location, how=303):
+    location = location.replace('\r', '%0D').replace('\n', '%0A')
+    raise HTTP(how, 'You are being redirected <a href="%s">here</a>'
+                % location, Location=location)
+
+

@@ -378,11 +378,11 @@ the records are identified by the where=SQLQuery(...) object.
         <tr>
           <td><span class="summary-sig"><a href="gluon.sql-module.html#test_all" class="summary-sig-name" onclick="show_private();">test_all</a>()</span><br />
       Create a table with all possible field types
- 'sqlite://test.db'
- 'mysql://root:none@localhost/test'
- 'postgres://mdipierro:none@localhost/test'
- 'mssql://web2py:none@A64X2/web2py_test'
- 'firebird://user:password@server:3050/database'</td>
+    'sqlite://test.db'
+    'mysql://root:none@localhost/test'
+    'postgres://mdipierro:none@localhost/test'
+    'mssql://web2py:none@A64X2/web2py_test'
+    'firebird://user:password@server:3050/database'</td>
           <td align="right" valign="top">
             <span class="codelink"><a href="gluon.sql-pysrc.html#test_all">source&nbsp;code</a></span>
             
@@ -428,8 +428,7 @@ the records are identified by the where=SQLQuery(...) object.
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
-        <a href="gluon.sql-module.html#sql_locker" class="summary-name" onclick="show_private();">sql_locker</a> = <code title="thread.allocate_lock()">thread.allocate_lock()</code><br />
-      notes on concurrency....
+        <a name="sql_locker"></a><span class="summary-name">sql_locker</span> = <code title="thread.allocate_lock()">thread.allocate_lock()</code>
     </td>
   </tr>
 <tr class="private">
@@ -497,168 +496,170 @@ the records are identified by the where=SQLQuery(...) object.
   <pre class="literalblock">
 
 
- Create a table with all possible field types
- 'sqlite://test.db'
- 'mysql://root:none@localhost/test'
- 'postgres://mdipierro:none@localhost/test'
- 'mssql://web2py:none@A64X2/web2py_test'
- 'firebird://user:password@server:3050/database'
+    Create a table with all possible field types
+    'sqlite://test.db'
+    'mysql://root:none@localhost/test'
+    'postgres://mdipierro:none@localhost/test'
+    'mssql://web2py:none@A64X2/web2py_test'
+    'firebird://user:password@server:3050/database'
 
- &gt;&gt;&gt; if len(sys.argv)&lt;2: db=SQLDB(&quot;sqlite://test.db&quot;)
- &gt;&gt;&gt; if len(sys.argv)&gt;1: db=SQLDB(sys.argv[1])
- &gt;&gt;&gt; tmp=db.define_table('users',              SQLField('stringf','string',length=32,required=True),              SQLField('booleanf','boolean',default=False),              SQLField('passwordf','password',notnull=True),              SQLField('blobf','blob'),              SQLField('uploadf','upload'),              SQLField('integerf','integer',unique=True),              SQLField('doublef','double',unique=True,notnull=True),              SQLField('datef','date',default=datetime.date.today()),              SQLField('timef','time'),              SQLField('datetimef','datetime'),              migrate='test_user.table')
+    &gt;&gt;&gt; if len(sys.argv)&lt;2: db=SQLDB(&quot;sqlite://test.db&quot;)
+    &gt;&gt;&gt; if len(sys.argv)&gt;1: db=SQLDB(sys.argv[1])
+    &gt;&gt;&gt; tmp=db.define_table('users',              SQLField('stringf','string',length=32,required=True),              SQLField('booleanf','boolean',default=False),              SQLField('passwordf','password',notnull=True),              SQLField('blobf','blob'),              SQLField('uploadf','upload'),              SQLField('integerf','integer',unique=True),              SQLField('doublef','double',unique=True,notnull=True),              SQLField('datef','date',default=datetime.date.today()),              SQLField('timef','time'),              SQLField('datetimef','datetime'),              migrate='test_user.table')
 
-Insert a field
+   Insert a field
 
- &gt;&gt;&gt; db.users.insert(stringf='a',booleanf=True,passwordf='p',blobf='0A',                       uploadf=None, integerf=5,doublef=3.14,                       datef=datetime.date(2001,1,1),                       timef=datetime.time(12,30,15),                       datetimef=datetime.datetime(2002,2,2,12,30,15))
- 1
+    &gt;&gt;&gt; db.users.insert(stringf='a',booleanf=True,passwordf='p',blobf='0A',                       uploadf=None, integerf=5,doublef=3.14,                       datef=datetime.date(2001,1,1),                       timef=datetime.time(12,30,15),                       datetimef=datetime.datetime(2002,2,2,12,30,15))
+    1
 
- Drop the table   
+    Drop the table   
 
- &gt;&gt;&gt; db.users.drop()
+    &gt;&gt;&gt; db.users.drop()
 
- Examples of insert, select, update, delete
+    Examples of insert, select, update, delete
 
- &gt;&gt;&gt; tmp=db.define_table('person',              SQLField('name'),               SQLField('birth','date'),              migrate='test_person.table')
- &gt;&gt;&gt; person_id=db.person.insert(name=&quot;Marco&quot;,birth='2005-06-22')
- &gt;&gt;&gt; person_id=db.person.insert(name=&quot;Massimo&quot;,birth='1971-12-21')
- &gt;&gt;&gt; len(db().select(db.person.ALL))
- 2
- &gt;&gt;&gt; me=db(db.person.id==person_id).select()[0] # test select
- &gt;&gt;&gt; me.name
- 'Massimo'
- &gt;&gt;&gt; db(db.person.name=='Massimo').update(name='massimo') # test update
- 1
- &gt;&gt;&gt; db(db.person.name=='Marco').delete() # test delete
- 1
+    &gt;&gt;&gt; tmp=db.define_table('person',              SQLField('name'),               SQLField('birth','date'),              migrate='test_person.table')
+    &gt;&gt;&gt; person_id=db.person.insert(name=&quot;Marco&quot;,birth='2005-06-22')
+    &gt;&gt;&gt; person_id=db.person.insert(name=&quot;Massimo&quot;,birth='1971-12-21')
+    &gt;&gt;&gt; len(db().select(db.person.ALL))
+    2
+    &gt;&gt;&gt; me=db(db.person.id==person_id).select()[0] # test select
+    &gt;&gt;&gt; me.name
+    'Massimo'
+    &gt;&gt;&gt; db(db.person.name=='Massimo').update(name='massimo') # test update
+    1
+    &gt;&gt;&gt; db(db.person.name=='Marco').delete() # test delete
+    1
 
- Update a single record
+    Update a single record
 
- &gt;&gt;&gt; me.update_record(name=&quot;Max&quot;)
- &gt;&gt;&gt; me.name
- 'Max'
+    &gt;&gt;&gt; me.update_record(name=&quot;Max&quot;)
+    &gt;&gt;&gt; me.name
+    'Max'
 
- Examples of complex search conditions
+    Examples of complex search conditions
 
- &gt;&gt;&gt; len(db((db.person.name=='Max')&amp;(db.person.birth&lt;'2003-01-01')).select())
- 1
- &gt;&gt;&gt; len(db((db.person.name=='Max')&amp;(db.person.birth&lt;datetime.date(2003,01,01))).select())
- 1
- &gt;&gt;&gt; len(db((db.person.name=='Max')|(db.person.birth&lt;'2003-01-01')).select())
- 1
- &gt;&gt;&gt; me=db(db.person.id==person_id).select(db.person.name)[0] 
- &gt;&gt;&gt; me.name
- 'Max'
+    &gt;&gt;&gt; len(db((db.person.name=='Max')&amp;(db.person.birth&lt;'2003-01-01')).select())
+    1
+    &gt;&gt;&gt; len(db((db.person.name=='Max')&amp;(db.person.birth&lt;datetime.date(2003,01,01))).select())
+    1
+    &gt;&gt;&gt; len(db((db.person.name=='Max')|(db.person.birth&lt;'2003-01-01')).select())
+    1
+    &gt;&gt;&gt; me=db(db.person.id==person_id).select(db.person.name)[0] 
+    &gt;&gt;&gt; me.name
+    'Max'
+  
+    Examples of search conditions using extract from date/datetime/time      
 
- Examples of search conditions using extract from date/datetime/time      
+    &gt;&gt;&gt; len(db(db.person.birth.month()==12).select())
+    1
+    &gt;&gt;&gt; len(db(db.person.birth.year()&gt;1900).select())
+    1
 
- &gt;&gt;&gt; len(db(db.person.birth.month()==12).select())
- 1
- &gt;&gt;&gt; len(db(db.person.birth.year()&gt;1900).select())
- 1
+    Example of usage of NULL
 
- Example of usage of NULL
+    &gt;&gt;&gt; len(db(db.person.birth==None).select()) ### test NULL
+    0
+    &gt;&gt;&gt; len(db(db.person.birth!=None).select()) ### test NULL
+    1
 
- &gt;&gt;&gt; len(db(db.person.birth==None).select()) ### test NULL
- 0
- &gt;&gt;&gt; len(db(db.person.birth!=None).select()) ### test NULL
- 1
+    Examples of search consitions using lower, upper, and like
 
- Examples of search consitions using lower, upper, and like
+    &gt;&gt;&gt; len(db(db.person.name.upper()=='MAX').select())
+    1
+    &gt;&gt;&gt; len(db(db.person.name.like('%ax')).select())
+    1
+    &gt;&gt;&gt; len(db(db.person.name.upper().like('%AX')).select())
+    1
+    &gt;&gt;&gt; len(db(~db.person.name.upper().like('%AX')).select())
+    0
 
- &gt;&gt;&gt; len(db(db.person.name.upper()=='MAX').select())
- 1
- &gt;&gt;&gt; len(db(db.person.name.like('%ax')).select())
- 1
- &gt;&gt;&gt; len(db(db.person.name.upper().like('%AX')).select())
- 1
- &gt;&gt;&gt; len(db(~db.person.name.upper().like('%AX')).select())
- 0
+    orderby, groupby and limitby 
 
- orderby, groupby and limitby 
+    &gt;&gt;&gt; people=db().select(db.person.name,orderby=db.person.name)
+    &gt;&gt;&gt; order=db.person.name|~db.person.birth
+    &gt;&gt;&gt; people=db().select(db.person.name,orderby=order)
+    
+    &gt;&gt;&gt; people=db().select(db.person.name,orderby=db.person.name,groupby=db.person.name)
+    
+    &gt;&gt;&gt; people=db().select(db.person.name,orderby=order,limitby=(0,100))
 
- &gt;&gt;&gt; people=db().select(db.person.name,orderby=db.person.name)
- &gt;&gt;&gt; order=db.person.name|~db.person.birth
- &gt;&gt;&gt; people=db().select(db.person.name,orderby=order)
+    Example of one 2 many relation
+
+    &gt;&gt;&gt; tmp=db.define_table('dog',               SQLField('name'),               SQLField('birth','date'),               SQLField('owner',db.person),              migrate='test_dog.table')
+    &gt;&gt;&gt; db.dog.insert(name='Snoopy',birth=None,owner=person_id)
+    1
+
+    A simple JOIN
+
+    &gt;&gt;&gt; len(db(db.dog.owner==db.person.id).select())
+    1
+
+    &gt;&gt;&gt; len(db().select(db.person.ALL,db.dog.name,left=db.dog.on(db.dog.owner==db.person.id)))
+    1
+
+    Drop tables
+
+    &gt;&gt;&gt; db.dog.drop()
+    &gt;&gt;&gt; db.person.drop()
+
+    Example of many 2 many relation and SQLSet
  
- &gt;&gt;&gt; people=db().select(db.person.name,orderby=db.person.name,groupby=db.person.name)
- 
- &gt;&gt;&gt; people=db().select(db.person.name,orderby=order,limitby=(0,100))
+    &gt;&gt;&gt; tmp=db.define_table('author',SQLField('name'),                            migrate='test_author.table')
+    &gt;&gt;&gt; tmp=db.define_table('paper',SQLField('title'),                            migrate='test_paper.table')
+    &gt;&gt;&gt; tmp=db.define_table('authorship',            SQLField('author_id',db.author),            SQLField('paper_id',db.paper),            migrate='test_authorship.table')
+    &gt;&gt;&gt; aid=db.author.insert(name='Massimo')
+    &gt;&gt;&gt; pid=db.paper.insert(title='QCD')
+    &gt;&gt;&gt; tmp=db.authorship.insert(author_id=aid,paper_id=pid)
 
- Example of one 2 many relation
+    Define a SQLSet
 
- &gt;&gt;&gt; tmp=db.define_table('dog',               SQLField('name'),               SQLField('birth','date'),               SQLField('owner',db.person),              migrate='test_dog.table')
- &gt;&gt;&gt; db.dog.insert(name='Snoopy',birth=None,owner=person_id)
- 1
+    &gt;&gt;&gt; authored_papers=db((db.author.id==db.authorship.author_id)&amp;                           (db.paper.id==db.authorship.paper_id))
+    &gt;&gt;&gt; rows=authored_papers.select(db.author.name,db.paper.title)
+    &gt;&gt;&gt; for row in rows: print row.author.name, row.paper.title
+    Massimo QCD
 
- A simple JOIN
+    Example of search condition using  belongs
 
- &gt;&gt;&gt; len(db(db.dog.owner==db.person.id).select())
- 1
+    &gt;&gt;&gt; set=(1,2,3)
+    &gt;&gt;&gt; rows=db(db.paper.id.belongs(set)).select(db.paper.ALL)
+    &gt;&gt;&gt; print rows[0].title
+    QCD
 
- &gt;&gt;&gt; len(db().select(db.person.ALL,db.dog.name,left=db.dog.on(db.dog.owner==db.person.id)))
- 1
+    Example of search condition using nested select
 
- Drop tables
+    &gt;&gt;&gt; nested_select=db()._select(db.authorship.paper_id)
+    &gt;&gt;&gt; rows=db(db.paper.id.belongs(nested_select)).select(db.paper.ALL)
+    &gt;&gt;&gt; print rows[0].title
+    QCD
 
- &gt;&gt;&gt; db.dog.drop()
- &gt;&gt;&gt; db.person.drop()
+    Example of expressions
 
- Example of many 2 many relation and SQLSet
+    &gt;&gt;&gt; mynumber=db.define_table('mynumber',SQLField('x','integer'))
+    &gt;&gt;&gt; db(mynumber.id&gt;0).delete()
+    0
+    &gt;&gt;&gt; for i in range(10): tmp=mynumber.insert(x=i)
+    &gt;&gt;&gt; db(mynumber.id&gt;0).select(mynumber.x.sum())[0]._extra[mynumber.x.sum()]
+    45
+    &gt;&gt;&gt; db(mynumber.x+2==5).select(mynumber.x+2)[0]._extra[mynumber.x+2]
+    5
 
- &gt;&gt;&gt; tmp=db.define_table('author',SQLField('name'),                            migrate='test_author.table')
- &gt;&gt;&gt; tmp=db.define_table('paper',SQLField('title'),                            migrate='test_paper.table')
- &gt;&gt;&gt; tmp=db.define_table('authorship',            SQLField('author_id',db.author),            SQLField('paper_id',db.paper),            migrate='test_authorship.table')
- &gt;&gt;&gt; aid=db.author.insert(name='Massimo')
- &gt;&gt;&gt; pid=db.paper.insert(title='QCD')
- &gt;&gt;&gt; tmp=db.authorship.insert(author_id=aid,paper_id=pid)
+    Output in csv
 
- Define a SQLSet
+    &gt;&gt;&gt; str(authored_papers.select(db.author.name,db.paper.title))
+    'author.name,paper.title
+Massimo,QCD
+'
 
- &gt;&gt;&gt; authored_papers=db((db.author.id==db.authorship.author_id)&amp;                           (db.paper.id==db.authorship.paper_id))
- &gt;&gt;&gt; rows=authored_papers.select(db.author.name,db.paper.title)
- &gt;&gt;&gt; for row in rows: print row.author.name, row.paper.title
- Massimo QCD
+    Delete all leftover tables
 
- Example of search condition using  belongs
+    # &gt;&gt;&gt; SQLDB.distributed_transaction_commit(db)
 
- &gt;&gt;&gt; set=(1,2,3)
- &gt;&gt;&gt; rows=db(db.paper.id.belongs(set)).select(db.paper.ALL)
- &gt;&gt;&gt; print rows[0].title
- QCD
-
- Example of search condition using nested select
-
- &gt;&gt;&gt; nested_select=db()._select(db.authorship.paper_id)
- &gt;&gt;&gt; rows=db(db.paper.id.belongs(nested_select)).select(db.paper.ALL)
- &gt;&gt;&gt; print rows[0].title
- QCD
-
- Example of expressions
-
- &gt;&gt;&gt; mynumber=db.define_table('mynumber',SQLField('x','integer'))
- &gt;&gt;&gt; db(mynumber.id&gt;0).delete()
- 0
- &gt;&gt;&gt; for i in range(10): tmp=mynumber.insert(x=i)
- &gt;&gt;&gt; db(mynumber.id&gt;0).select(mynumber.x.sum())[0]._extra[mynumber.x.sum()]
- 45
- &gt;&gt;&gt; db(mynumber.x+2==5).select(mynumber.x+2)[0]._extra[mynumber.x+2]
- 5
-
- Output in csv
-
- &gt;&gt;&gt; str(authored_papers.select(db.author.name,db.paper.title))
- 'author.name,paper.title\r\nMassimo,QCD\r\n'
-
- Delete all leftover tables
-
- # &gt;&gt;&gt; SQLDB.distributed_transaction_commit(db)
-
- &gt;&gt;&gt; db.mynumber.drop()
- &gt;&gt;&gt; db.authorship.drop()
- &gt;&gt;&gt; db.author.drop()
- &gt;&gt;&gt; db.paper.drop()
- 
+    &gt;&gt;&gt; db.mynumber.drop()
+    &gt;&gt;&gt; db.authorship.drop()
+    &gt;&gt;&gt; db.author.drop()
+    &gt;&gt;&gt; db.paper.drop()
+    
 
 </pre>
   <dl class="fields">
@@ -684,27 +685,6 @@ Insert a field
   </td>
 </tr>
 </table>
-<a name="sql_locker"></a>
-<div class="private">
-<table class="details" border="1" cellpadding="3"
-       cellspacing="0" width="100%" bgcolor="white">
-<tr><td>
-  <h3 class="epydoc">sql_locker</h3>
-  <p>notes on concurrency.... Accessing SQLDB._folders, SQLDB._instances 
-  and SQLDB .table files is not thread safe so they are locked with 
-  sql_locker Moreover .table files are locked with portalocker to account 
-  for multiple parallel processes.</p>
-  <dl class="fields">
-  </dl>
-  <dl class="fields">
-    <dt>Value:</dt>
-      <dd><table><tr><td><pre class="variable">
-thread.allocate_lock()
-</pre></td></tr></table>
-</dd>
-  </dl>
-</td></tr></table>
-</div>
 <a name="SQL_DIALECTS"></a>
 <div class="private">
 <table class="details" border="1" cellpadding="3"
@@ -763,7 +743,7 @@ thread.allocate_lock()
 <table border="0" cellpadding="0" cellspacing="0" width="100%%">
   <tr>
     <td align="left" class="footer">
-    Generated by Epydoc 3.0.1 on Tue Feb  3 09:29:40 2009
+    Generated by Epydoc 3.0.1 on Tue Feb  3 11:37:33 2009
     </td>
     <td align="right" class="footer">
       <a target="mainFrame" href="http://epydoc.sourceforge.net"

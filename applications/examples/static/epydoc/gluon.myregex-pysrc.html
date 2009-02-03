@@ -61,25 +61,38 @@
 </table>
 <h1 class="epydoc">Source Code for <a href="gluon.myregex-module.html">Module gluon.myregex</a></h1>
 <pre class="py-src">
-<a name="L1"></a><tt class="py-lineno"> 1</tt>  <tt class="py-line"><tt class="py-docstring">"""</tt> </tt>
-<a name="L2"></a><tt class="py-lineno"> 2</tt>  <tt class="py-line"><tt class="py-docstring">This file is part of web2py Web Framework (Copyrighted, 2007)</tt> </tt>
-<a name="L3"></a><tt class="py-lineno"> 3</tt>  <tt class="py-line"><tt class="py-docstring">Developed by Massimo Di Pierro &lt;mdipierro@cs.depaul.edu&gt;</tt> </tt>
-<a name="L4"></a><tt class="py-lineno"> 4</tt>  <tt class="py-line"><tt class="py-docstring">License: GPL v2</tt> </tt>
-<a name="L5"></a><tt class="py-lineno"> 5</tt>  <tt class="py-line"><tt class="py-docstring">"""</tt> </tt>
-<a name="L6"></a><tt class="py-lineno"> 6</tt>  <tt class="py-line"> </tt>
-<a name="L7"></a><tt class="py-lineno"> 7</tt>  <tt class="py-line"><tt class="py-keyword">import</tt> <tt class="py-name">re</tt> </tt>
-<a name="L8"></a><tt class="py-lineno"> 8</tt>  <tt class="py-line"> </tt>
-<a name="L9"></a><tt class="py-lineno"> 9</tt>  <tt class="py-line"><tt class="py-comment"># pattern to find defined tables </tt> </tt>
-<a name="L10"></a><tt class="py-lineno">10</tt>  <tt class="py-line"><tt class="py-comment"></tt><tt id="link-0" class="py-name" targets="Variable gluon.myregex.regex_tables=gluon.myregex-module.html#regex_tables,Variable gluon.sql.regex_tables=gluon.sql-module.html#regex_tables"><a title="gluon.myregex.regex_tables
-gluon.sql.regex_tables" class="py-name" href="#" onclick="return doclink('link-0', 'regex_tables', 'link-0');">regex_tables</a></tt><tt class="py-op">=</tt><tt class="py-name">re</tt><tt class="py-op">.</tt><tt class="py-name">compile</tt><tt class="py-op">(</tt><tt class="py-string">"""^[\w]+\.define_table\(\s*[\'\"](?P&lt;name&gt;[\w_]+)[\'\"]"""</tt><tt class="py-op">,</tt><tt class="py-name">flags</tt><tt class="py-op">=</tt><tt class="py-name">re</tt><tt class="py-op">.</tt><tt class="py-name">M</tt><tt class="py-op">)</tt> </tt>
+<a name="L1"></a><tt class="py-lineno"> 1</tt>  <tt class="py-line"><tt class="py-comment">#!/usr/bin/python</tt> </tt>
+<a name="L2"></a><tt class="py-lineno"> 2</tt>  <tt class="py-line"><tt class="py-comment"></tt><tt class="py-comment"># -*- coding: utf-8 -*-</tt> </tt>
+<a name="L3"></a><tt class="py-lineno"> 3</tt>  <tt class="py-line"><tt class="py-comment"></tt> </tt>
+<a name="L4"></a><tt class="py-lineno"> 4</tt>  <tt class="py-line"><tt class="py-docstring">"""</tt> </tt>
+<a name="L5"></a><tt class="py-lineno"> 5</tt>  <tt class="py-line"><tt class="py-docstring">This file is part of web2py Web Framework (Copyrighted, 2007)</tt> </tt>
+<a name="L6"></a><tt class="py-lineno"> 6</tt>  <tt class="py-line"><tt class="py-docstring">Developed by Massimo Di Pierro &lt;mdipierro@cs.depaul.edu&gt;</tt> </tt>
+<a name="L7"></a><tt class="py-lineno"> 7</tt>  <tt class="py-line"><tt class="py-docstring">License: GPL v2</tt> </tt>
+<a name="L8"></a><tt class="py-lineno"> 8</tt>  <tt class="py-line"><tt class="py-docstring">"""</tt> </tt>
+<a name="L9"></a><tt class="py-lineno"> 9</tt>  <tt class="py-line"> </tt>
+<a name="L10"></a><tt class="py-lineno">10</tt>  <tt class="py-line"><tt class="py-keyword">import</tt> <tt class="py-name">re</tt> </tt>
 <a name="L11"></a><tt class="py-lineno">11</tt>  <tt class="py-line"> </tt>
-<a name="L12"></a><tt class="py-lineno">12</tt>  <tt class="py-line"><tt class="py-comment"># pattern to find exposed functions in controller</tt> </tt>
-<a name="L13"></a><tt class="py-lineno">13</tt>  <tt class="py-line"><tt class="py-comment"></tt><tt id="link-1" class="py-name" targets="Variable gluon.myregex.regex_expose=gluon.myregex-module.html#regex_expose"><a title="gluon.myregex.regex_expose" class="py-name" href="#" onclick="return doclink('link-1', 'regex_expose', 'link-1');">regex_expose</a></tt><tt class="py-op">=</tt><tt class="py-name">re</tt><tt class="py-op">.</tt><tt class="py-name">compile</tt><tt class="py-op">(</tt><tt class="py-string">'^def\s+(?P&lt;name&gt;(?:[a-zA-Z0-9]\w*)|(?:_[a-zA-Z0-9]\w*))\(\)\s*:'</tt><tt class="py-op">,</tt><tt class="py-name">flags</tt><tt class="py-op">=</tt><tt class="py-name">re</tt><tt class="py-op">.</tt><tt class="py-name">M</tt><tt class="py-op">)</tt> </tt>
-<a name="L14"></a><tt class="py-lineno">14</tt>  <tt class="py-line"> </tt>
-<a name="L15"></a><tt class="py-lineno">15</tt>  <tt class="py-line"><tt id="link-2" class="py-name" targets="Variable gluon.myregex.regex_include=gluon.myregex-module.html#regex_include"><a title="gluon.myregex.regex_include" class="py-name" href="#" onclick="return doclink('link-2', 'regex_include', 'link-2');">regex_include</a></tt><tt class="py-op">=</tt><tt class="py-name">re</tt><tt class="py-op">.</tt><tt class="py-name">compile</tt><tt class="py-op">(</tt><tt class="py-string">'(?P&lt;all&gt;\{\{\s*include\s+[\'"](?P&lt;name&gt;[^\']*)[\'"]\s*\}\})'</tt><tt class="py-op">)</tt> </tt>
-<a name="L16"></a><tt class="py-lineno">16</tt>  <tt class="py-line"> </tt>
-<a name="L17"></a><tt class="py-lineno">17</tt>  <tt class="py-line"><tt id="link-3" class="py-name" targets="Variable gluon.myregex.regex_extend=gluon.myregex-module.html#regex_extend"><a title="gluon.myregex.regex_extend" class="py-name" href="#" onclick="return doclink('link-3', 'regex_extend', 'link-3');">regex_extend</a></tt><tt class="py-op">=</tt><tt class="py-name">re</tt><tt class="py-op">.</tt><tt class="py-name">compile</tt><tt class="py-op">(</tt><tt class="py-string">'^\s*(?P&lt;all&gt;\{\{\s*extend\s+[\'"](?P&lt;name&gt;[^\']+)[\'"]\s*\}\})'</tt><tt class="py-op">)</tt> </tt>
-<a name="L18"></a><tt class="py-lineno">18</tt>  <tt class="py-line"> </tt><script type="text/javascript">
+<a name="L12"></a><tt class="py-lineno">12</tt>  <tt class="py-line"><tt class="py-comment"># pattern to find defined tables</tt> </tt>
+<a name="L13"></a><tt class="py-lineno">13</tt>  <tt class="py-line"><tt class="py-comment"></tt> </tt>
+<a name="L14"></a><tt class="py-lineno">14</tt>  <tt class="py-line"><tt id="link-0" class="py-name" targets="Variable gluon.myregex.regex_tables=gluon.myregex-module.html#regex_tables,Variable gluon.sql.regex_tables=gluon.sql-module.html#regex_tables"><a title="gluon.myregex.regex_tables
+gluon.sql.regex_tables" class="py-name" href="#" onclick="return doclink('link-0', 'regex_tables', 'link-0');">regex_tables</a></tt> <tt class="py-op">=</tt> \ </tt>
+<a name="L15"></a><tt class="py-lineno">15</tt>  <tt class="py-line">    <tt class="py-name">re</tt><tt class="py-op">.</tt><tt class="py-name">compile</tt><tt class="py-op">(</tt><tt class="py-string">"""^[\w]+\.define_table\(\s*[\'\"](?P&lt;name&gt;[\w_]+)[\'\"]"""</tt> </tt>
+<a name="L16"></a><tt class="py-lineno">16</tt>  <tt class="py-line">               <tt class="py-op">,</tt> <tt class="py-name">flags</tt><tt class="py-op">=</tt><tt class="py-name">re</tt><tt class="py-op">.</tt><tt class="py-name">M</tt><tt class="py-op">)</tt> </tt>
+<a name="L17"></a><tt class="py-lineno">17</tt>  <tt class="py-line"> </tt>
+<a name="L18"></a><tt class="py-lineno">18</tt>  <tt class="py-line"><tt class="py-comment"># pattern to find exposed functions in controller</tt> </tt>
+<a name="L19"></a><tt class="py-lineno">19</tt>  <tt class="py-line"><tt class="py-comment"></tt> </tt>
+<a name="L20"></a><tt class="py-lineno">20</tt>  <tt class="py-line"><tt id="link-1" class="py-name" targets="Variable gluon.myregex.regex_expose=gluon.myregex-module.html#regex_expose"><a title="gluon.myregex.regex_expose" class="py-name" href="#" onclick="return doclink('link-1', 'regex_expose', 'link-1');">regex_expose</a></tt> <tt class="py-op">=</tt> \ </tt>
+<a name="L21"></a><tt class="py-lineno">21</tt>  <tt class="py-line">    <tt class="py-name">re</tt><tt class="py-op">.</tt><tt class="py-name">compile</tt><tt class="py-op">(</tt><tt class="py-string">'^def\s+(?P&lt;name&gt;(?:[a-zA-Z0-9]\w*)|(?:_[a-zA-Z0-9]\w*))\(\)\s*:'</tt> </tt>
+<a name="L22"></a><tt class="py-lineno">22</tt>  <tt class="py-line">               <tt class="py-op">,</tt> <tt class="py-name">flags</tt><tt class="py-op">=</tt><tt class="py-name">re</tt><tt class="py-op">.</tt><tt class="py-name">M</tt><tt class="py-op">)</tt> </tt>
+<a name="L23"></a><tt class="py-lineno">23</tt>  <tt class="py-line"> </tt>
+<a name="L24"></a><tt class="py-lineno">24</tt>  <tt class="py-line"><tt id="link-2" class="py-name" targets="Variable gluon.myregex.regex_include=gluon.myregex-module.html#regex_include"><a title="gluon.myregex.regex_include" class="py-name" href="#" onclick="return doclink('link-2', 'regex_include', 'link-2');">regex_include</a></tt> <tt class="py-op">=</tt> \ </tt>
+<a name="L25"></a><tt class="py-lineno">25</tt>  <tt class="py-line">    <tt class="py-name">re</tt><tt class="py-op">.</tt><tt class="py-name">compile</tt><tt class="py-op">(</tt><tt class="py-string">'(?P&lt;all&gt;\{\{\s*include\s+[\'"](?P&lt;name&gt;[^\']*)[\'"]\s*\}\})'</tt> </tt>
+<a name="L26"></a><tt class="py-lineno">26</tt>  <tt class="py-line">               <tt class="py-op">)</tt> </tt>
+<a name="L27"></a><tt class="py-lineno">27</tt>  <tt class="py-line"> </tt>
+<a name="L28"></a><tt class="py-lineno">28</tt>  <tt class="py-line"><tt id="link-3" class="py-name" targets="Variable gluon.myregex.regex_extend=gluon.myregex-module.html#regex_extend"><a title="gluon.myregex.regex_extend" class="py-name" href="#" onclick="return doclink('link-3', 'regex_extend', 'link-3');">regex_extend</a></tt> <tt class="py-op">=</tt> \ </tt>
+<a name="L29"></a><tt class="py-lineno">29</tt>  <tt class="py-line">    <tt class="py-name">re</tt><tt class="py-op">.</tt><tt class="py-name">compile</tt><tt class="py-op">(</tt><tt class="py-string">'^\s*(?P&lt;all&gt;\{\{\s*extend\s+[\'"](?P&lt;name&gt;[^\']+)[\'"]\s*\}\})'</tt> </tt>
+<a name="L30"></a><tt class="py-lineno">30</tt>  <tt class="py-line">               <tt class="py-op">)</tt> </tt>
+<a name="L31"></a><tt class="py-lineno">31</tt>  <tt class="py-line"> </tt><script type="text/javascript">
 <!--
 expandto(location.href);
 // -->
@@ -117,7 +130,7 @@ expandto(location.href);
 <table border="0" cellpadding="0" cellspacing="0" width="100%%">
   <tr>
     <td align="left" class="footer">
-    Generated by Epydoc 3.0.1 on Tue Feb  3 09:29:43 2009
+    Generated by Epydoc 3.0.1 on Tue Feb  3 11:37:38 2009
     </td>
     <td align="right" class="footer">
       <a target="mainFrame" href="http://epydoc.sourceforge.net"

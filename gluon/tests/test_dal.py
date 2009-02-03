@@ -1,6 +1,9 @@
-'''
-    Unit tests for gluon.cache
-'''
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
+"""
+    Unit tests for gluon.sql
+"""
+
 import sys
 import os
 sys.path.append(os.path.realpath('../'))
@@ -10,377 +13,433 @@ import datetime
 from sql import *
 from sql import SQLTable, SQLALL
 
-ALLOWED_DATATYPES = ['string'
-                     , 'text'
-                     , 'integer'
-                     , 'boolean'
-                     , 'double'
-                     , 'blob'
-                     , 'date'
-                     , 'time'
-                     , 'datetime'
-                     , 'upload'
-                     , 'password' ]
+ALLOWED_DATATYPES = [
+    'string',
+    'text',
+    'integer',
+    'boolean',
+    'double',
+    'blob',
+    'date',
+    'time',
+    'datetime',
+    'upload',
+    'password',
+    ]
+
 
 class TestFields(unittest.TestCase):
 
     def testSQLFieldName(self):
+
         # Check that Fields cannot start with underscores
-        self.assertRaises( SyntaxError, SQLField, '_abc','string')
+
+        self.assertRaises(SyntaxError, SQLField, '_abc', 'string')
+
         # Check that Fields cannot contain punctuation other than underscores
-        self.assertRaises( SyntaxError, SQLField, 'a.bc','string')
+
+        self.assertRaises(SyntaxError, SQLField, 'a.bc', 'string')
+
         # Check that Fields cannot be a name of a method or property of SQLTable
+
         for x in ['create', 'drop', 'on', 'truncate']:
-            self.assertRaises( SyntaxError, SQLField, x,'string')
+            self.assertRaises(SyntaxError, SQLField, x, 'string')
+
         # Check that Fields allows underscores in the body of a field name.
-        self.assert_( SQLField('a_bc','string'), "SQLField isn't allowing underscores in fieldnames.  It should.")
+
+        self.assert_(SQLField('a_bc', 'string'),
+                     "SQLField isn't allowing underscores in fieldnames.  It should."
+                     )
 
     def testSQLFieldTypes(self):
+
         # Check that string, text, and password default length is 32
+
         for typ in ['string', 'text', 'password']:
-            self.assert_( SQLField('abc',typ).length == 32, "Default length for type '%s' is not 32" % typ)
+            self.assert_(SQLField('abc', typ).length == 32,
+                         "Default length for type '%s' is not 32" % typ)
+
         # Check that string becomes text when length == 0
-        self.assert_( SQLField('abc','string', length=0).type == 'text', "String does not default to text when length is 0.")
+
+        self.assert_(SQLField('abc', 'string', length=0).type == 'text'
+                     ,
+                     'String does not default to text when length is 0.'
+                     )
+
         # Check that upload default length is 64
-        self.assert_( SQLField('abc','upload').length == 64, "Default length for type 'upload' is not 64")
+
+        self.assert_(SQLField('abc', 'upload').length == 64,
+                     "Default length for type 'upload' is not 64")
+
         # Check that SQLTables passed in the type creates a reference
-        self.assert_( SQLField('abc', SQLTable(None,"temp")).type == 'reference temp', "Passing an SQLTable does not result in a reference type.")
+
+        self.assert_(SQLField('abc', SQLTable(None, 'temp')).type
+                      == 'reference temp',
+                     'Passing an SQLTable does not result in a reference type.'
+                     )
 
     def testSQLFieldLabels(self):
-        # Check that a label is successfully built from the supplied fieldname
-        self.assert_( SQLField('abc','string').label == 'Abc', "Label built is incorrect")
-        self.assert_( SQLField('abc_def','string').label == 'Abc Def', "Label built is incorrect")
 
-    def testSQLFieldFormatters(self): # Formatter should be called Validator
+        # Check that a label is successfully built from the supplied fieldname
+
+        self.assert_(SQLField('abc', 'string').label == 'Abc',
+                     'Label built is incorrect')
+        self.assert_(SQLField('abc_def', 'string').label == 'Abc Def',
+                     'Label built is incorrect')
+
+    def testSQLFieldFormatters(self):  # Formatter should be called Validator
+
         # Test the default formatters
+
         for typ in ALLOWED_DATATYPES:
-            f = SQLField('abc',typ)
+            f = SQLField('abc', typ)
             if typ not in ['date', 'time', 'datetime']:
                 isinstance(f.formatter('test'), str)
             else:
                 isinstance(f.formatter(datetime.datetime.now()), str)
 
     def testRun(self):
-        db=SQLDB('sqlite:memory:')
-        for ft in ['string','text','password','upload','blob']:
-            db.define_table('t',db.Field('a',ft,default=''))
-            self.assertEqual(db.t.insert(a='x'),1)
-            self.assertEqual(db().select(db.t.a)[0].a,'x')
+        db = SQLDB('sqlite:memory:')
+        for ft in ['string', 'text', 'password', 'upload', 'blob']:
+            db.define_table('t', db.Field('a', ft, default=''))
+            self.assertEqual(db.t.insert(a='x'), 1)
+            self.assertEqual(db().select(db.t.a)[0].a, 'x')
             db.t.drop()
-        db.define_table('t',db.Field('a','integer',default=1))
-        self.assertEqual(db.t.insert(a=3),1)
-        self.assertEqual(db().select(db.t.a)[0].a,3)
+        db.define_table('t', db.Field('a', 'integer', default=1))
+        self.assertEqual(db.t.insert(a=3), 1)
+        self.assertEqual(db().select(db.t.a)[0].a, 3)
         db.t.drop()
-        db.define_table('t',db.Field('a','double',default=1))
-        self.assertEqual(db.t.insert(a=3.1),1)
-        self.assertEqual(db().select(db.t.a)[0].a,3.1)
+        db.define_table('t', db.Field('a', 'double', default=1))
+        self.assertEqual(db.t.insert(a=3.1), 1)
+        self.assertEqual(db().select(db.t.a)[0].a, 3.1)
         db.t.drop()
-        db.define_table('t',db.Field('a','boolean',default=True))
-        self.assertEqual(db.t.insert(a=True),1)
-        self.assertEqual(db().select(db.t.a)[0].a,True)
+        db.define_table('t', db.Field('a', 'boolean', default=True))
+        self.assertEqual(db.t.insert(a=True), 1)
+        self.assertEqual(db().select(db.t.a)[0].a, True)
         db.t.drop()
-        db.define_table('t',db.Field('a','date',default=datetime.date.today()))
-        t0=datetime.date.today()
-        self.assertEqual(db.t.insert(a=t0),1)
-        self.assertEqual(db().select(db.t.a)[0].a,t0)
+        db.define_table('t', db.Field('a', 'date',
+                        default=datetime.date.today()))
+        t0 = datetime.date.today()
+        self.assertEqual(db.t.insert(a=t0), 1)
+        self.assertEqual(db().select(db.t.a)[0].a, t0)
         db.t.drop()
-        db.define_table('t',db.Field('a','datetime',default=datetime.datetime.today()))
-        t0=datetime.datetime(1971,12,21,10,30,55,0)
-        self.assertEqual(db.t.insert(a=t0),1)
-        self.assertEqual(db().select(db.t.a)[0].a,t0)
+        db.define_table('t', db.Field('a', 'datetime',
+                        default=datetime.datetime.today()))
+        t0 = datetime.datetime(
+            1971,
+            12,
+            21,
+            10,
+            30,
+            55,
+            0,
+            )
+        self.assertEqual(db.t.insert(a=t0), 1)
+        self.assertEqual(db().select(db.t.a)[0].a, t0)
         db.t.drop()
-        db.define_table('t',db.Field('a','time',default='11:30'))
-        t0=datetime.time(10,30,55)
-        self.assertEqual(db.t.insert(a=t0),1)
-        self.assertEqual(db().select(db.t.a)[0].a,t0)
+        db.define_table('t', db.Field('a', 'time', default='11:30'))
+        t0 = datetime.time(10, 30, 55)
+        self.assertEqual(db.t.insert(a=t0), 1)
+        self.assertEqual(db().select(db.t.a)[0].a, t0)
         db.t.drop()
 
-        
+
 class TestAll(unittest.TestCase):
+
     def setUp(self):
-        class PseudoTable():
+
+
+        class PseudoTable:
+
             fields = ['id', 'name', 'birthdate']
-            _tablename="PseudoTable"
+            _tablename = 'PseudoTable'
+
 
         self.pt = PseudoTable()
 
     def testSQLALL(self):
         ans = 'PseudoTable.id, PseudoTable.name, PseudoTable.birthdate'
-        self.assertEqual(str(SQLALL(self.pt)),ans)
+        self.assertEqual(str(SQLALL(self.pt)), ans)
 
 
 class TestTable(unittest.TestCase):
 
     def testTableCreation(self):
+
         # Check for error when not passing type other than SQLField or SQLTable
+
         self.assertRaises(SyntaxError, SQLTable, None, 'test', None)
 
-        persons = SQLTable( None
-                           , 'persons'
-                           , SQLField('firstname', 'string')
-                           , SQLField('lastname', 'string'))
+        persons = SQLTable(None, 'persons', SQLField('firstname',
+                           'string'), SQLField('lastname', 'string'))
+
         # Does it have the correct fields?
-        self.assert_(set(persons.fields).issuperset(set(['firstname', 'lastname'])))
+
+        self.assert_(set(persons.fields).issuperset(set(['firstname',
+                     'lastname'])))
+
         # ALL is set correctly
-        self.assert_('persons.firstname, persons.lastname' in str(persons.ALL))
+
+        self.assert_('persons.firstname, persons.lastname'
+                      in str(persons.ALL))
 
     def testTableAlias(self):
-        persons = SQLTable( None
-                               , 'persons'
-                               , SQLField('firstname', 'string')
-                               , SQLField('lastname', 'string'))
+        db = SQLDB('sqlite:memory:')
+        persons = SQLTable(db, 'persons', SQLField('firstname',
+                           'string'), SQLField('lastname', 'string'))
         aliens = persons.with_alias('aliens')
+
         # Are the different table instances with the same fields
+
         self.assert_(persons is not aliens)
         self.assert_(set(persons.fields) == set(aliens.fields))
 
     def testTableInheritance(self):
-        persons = SQLTable(None
-                               , 'persons'
-                               , SQLField('firstname', 'string')
-                               , SQLField('lastname', 'string'))
-        customers = SQLTable(None
-                                 , 'customers'
-                                 , SQLField('items_purchased', 'integer')
-                                 , persons)
+        persons = SQLTable(None, 'persons', SQLField('firstname',
+                           'string'), SQLField('lastname', 'string'))
+        customers = SQLTable(None, 'customers',
+                             SQLField('items_purchased', 'integer'),
+                             persons)
         self.assert_(set(customers.fields).issuperset(set(['items_purchased'
-                                                              , 'firstname'
-                                                              , 'lastname'])))
+                     , 'firstname', 'lastname'])))
+
 
 class TestInsert(unittest.TestCase):
+
     def testRun(self):
-        db=SQLDB('sqlite:memory:')
-        db.define_table('t',db.Field('a'))
-        self.assertEqual(db.t.insert(a='1'),1)
-        self.assertEqual(db.t.insert(a='1'),2)
-        self.assertEqual(db.t.insert(a='1'),3)
-        self.assertEqual(db(db.t.a=='1').count(),3)
-        self.assertEqual(db(db.t.a=='1').update(a='2'),None)
-        self.assertEqual(db(db.t.a=='2').count(),3)
-        self.assertEqual(db(db.t.a=='2').delete(),None)
+        db = SQLDB('sqlite:memory:')
+        db.define_table('t', db.Field('a'))
+        self.assertEqual(db.t.insert(a='1'), 1)
+        self.assertEqual(db.t.insert(a='1'), 2)
+        self.assertEqual(db.t.insert(a='1'), 3)
+        self.assertEqual(db(db.t.a == '1').count(), 3)
+        self.assertEqual(db(db.t.a == '1').update(a='2'), 3)
+        self.assertEqual(db(db.t.a == '2').count(), 3)
+        self.assertEqual(db(db.t.a == '2').delete(), 3)
         db.t.drop()
+
 
 class TestSelect(unittest.TestCase):
+
     def testRun(self):
-        db=SQLDB('sqlite:memory:')
-        db.define_table('t',db.Field('a'))
-        self.assertEqual(db.t.insert(a='1'),1)
-        self.assertEqual(db.t.insert(a='2'),2)
-        self.assertEqual(db.t.insert(a='3'),3)
-        self.assertEqual(len(db(db.t.id>0).select()),3)
-        self.assertEqual(db(db.t.id>0).select(orderby=~db.t.a|db.t.id)[0].a,'3')
-        self.assertEqual(len(db(db.t.id>0).select(limitby=(1,2))),1)
-        self.assertEqual(db(db.t.id>0).select(limitby=(1,2))[0].a,'2')
-        self.assertEqual(len(db().select(db.t.ALL)),3)
-        self.assertEqual(len(db(db.t.a==None).select()),0)
-        self.assertEqual(len(db(db.t.a!=None).select()),3)
-        self.assertEqual(len(db(db.t.a>'1').select()),2)
-        self.assertEqual(len(db(db.t.a>='1').select()),3)
-        self.assertEqual(len(db(db.t.a=='1').select()),1)
-        self.assertEqual(len(db(db.t.a!='1').select()),2)
-        self.assertEqual(len(db(db.t.a<'3').select()),2)
-        self.assertEqual(len(db(db.t.a<='3').select()),3)
-        self.assertEqual(len(db(db.t.a>'1')(db.t.a<'3').select()),1)
-        self.assertEqual(len(db((db.t.a>'1')&(db.t.a<'3')).select()),1)
-        self.assertEqual(len(db((db.t.a>'1')|(db.t.a<'3')).select()),3)
-        self.assertEqual(len(db((db.t.a>'1')&~(db.t.a>'2')).select()),1)
-        self.assertEqual(len(db(~(db.t.a>'1')&(db.t.a>'2')).select()),0)
+        db = SQLDB('sqlite:memory:')
+        db.define_table('t', db.Field('a'))
+        self.assertEqual(db.t.insert(a='1'), 1)
+        self.assertEqual(db.t.insert(a='2'), 2)
+        self.assertEqual(db.t.insert(a='3'), 3)
+        self.assertEqual(len(db(db.t.id > 0).select()), 3)
+        self.assertEqual(db(db.t.id > 0).select(orderby=~db.t.a
+                          | db.t.id)[0].a, '3')
+        self.assertEqual(len(db(db.t.id > 0).select(limitby=(1, 2))), 1)
+        self.assertEqual(db(db.t.id > 0).select(limitby=(1, 2))[0].a,
+                         '2')
+        self.assertEqual(len(db().select(db.t.ALL)), 3)
+        self.assertEqual(len(db(db.t.a == None).select()), 0)
+        self.assertEqual(len(db(db.t.a != None).select()), 3)
+        self.assertEqual(len(db(db.t.a > '1').select()), 2)
+        self.assertEqual(len(db(db.t.a >= '1').select()), 3)
+        self.assertEqual(len(db(db.t.a == '1').select()), 1)
+        self.assertEqual(len(db(db.t.a != '1').select()), 2)
+        self.assertEqual(len(db(db.t.a < '3').select()), 2)
+        self.assertEqual(len(db(db.t.a <= '3').select()), 3)
+        self.assertEqual(len(db(db.t.a > '1')(db.t.a < '3').select()),
+                         1)
+        self.assertEqual(len(db((db.t.a > '1') & (db.t.a < '3'
+                         )).select()), 1)
+        self.assertEqual(len(db((db.t.a > '1') | (db.t.a < '3'
+                         )).select()), 3)
+        self.assertEqual(len(db((db.t.a > '1') & ~(db.t.a > '2'
+                         )).select()), 1)
+        self.assertEqual(len(db(~(db.t.a > '1') & (db.t.a > '2'
+                         )).select()), 0)
         db.t.drop()
+
 
 class TestBelongs(unittest.TestCase):
+
     def testRun(self):
-        db=SQLDB('sqlite:memory:')
-        db.define_table('t',db.Field('a'))
-        self.assertEqual(db.t.insert(a='1'),1)
-        self.assertEqual(db.t.insert(a='2'),2)
-        self.assertEqual(db.t.insert(a='3'),3)
-        self.assertEqual(len(db(db.t.a.belongs(('1','3'))).select()),2)
-        self.assertEqual(len(db(db.t.a.belongs(db(db.t.id>2)._select(db.t.a))).select()),1)
-        self.assertEqual(len(db(db.t.a.belongs(db(db.t.a.belongs(('1','3')))._select(db.t.a))).select()),2)
-        self.assertEqual(len(db(db.t.a.belongs(db(db.t.a.belongs(db(db.t.a.belongs(('1','3')))._select(db.t.a)))._select(db.t.a))).select()),2)
+        db = SQLDB('sqlite:memory:')
+        db.define_table('t', db.Field('a'))
+        self.assertEqual(db.t.insert(a='1'), 1)
+        self.assertEqual(db.t.insert(a='2'), 2)
+        self.assertEqual(db.t.insert(a='3'), 3)
+        self.assertEqual(len(db(db.t.a.belongs(('1', '3'))).select()),
+                         2)
+        self.assertEqual(len(db(db.t.a.belongs(db(db.t.id
+                          > 2)._select(db.t.a))).select()), 1)
+        self.assertEqual(len(db(db.t.a.belongs(db(db.t.a.belongs(('1',
+                         '3')))._select(db.t.a))).select()), 2)
+        self.assertEqual(len(db(db.t.a.belongs(db(db.t.a.belongs(db(db.t.a.belongs(('1'
+                         , '3'
+                         )))._select(db.t.a)))._select(db.t.a))).select()),
+                         2)
         db.t.drop()
+
 
 class TestLike(unittest.TestCase):
+
     def testRun(self):
-        db=SQLDB('sqlite:memory:')
-        db.define_table('t',db.Field('a'))
-        self.assertEqual(db.t.insert(a='abc'),1)
-        self.assertEqual(len(db(db.t.a.like('a%')).select()),1)
-        self.assertEqual(len(db(db.t.a.like('%b%')).select()),1)
-        self.assertEqual(len(db(db.t.a.like('%c')).select()),1)
-        self.assertEqual(len(db(db.t.a.like('%d%')).select()),0)
-        self.assertEqual(len(db(db.t.a.lower().like('A%')).select()),1)
-        self.assertEqual(len(db(db.t.a.lower().like('%B%')).select()),1)
-        self.assertEqual(len(db(db.t.a.lower().like('%C')).select()),1)
-        self.assertEqual(len(db(db.t.a.upper().like('A%')).select()),1)
-        self.assertEqual(len(db(db.t.a.upper().like('%B%')).select()),1)
-        self.assertEqual(len(db(db.t.a.upper().like('%C')).select()),1)
+        db = SQLDB('sqlite:memory:')
+        db.define_table('t', db.Field('a'))
+        self.assertEqual(db.t.insert(a='abc'), 1)
+        self.assertEqual(len(db(db.t.a.like('a%')).select()), 1)
+        self.assertEqual(len(db(db.t.a.like('%b%')).select()), 1)
+        self.assertEqual(len(db(db.t.a.like('%c')).select()), 1)
+        self.assertEqual(len(db(db.t.a.like('%d%')).select()), 0)
+        self.assertEqual(len(db(db.t.a.lower().like('A%')).select()), 1)
+        self.assertEqual(len(db(db.t.a.lower().like('%B%')).select()),
+                         1)
+        self.assertEqual(len(db(db.t.a.lower().like('%C')).select()), 1)
+        self.assertEqual(len(db(db.t.a.upper().like('A%')).select()), 1)
+        self.assertEqual(len(db(db.t.a.upper().like('%B%')).select()),
+                         1)
+        self.assertEqual(len(db(db.t.a.upper().like('%C')).select()), 1)
         db.t.drop()
+
 
 class TestDatetime(unittest.TestCase):
+
     def testRun(self):
-        db=SQLDB('sqlite:memory:')
-        db.define_table('t',db.Field('a','datetime'))
-        self.assertEqual(db.t.insert(a=datetime.datetime(1971,12,21,11,30)),1)
-        self.assertEqual(db.t.insert(a=datetime.datetime(1971,11,21,10,30)),2)
-        self.assertEqual(db.t.insert(a=datetime.datetime(1970,12,21,9,30)),3)
-        self.assertEqual(len(db(db.t.a==datetime.datetime(1971,12,21,11,30)).select()),1)
-        self.assertEqual(len(db(db.t.a.year()==1971).select()),2)
-        self.assertEqual(len(db(db.t.a.month()==12).select()),2)
-        self.assertEqual(len(db(db.t.a.day()==21).select()),3)
-        self.assertEqual(len(db(db.t.a.hour()==11).select()),1)
-        self.assertEqual(len(db(db.t.a.minutes()==30).select()),3)
-        self.assertEqual(len(db(db.t.a.seconds()==0).select()),3)
+        db = SQLDB('sqlite:memory:')
+        db.define_table('t', db.Field('a', 'datetime'))
+        self.assertEqual(db.t.insert(a=datetime.datetime(1971, 12, 21,
+                         11, 30)), 1)
+        self.assertEqual(db.t.insert(a=datetime.datetime(1971, 11, 21,
+                         10, 30)), 2)
+        self.assertEqual(db.t.insert(a=datetime.datetime(1970, 12, 21,
+                         9, 30)), 3)
+        self.assertEqual(len(db(db.t.a == datetime.datetime(1971, 12,
+                         21, 11, 30)).select()), 1)
+        self.assertEqual(len(db(db.t.a.year() == 1971).select()), 2)
+        self.assertEqual(len(db(db.t.a.month() == 12).select()), 2)
+        self.assertEqual(len(db(db.t.a.day() == 21).select()), 3)
+        self.assertEqual(len(db(db.t.a.hour() == 11).select()), 1)
+        self.assertEqual(len(db(db.t.a.minutes() == 30).select()), 3)
+        self.assertEqual(len(db(db.t.a.seconds() == 0).select()), 3)
         db.t.drop()
+
 
 class TestExpressions(unittest.TestCase):
+
     def testRun(self):
-        db=SQLDB('sqlite:memory:')
-        db.define_table('t',db.Field('a','integer'))
-        self.assertEqual(db.t.insert(a=1),1)
-        self.assertEqual(db.t.insert(a=2),2)
-        self.assertEqual(db.t.insert(a=3),3)        
-        self.assertEqual(db(db.t.a==3).update(a=db.t.a+1),None)        
-        self.assertEqual(len(db(db.t.a==4).select()),1)        
+        db = SQLDB('sqlite:memory:')
+        db.define_table('t', db.Field('a', 'integer'))
+        self.assertEqual(db.t.insert(a=1), 1)
+        self.assertEqual(db.t.insert(a=2), 2)
+        self.assertEqual(db.t.insert(a=3), 3)
+        self.assertEqual(db(db.t.a == 3).update(a=db.t.a + 1), 1)
+        self.assertEqual(len(db(db.t.a == 4).select()), 1)
         db.t.drop()
 
+
 class TestJoin(unittest.TestCase):
+
     def testRun(self):
-        db=SQLDB('sqlite:memory:')
-        db.define_table('t1',db.Field('a'))
-        db.define_table('t2',db.Field('a'),db.Field('b',db.t1))
-        i1=db.t1.insert(a='1')
-        i2=db.t1.insert(a='2')
-        i3=db.t1.insert(a='3')
-        db.t2.insert(a='4',b=i1)
-        db.t2.insert(a='5',b=i2)
-        db.t2.insert(a='6',b=i2)
-        self.assertEqual(len(db(db.t1.id==db.t2.b).select(orderby=db.t1.a|db.t2.a)),3)
-        self.assertEqual(db(db.t1.id==db.t2.b).select(orderby=db.t1.a|db.t2.a)[2].t1.a,'2')
-        self.assertEqual(db(db.t1.id==db.t2.b).select(orderby=db.t1.a|db.t2.a)[2].t2.a,'6')
-        self.assertEqual(len(db().select(db.t1.ALL,db.t2.ALL,left=db.t2.on(db.t1.id==db.t2.b),orderby=db.t1.a|db.t2.a)),4)
-        self.assertEqual(db().select(db.t1.ALL,db.t2.ALL,left=db.t2.on(db.t1.id==db.t2.b),orderby=db.t1.a|db.t2.a)[2].t1.a,'2')
-        self.assertEqual(db().select(db.t1.ALL,db.t2.ALL,left=db.t2.on(db.t1.id==db.t2.b),orderby=db.t1.a|db.t2.a)[2].t2.a,'6')
-        self.assertEqual(db().select(db.t1.ALL,db.t2.ALL,left=db.t2.on(db.t1.id==db.t2.b),orderby=db.t1.a|db.t2.a)[3].t1.a,'3')
-        self.assertEqual(db().select(db.t1.ALL,db.t2.ALL,left=db.t2.on(db.t1.id==db.t2.b),orderby=db.t1.a|db.t2.a)[3].t2.a,None)
-        self.assertEqual(len(db().select(db.t1.ALL,db.t2.id.count(),left=db.t2.on(db.t1.id==db.t2.b),orderby=db.t1.a|db.t2.a,groupby=db.t1.a)),3)
-        self.assertEqual(db().select(db.t1.ALL,db.t2.id.count(),left=db.t2.on(db.t1.id==db.t2.b),orderby=db.t1.a|db.t2.a,groupby=db.t1.a)[0]._extra[db.t2.id.count()],1)
-        self.assertEqual(db().select(db.t1.ALL,db.t2.id.count(),left=db.t2.on(db.t1.id==db.t2.b),orderby=db.t1.a|db.t2.a,groupby=db.t1.a)[1]._extra[db.t2.id.count()],2)
-        self.assertEqual(db().select(db.t1.ALL,db.t2.id.count(),left=db.t2.on(db.t1.id==db.t2.b),orderby=db.t1.a|db.t2.a,groupby=db.t1.a)[2]._extra[db.t2.id.count()],0)
+        db = SQLDB('sqlite:memory:')
+        db.define_table('t1', db.Field('a'))
+        db.define_table('t2', db.Field('a'), db.Field('b', db.t1))
+        i1 = db.t1.insert(a='1')
+        i2 = db.t1.insert(a='2')
+        i3 = db.t1.insert(a='3')
+        db.t2.insert(a='4', b=i1)
+        db.t2.insert(a='5', b=i2)
+        db.t2.insert(a='6', b=i2)
+        self.assertEqual(len(db(db.t1.id
+                          == db.t2.b).select(orderby=db.t1.a
+                          | db.t2.a)), 3)
+        self.assertEqual(db(db.t1.id == db.t2.b).select(orderby=db.t1.a
+                          | db.t2.a)[2].t1.a, '2')
+        self.assertEqual(db(db.t1.id == db.t2.b).select(orderby=db.t1.a
+                          | db.t2.a)[2].t2.a, '6')
+        self.assertEqual(len(db().select(db.t1.ALL, db.t2.ALL,
+                         left=db.t2.on(db.t1.id == db.t2.b),
+                         orderby=db.t1.a | db.t2.a)), 4)
+        self.assertEqual(db().select(db.t1.ALL, db.t2.ALL,
+                         left=db.t2.on(db.t1.id == db.t2.b),
+                         orderby=db.t1.a | db.t2.a)[2].t1.a, '2')
+        self.assertEqual(db().select(db.t1.ALL, db.t2.ALL,
+                         left=db.t2.on(db.t1.id == db.t2.b),
+                         orderby=db.t1.a | db.t2.a)[2].t2.a, '6')
+        self.assertEqual(db().select(db.t1.ALL, db.t2.ALL,
+                         left=db.t2.on(db.t1.id == db.t2.b),
+                         orderby=db.t1.a | db.t2.a)[3].t1.a, '3')
+        self.assertEqual(db().select(db.t1.ALL, db.t2.ALL,
+                         left=db.t2.on(db.t1.id == db.t2.b),
+                         orderby=db.t1.a | db.t2.a)[3].t2.a, None)
+        self.assertEqual(len(db().select(db.t1.ALL, db.t2.id.count(),
+                         left=db.t2.on(db.t1.id == db.t2.b),
+                         orderby=db.t1.a | db.t2.a, groupby=db.t1.a)),
+                         3)
+        self.assertEqual(db().select(db.t1.ALL, db.t2.id.count(),
+                         left=db.t2.on(db.t1.id == db.t2.b),
+                         orderby=db.t1.a | db.t2.a,
+                         groupby=db.t1.a)[0]._extra[db.t2.id.count()],
+                         1)
+        self.assertEqual(db().select(db.t1.ALL, db.t2.id.count(),
+                         left=db.t2.on(db.t1.id == db.t2.b),
+                         orderby=db.t1.a | db.t2.a,
+                         groupby=db.t1.a)[1]._extra[db.t2.id.count()],
+                         2)
+        self.assertEqual(db().select(db.t1.ALL, db.t2.id.count(),
+                         left=db.t2.on(db.t1.id == db.t2.b),
+                         orderby=db.t1.a | db.t2.a,
+                         groupby=db.t1.a)[2]._extra[db.t2.id.count()],
+                         0)
         db.t1.drop()
         db.t2.drop()
 
+
 class TestMinMaxSum(unittest.TestCase):
+
     def testRun(self):
-        db=SQLDB('sqlite:memory:')
-        db.define_table('t',db.Field('a','integer'))
-        self.assertEqual(db.t.insert(a=1),1)
-        self.assertEqual(db.t.insert(a=2),2)
-        self.assertEqual(db.t.insert(a=3),3)
-        s=db.t.a.min()
-        self.assertEqual(db(db.t.id>0).select(s)[0]._extra[s],1)        
-        s=db.t.a.max()
-        self.assertEqual(db(db.t.id>0).select(s)[0]._extra[s],3)        
-        s=db.t.a.sum()
-        self.assertEqual(db(db.t.id>0).select(s)[0]._extra[s],6)        
-        s=db.t.a.count()
-        self.assertEqual(db(db.t.id>0).select(s)[0]._extra[s],3)        
+        db = SQLDB('sqlite:memory:')
+        db.define_table('t', db.Field('a', 'integer'))
+        self.assertEqual(db.t.insert(a=1), 1)
+        self.assertEqual(db.t.insert(a=2), 2)
+        self.assertEqual(db.t.insert(a=3), 3)
+        s = db.t.a.min()
+        self.assertEqual(db(db.t.id > 0).select(s)[0]._extra[s], 1)
+        s = db.t.a.max()
+        self.assertEqual(db(db.t.id > 0).select(s)[0]._extra[s], 3)
+        s = db.t.a.sum()
+        self.assertEqual(db(db.t.id > 0).select(s)[0]._extra[s], 6)
+        s = db.t.a.count()
+        self.assertEqual(db(db.t.id > 0).select(s)[0]._extra[s], 3)
         db.t.drop()
 
-class TestCache(unittest.TestCase):
-    def testRun(self):
-        cache=CacheInRam()
-        db=SQLDB('sqlite:memory:')
-        db.define_table('t',db.Field('a'))
-        db.t.insert(a='1')
-        r1=db().select(db.t.ALL,cache=(cache,1000))
-        db.t.insert(a='1')
-        r2=db().select(db.t.ALL,cache=(cache,1000))
-        self.assertEqual(r1.response,r2.response)
-        db.t.drop()
+
+#class TestCache(unittest.
+#    def testRun(self):
+#        cache = cache.ram
+#        db = SQLDB('sqlite:memory:')
+#        db.define_table('t', db.Field('a'))
+#        db.t.insert(a='1')
+#        r1 = db().select(db.t.ALL, cache=(cache, 1000))
+#        db.t.insert(a='1')
+#        r2 = db().select(db.t.ALL, cache=(cache, 1000))
+#        self.assertEqual(r1.response, r2.response)
+#        db.t.drop()
+
 
 class TestMigrations(unittest.TestCase):
-    def testRun(self):        
-        db=SQLDB('sqlite://.storage.db')
-        db.define_table('t',db.Field('a'),migrate='.storage.table')
+
+    def testRun(self):
+        db = SQLDB('sqlite://.storage.db')
+        db.define_table('t', db.Field('a'), migrate='.storage.table')
         del db.tables[0]
-        db.define_table('t',db.Field('a'),db.Field('b'),migrate='.storage.table')
+        db.define_table('t', db.Field('a'), db.Field('b'),
+                        migrate='.storage.table')
         del db.tables[0]
-        db.define_table('t',db.Field('a'),db.Field('b','text'),migrate='.storage.table')
+        db.define_table('t', db.Field('a'), db.Field('b', 'text'),
+                        migrate='.storage.table')
         del db.tables[0]
-        db.define_table('t',db.Field('a'),migrate='.storage.table')
+        db.define_table('t', db.Field('a'), migrate='.storage.table')
         db.t.drop()
+
     def tearDown(self):
         os.unlink('.storage.db')
 
-if __name__ == "__main__":
+
+if __name__ == '__main__':
     unittest.main()
 
-"""
-to include, test import/export
-
-db=SQLDB('sqlite:memory:')
-db.define_table('t1',SQLField('name'))
-db.define_table('t2',SQLField('a',db.t1),SQLField('name'))
-db.t1.insert(name='max')
-db.t2.insert(a=1,name='tim')
-import StringIO
-x=StringIO.StringIO()
-y=StringIO.StringIO()
-x.write(db(db.t1.id>0).select())
-y.write(db(db.t2.id>0).select())
-x.seek(0)
-y.seek(0)
-z={}
-db.t1.import_from_csv_file(x,z)
-db.t2.import_from_csv_file(y,z)
-print db(db.t1.id>0).select()
-print db(db.t2.id>0).select()
-
-k=StringIO.StringIO()
-db.export_to_csv_file(k)
-k.getvalue()
-k.seek(0)
-db.import_from_csv_file(k)
-k=StringIO.StringIO()
-db.export_to_csv_file(k)
-k.getvalue()
-
-UUID example:
-
-db.dog.insert(owner=id,name="Snoopy")
-
-
-db.define_table('person',
-                         db.Field('uuid',length=64,default=uuid.uuid4()),
-                         db.Field('modified_on','datetime',default=now),
-                         db.Field('name'))
-db.define_table('dog',
-                         db.Field('uuid',length=64,default=uuid.uuid4()),
-                         db.Field('modified_on','datetime',default=now),
-                         db.Field('owner',length=64),
-                         db.Field('name'))
-db.dog.owner.requires=IS_IN_DB(db,'person.uuid','%(name)s')
-
-id=uuid.uuid4()
-db.person.insert(name="Massimo",uuid=id)
-db.dog.insert(owner=id,name="Snoopy")
-
-def export():
-    s=StringIO.StringIO()
-    db.export_to_csv_file(s)
-    response.headers['Content-Type']='text/csv'
-    return s.getvalue()
-
-def import_and_sync():
-    form=FORM(INPUT(_type='file',_name='data'),INPUT(_type='submit'))
-    if form.accepts(request.vars):
-        db.import_from_csv_file(form.vars.data.file)
-        # for every table
-        for table in db.tables:
-             # for every uuid, delete all but the most recent
-             items=db(db[table].id>0).select(db[table].id,db[table].uuid,orderby=~db[table].modified_on,groupby=db[table].uuid)
-             for item in items: db(db[table].uuid==item.uuid)(db[table].id!=item.id).delete() 
-    return dict(form=form)
-
-"""

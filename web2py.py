@@ -1,4 +1,5 @@
-#!/usr/bin/env python2.5
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
 
 from gluon.contrib.cron import hardcron
 cron = hardcron()
