@@ -23,6 +23,11 @@ def hello5():
     """ generates full page in controller """
     return HTML(BODY(H1(T('Hello World'),_style="color: red;"))).xml() # .xml to serialize
 
+def hello6():
+    """ page rendered with a flash"""
+    response.flash="Hello World in a flash!"
+    return dict(message=T("Hello World"))
+
 def status():
     """ page that shows internal status"""
     return dict(request=request,session=session,response=response)

@@ -7,13 +7,12 @@ __author__ = "Attila Csipa <web2py@csipa.in.rs>"
 
 _generator_name = __name__ + "-" + ".".join(map(str, __version__))
 
-import sys, os,threading, logging, time, sched, re
+import sys, os,threading, logging, time, sched, re, datetime
 from subprocess import Popen,PIPE
 
 # crontype can be 'Soft', 'Hard', None, 'External'
 
 crontype = 'Soft'
-crontasks = {}
 
 class extcron(threading.Thread):
     def __init__(self):
@@ -55,7 +54,7 @@ class softcron(threading.Thread):
 
         now=time.time()
         if 60 > now - self.cronmaster: # our own thread did a cron check less than a minute ago, don't even bother checking the file
-            logging.info("don't bother with cron.master, it's only %s s old" % (now-self.cronmaster))
+            logging.debug("Don't bother with cron.master, it's only %s s old" % (now-self.cronmaster))
             return 
 
         try:
@@ -77,8 +76,14 @@ def apppath(env = None):
         apppath = os.path.join(os.path.split(env.get('SCRIPT_FILENAME'))[0],'applications')
     return apppath
 
-def rangetolist(str):
+def rangetolist(str, period='min'):
     retval = []
+    if str.startswith('*'):
+        if period == 'min'   : str = str.replace('*','0-59',1)
+        elif period == 'hr'  : str = str.replace('*','0-23',1)
+        elif period == 'dom' : str = str.replace('*','1-31',1)
+        elif period == 'mon' : str = str.replace('*','1-12',1)
+        elif period == 'dow' : str = str.replace('*','0-6',1)
     m  = re.compile(r'(\d+)-(\d+)/(\d+)')
     match = m.match(str)
     if match:
@@ -97,7 +102,7 @@ def parsecronline(line):
             vals = str.split(",")
             for val in vals:
                 if val.find('/') > -1:
-                    task[id] += rangetolist(val)
+                    task[id] += rangetolist(val, id)
                 elif val.isdigit():
                     task[id].append(int(val))
     if len(params) > 5:
@@ -112,10 +117,19 @@ class cronlauncher(threading.Thread):
         self.cmd = cmdline
     def run(self):
         try:
-             content = Popen([self.cmd], stdin=PIPE, stdout=PIPE, stderr=PIPE, shell=True, close_fds=True).communicate()[0]
-             if len(content): logging.info("WEB2PY CRON Call returned: %s" % content)
+            if os.name == 'nt':
+                proc = Popen([self.cmd], stdin=PIPE, stdout=PIPE, stderr=PIPE, shell=True)
+            else:
+                proc = Popen([self.cmd], stdin=PIPE, stdout=PIPE, stderr=PIPE, shell=True, close_fds=True)
+            try: pipes = proc.communicate()
+            except: pipes = ()
+            proc.wait()
+            logging.debug('WEB2PY CRON done')
+            content = "".join(pipes)
+            if len(content): logging.info("WEB2PY CRON Call returned: %s" % content)
+            if proc.returncode != 0: logging.warning("WEB2PY CRON Call returned code %s: %s" % (proc.returncode, proc.stderr.read()))
         except Exception, e:
-             logging.warning("WEB2PY CRON: Execution error for %s: %s" % (self.cmd ,e))
+            logging.error("WEB2PY CRON: Execution error for %s: %s" % (self.cmd ,e))
 
 def crondance(apppath, ctype='soft'):
     try:
@@ -129,16 +143,22 @@ def crondance(apppath, ctype='soft'):
                 for cline in filter(lambda x: not x.strip().startswith("#") and len(x.strip()) > 0,cronlines):
                     task = parsecronline(cline)
                     go = True
-                    if   task.has_key('min') and not now_s.tm_min  in task['min']: go = False
+                    if task.has_key('min') and not now_s.tm_min  in task['min']:
+                        if task['min'] > -1: go = False
                     elif task.has_key('hr')  and not now_s.tm_hour in task['hr']:  go = False
                     elif task.has_key('mon') and not now_s.tm_mon  in task['mon']: go = False
                     elif task.has_key('dom') and not now_s.tm_mday in task['dom']: go = False
                     elif task.has_key('dow') and not now_s.tm_wday in task['dow']: go = False
                     if go and task.has_key('cmd'):
-                        logging.info("WEB2PY CRON (%s): Application: %s executing %s in %s" % (ctype, dir, task.get('cmd'), os.getcwd()))
+                        logging.info("WEB2PY CRON (%s): Application: %s executing %s in %s at %s" % (ctype, dir, task.get('cmd'), os.getcwd(), datetime.datetime.now()))
                         try:
                             if task['cmd'].startswith("*"):
-                                cronlauncher("python web2py.py -Q -P -M -S %s -a 'recycle' -R %s" % (dir,task['cmd'][1:])).start()
+                                if task['cmd'].endswith(".py"):
+                                    launchstr = "%s web2py.py -P -M -S %s -a 'recycle' -R %s" 
+                                else:
+                                    launchstr = "%s web2py.py -P -M -S %s/%s -a 'recycle'"
+
+                                cronlauncher(launchstr % (sys.executable, dir,task['cmd'][1:])).start()
                             else:
                                 cronlauncher(task.get('cmd')).start()
                                 

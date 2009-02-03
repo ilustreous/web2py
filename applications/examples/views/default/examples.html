@@ -71,6 +71,16 @@ Each tag, DIV for example, takes three types of arguments:</p>
 
 <h3>Example {{=c}}{{c+=1}}</h3><b>In controller: simple_examples.py</b>
 {{=CODE("""
+def hello6():
+    respone.flash=T("Hello World in a flash!")
+    return dict(message=T("Hello World"))
+""".strip(),language='web2py',link='/examples/global/vars/')}}
+
+<p>response.flash allows you to flash a message to the user when the page is returned. Use session.flash instead of response.flash to display a message after redirection. With default layout, you can click on the flash to make it disappear.
+<br/>Try it here: <a href="/{{=request.application}}/simple_examples/hello6">hello6</a></p>
+
+<h3>Example {{=c}}{{c+=1}}</h3><b>In controller: simple_examples.py</b>
+{{=CODE("""
 def status():
     return dict(request=request,session=session,response=response)
 """.strip(),language='web2py',link='/examples/global/vars/')}}
@@ -112,16 +122,15 @@ def servejs():
 <p>You can serve other than HTML pages by changing the contenttype via the response.headers. The gluon.contenttype module can help you figure the type of the file to be server. NOTICE: this is not necessary for static files unless you want to require authorization.
 <br/>Try it here: <a href="/{{=request.application}}/simple_examples/servejs">servejs</a></p>
 
-<h3>Example {{=c}}{{c+=1}}</h3><b>In controller: simple_examples.py</b>
+<h3 id="example_json">Example {{=c}}{{c+=1}}</h3><b>In controller: simple_examples.py</b>
 {{=CODE("""
 def makejson():
-    import gluon.contrib.simplejson as sj    
-    return sj.dumps(['foo', {'bar': ('baz', None, 1.0, 2)}])
+    return response.json(['foo', {'bar': ('baz', None, 1.0, 2)}])
 """.strip(),language='web2py',link='/examples/global/vars/')}}
 <p>If you are into Ajax, web2py includes gluon.contrib.<a href="http://cheeseshop.python.org/pypi/simplejson">simplejson</a>, developed by Bob Ippolito. This module provides a fast and easy way to serve asynchronous content to your Ajax page. gluon.simplesjson.dumps(...) can serialize most Python types into <a href="http://www.json.org">JSON</a>. gluon.contrib.simplejson.loads(...) performs the reverse operation.
 <br/>Try it here: <a href="/{{=request.application}}/simple_examples/makejson">makejson</a></p>
 
-<h3>Example {{=c}}{{c+=1}}</h3><b>In controller: simple_examples.py</b>
+<h3 id="example_rtf">Example {{=c}}{{c+=1}}</h3><b>In controller: simple_examples.py</b>
 {{=CODE("""
 def makertf():
     import gluon.contrib.pyrtf as q
@@ -135,7 +144,7 @@ def makertf():
 """.strip(),language='web2py',link='/examples/global/vars/')}}
 <p>web2py also includes gluon.contrib.<a href="http://pyrtf.sourceforge.net/">pyrtf</a>, developed by Simon Cusack and revised by Grant Edwards. This module allows you to generate Rich Text Format documents including colored formatted text and pictures.<br/>Try it here: <a href="/{{=request.application}}/simple_examples/makertf">makertf</a></p>
 
-<h3>Example {{=c}}{{c+=1}}</h3><b>In controller: simple_examples.py</b>
+<h3 id="example_rss">Example {{=c}}{{c+=1}}</h3><b>In controller: simple_examples.py</b>
 {{=CODE("""
 def rss_aggregator():
     import datetime
@@ -163,7 +172,7 @@ gluon.contrib.<a href="http://www.feedparser.org/">feedparser</a>, developed by 
 <br/>Try it here: <a href="/{{=request.application}}/simple_examples/rss_aggregator">rss_aggregator</a></p>
 
 
-<h3>Example {{=c}}{{c+=1}}</h3><b>In controller: simple_examples.py</b>
+<h3 id="example_wiki">Example {{=c}}{{c+=1}}</h3><b>In controller: simple_examples.py</b>
 {{=CODE("""
 from gluon.contrib.markdown import WIKI
 
@@ -330,47 +339,47 @@ FORM.accepts(..) trys to validate the form and, on success, stores vars into for
 
 <p>Let's create a simple model with users, dogs, products and purchases (the database of an animal store). Users can have many dogs (ONE TO MANY), can buy many producs and every product can have many buyers (MANY TO MANY).</p>
 
-<h3>Example {{=c}}{{c+=1}}</h3><b>in model: dba.py</b>
+<h3>Example {{=c}}{{c+=1}}</h3><b>in model: db.py</b>
 {{=CODE("""
 dba=SQLDB('sqlite://tests.db')
 
-dba.define_table('users',
+db.define_table('users',
                 SQLField('name'),
                 SQLField('email'))
 
 # ONE (users) TO MANY (dogs)
-dba.define_table('dogs',
-                SQLField('owner_id',dba.users),
+db.define_table('dogs',
+                SQLField('owner_id',db.users),
                 SQLField('name'),                
                 SQLField('type'),
                 SQLField('vaccinated','boolean',default=False),
                 SQLField('picture','upload',default=''))
 
-dba.define_table('products',
+db.define_table('products',
                 SQLField('name'),
                 SQLField('description','text'))
 
 # MANY (users) TO MANY (products)
-dba.define_table('purchases',
-                SQLField('buyer_id',dba.users),
-                SQLField('product_id',dba.products),
+db.define_table('purchases',
+                SQLField('buyer_id',db.users),
+                SQLField('product_id',db.products),
                 SQLField('quantity','integer'))
 
-purchased=((dba.users.id==dba.purchases.buyer_id)&(dba.products.id==dba.purchases.product_id))
+purchased=((db.users.id==db.purchases.buyer_id)&(db.products.id==db.purchases.product_id))
 
-dba.users.name.requires=IS_NOT_EMPTY()
-dba.users.email.requires=[IS_EMAIL(), IS_NOT_IN_DB(dba,'users.email')]
-dba.dogs.owner_id.requires=IS_IN_DB(dba,'users.id','users.name')
-dba.dogs.name.requires=IS_NOT_EMPTY()
-dba.dogs.type.requires=IS_IN_SET(['small','medium','large'])
-dba.purchases.buyer_id.requires=IS_IN_DB(dba,'users.id','users.name')
-dba.purchases.product_id.requires=IS_IN_DB(dba,'products.id','products.name')
-dba.purchases.quantity.requires=IS_INT_IN_RANGE(0,10)
+db.users.name.requires=IS_NOT_EMPTY()
+db.users.email.requires=[IS_EMAIL(), IS_NOT_IN_DB(dba,'users.email')]
+db.dogs.owner_id.requires=IS_IN_DB(dba,'users.id','users.name')
+db.dogs.name.requires=IS_NOT_EMPTY()
+db.dogs.type.requires=IS_IN_SET(['small','medium','large'])
+db.purchases.buyer_id.requires=IS_IN_DB(dba,'users.id','users.name')
+db.purchases.product_id.requires=IS_IN_DB(dba,'products.id','products.name')
+db.purchases.quantity.requires=IS_INT_IN_RANGE(0,10)
 """.strip(),language='web2py',link='/examples/global/vars/')}}
 <p>
 Tables are created if they do not exist (try... except).
-Here "purchased" is an SQLQuery object, "dba(purchased)" would be a SQLSet obejcts. A SQLSet object can be selected, updated, deleted. SQLSets can also be intersected. Allowed field types are string, integer, password, text, blob, upload, date, time, datetime, references(*), and id(*). The id field is there by default and must not be declared. references are for one to many and many to many as in the example above. For strings you should specify a length or you get length=32.<br/><br/>
-You can use dba.tablename.fieldname.requires= to set restrictions on the field values. These restrictions are automatically converted into widgets when generating forms from the table with SQLFORM(dba.tablename).
+Here "purchased" is an SQLQuery object, "db(purchased)" would be a SQLSet obejcts. A SQLSet object can be selected, updated, deleted. SQLSets can also be intersected. Allowed field types are string, integer, password, text, blob, upload, date, time, datetime, references(*), and id(*). The id field is there by default and must not be declared. references are for one to many and many to many as in the example above. For strings you should specify a length or you get length=32.<br/><br/>
+You can use db.tablename.fieldname.requires= to set restrictions on the field values. These restrictions are automatically converted into widgets when generating forms from the table with SQLFORM(db.tablename).
 <br/><br/>
 define_tables creates the table and attempts a migration if table has changed or if database name has changed since last time. If you know you already have the table in the database and you do not want to attemt a migration add one last argument to define_table <tt>migrate=False</tt>.</p>
 
@@ -384,12 +393,12 @@ response.menu=[['Register User',False,URL(r=request,f='register_user')],
 
 def register_user():
     ### create an insert form from the table
-    form=SQLFORM(dba.users)
+    form=SQLFORM(db.users)
     ### if form correct perform the insert
     if form.accepts(request.vars,session):
         response.flash='new record inserted'
     ### and get a list of all users
-    records=SQLTABLE(dba().select(dba.users.ALL))
+    records=SQLTABLE(db().select(db.users.ALL))
     return dict(form=form,records=records)
 """.strip(),language='web2py',link='/examples/global/vars/')}}<b>and view: database_examples/register_user.html</b>
 {{=CODE(open(request.folder+'views/database_examples/register_user.html','r').read(),language='html',link='/examples/global/vars/')}}
@@ -401,11 +410,11 @@ Try it here: <a href="/{{=request.application}}/database_examples/register_user"
 <h3>Example {{=c}}{{c+=1}}</h3><b>In controller: database_examples.py </b>
 {{=CODE("""
 def register_dog():
-    form=SQLFORM(dba.dogs)
+    form=SQLFORM(db.dogs)
     if form.accepts(request.vars,session):
         response.flash='new record inserted'
     download=URL(r=request,f='download') # to see the picture
-    records=SQLTABLE(dba().select(dba.dogs.ALL),upload=download)
+    records=SQLTABLE(db().select(db.dogs.ALL),upload=download)
     return dict(form=form,records=records)
 """.strip(),language='web2py',link='/examples/global/vars/')}}<b>and view: database_examples/register_dog.html</b>
 {{=CODE(open(request.folder+'views/database_examples/register_dog.html','r').read(),language='html',link='/examples/global/vars/')}}
@@ -415,10 +424,10 @@ def register_dog():
 <h3>Example {{=c}}{{c+=1}}</h3><b>In controller: database_examples.py </b>
 {{=CODE("""
 def register_product():
-    form=SQLFORM(dba.products)
+    form=SQLFORM(db.products)
     if form.accepts(request.vars,session):
         response.flash='new record inserted'
-    records=SQLTABLE(dba().select(dba.products.ALL))
+    records=SQLTABLE(db().select(db.products.ALL))
     return dict(form=form,records=records)
 """.strip(),language='web2py',link='/examples/global/vars/')}}<b>and view: database_examples/register_product.html</b>
 {{=CODE(open(request.folder+'views/database_examples/register_product.html','r').read(),language='html',link='/examples/global/vars/')}}
@@ -434,28 +443,28 @@ def buy():
            TR("",INPUT(_type="submit",_value="Order"))))
     if form.accepts(request.vars,session):
         ### check if user is in the database
-        if len(dba(dba.users.id==form.vars.buyer_id).select())==0:
+        if len(db(db.users.id==form.vars.buyer_id).select())==0:
             form.errors.buyer_id="buyer not in database"
         ### check if product is in the database
-        if len(dba(dba.products.id==form.vars.product_id).select())==0:
+        if len(db(db.products.id==form.vars.product_id).select())==0:
             form.errors.product_id="product not in database"
         ### if no errors
         if len(form.errors)==0:
             ### get a list of same purchases by same user
-            purchases=dba((dba.purchases.buyer_id==form.vars.buyer_id)&
-                         (dba.purchases.product_id==form.vars.product_id)).select()
+            purchases=db((db.purchases.buyer_id==form.vars.buyer_id)&
+                         (db.purchases.product_id==form.vars.product_id)).select()
             ### if list contains a record, update that record
             if len(purchases)>0:
                 purchases[0].update_record(quantity=purchases[0].quantity+form.vars.quantity)
             ### or insert a new record in table
             else:
-                dba.purchases.insert(buyer_id=form.vars.buyer_id,
+                db.purchases.insert(buyer_id=form.vars.buyer_id,
                                     product_id=form.vars.product_id,
                                     quantity=form.vars.quantity)
             response.flash="product purchased!"
     if len(form.errors): response.flash="invalid valus in form!"
     ### now get a list of all purchases
-    records=dba(purchased).select(dba.users.name,dba.purchases.quantity,dba.products.name)
+    records=db(purchased).select(db.users.name,db.purchases.quantity,db.products.name)
     return dict(form=form,records=SQLTABLE(records),vars=form.vars,vars2=request.vars)
 """.strip(),language='web2py',link='/examples/global/vars/')}}<b>and view: database_examples/buy.html</b>
 {{=CODE(open(request.folder+'views/database_examples/buy.html','r').read(),language='html',link='/examples/global/vars/')}}
@@ -465,26 +474,23 @@ def buy():
 <h3>Example {{=c}}{{c+=1}}</h3><b>In controller: database_examples.py</b>
 {{=CODE("""
 def delete_purchased():
-    dba(dba.purchases.id>0).delete()
+    db(db.purchases.id>0).delete()
     redirect(URL(r=request,f='buy'))
 """.strip(),language='web2py',link='/examples/global/vars/')}}Try it here: <a href="/{{=request.application}}/database_examples/delete_purchased">delete_purchased</a> 
 
 <h3>Example {{=c}}{{c+=1}}</h3><b>In controller: database_examples.py</b>
 {{=CODE("""
 def reset_purchased():
-    dba(dba.purchases.id>0).update(quantity=0)
+    db(db.purchases.id>0).update(quantity=0)
     redirect(URL(r=request,f='buy'))
 """.strip(),language='web2py',link='/examples/global/vars/')}}
-<p>This is an update on an SQLSet. (dba.purchase.id>0 identifies the set containing only table dba.purchases.)
+<p>This is an update on an SQLSet. (db.purchase.id>0 identifies the set containing only table db.purchases.)
 <br/>Try it here: <a href="/{{=request.application}}/database_examples/reset_purchased">reset_purchased</a></p>
 
 <h3>Example {{=c}}{{c+=1}}</h3><b>In controller: database_examples.py</b>
 {{=CODE("""
 def download():
-    import gluon.contenttype
-    filename=request.args[0]
-    response.headers['Content-Type']=gluon.contenttype.contenttype(filename)
-    return open('applications/%s/uploads/%s' % (request.application,filename),'rb').read()
+    return response.download(request,db)
 """.strip(),language='web2py',link='/examples/global/vars/')}}
 <p>This controller allows users to download the uploaded pictures of the dogs.
 Remember the upload=URL(...'download'...) statement in the register_dog function. Notice that in the URL path /application/controller/function/a/b/etc a, b, etc are passed to the controller as request.args[0], request.args[1], etc. Since the URL is validated request.args[] always contain valid filenames and no '~' or '..' etc. This is usefult to allow visitors to link uploaded files.</p>
@@ -531,7 +537,7 @@ def cache_controller_in_ram():
     import time
     t=time.ctime()
     return dict(time=t,link=A('click to reload',_href=URL(r=request)))""".strip(),language='web2py',link='/examples/global/vars/')}}
-<p>Here the entire controller (dictionary) is cached in ram for 5 seconds. The result of a select cannot be cached unless it is first serialized into a table <tt>lambda:SQLTABLE(dba().select(dba.users.ALL)).xml()</tt>. You can read below for an even better way to do it.
+<p>Here the entire controller (dictionary) is cached in ram for 5 seconds. The result of a select cannot be cached unless it is first serialized into a table <tt>lambda:SQLTABLE(db().select(db.users.ALL)).xml()</tt>. You can read below for an even better way to do it.
 <br/>Try it here: <a href="/{{=request.application}}/cache_examples/cache_controller_in_ram">cache_controller_in_ram</a></p>
 
 <h3>Example {{=c}}{{c+=1}}</h3><b>In controller: cache_examples.py </b>
@@ -561,9 +567,9 @@ def cache_controller_and_view():
 {{=CODE("""
 def cache_db_select():
     import time
-    dba.users.insert(name='somebody',email='gluon@mdp.cti.depaul.edu')
-    records=dba().select(dba.users.ALL,cache=(cache.ram,5))
-    if len(records)>20: dba(dba.users.id>0).delete()
+    db.users.insert(name='somebody',email='gluon@mdp.cti.depaul.edu')
+    records=db().select(db.users.ALL,cache=(cache.ram,5))
+    if len(records)>20: db(db.users.id>0).delete()
     return dict(records=records)
 """.strip(),language='web2py',link='/examples/global/vars/')}}
 <p>The results of a select are complex unpickable objects that cannot be cached using the previous method, but the select command takes an argument <tt>cache=(cache_model,time_expire)</tt> and will cache the result of the query accordingly. Notice that the key is not necessary since key is generated based on the database name and the select string.
@@ -625,7 +631,7 @@ def index():
 <h2 id="streaming_examples">Streaming Examples</h2>
 
 
-<h3>Example {{=c}}{{c+=1}}</h3>
+<h3 id="example_stream">Example {{=c}}{{c+=1}}</h3>
 <p>It is very easy in web2py to stream large files. Here is an example of a controller that does so:</p>
 {{=CODE("""
 def streamer():

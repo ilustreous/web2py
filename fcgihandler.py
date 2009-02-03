@@ -25,7 +25,12 @@ if not path in sys.path: sys.path.append(path)
 
 import gluon.main
 import gluon.contrib.gateways.fcgi as fcgi
-application=gluon.main.wsgibase
+
+from gluon.contrib.wsgihooks import ExecuteOnCompletion2, callback
+application=ExecuteOnCompletion2(gluon.main.wsgibase, callback)
+
+#application=gluon.main.wsgibase
+
 
 ## or
 # application=gluon.main.wsgibase_with_logging

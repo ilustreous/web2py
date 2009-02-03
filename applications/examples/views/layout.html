@@ -1,107 +1,42 @@
-<?xml version="1.0"?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
-<head>
-    <meta name="verify-v1" content="QT0matadbp88vY+ch+3bNr7rZxjLWJLQuQ+bgPQ47GI=" /> 
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="cs" lang="cs">
+  <head>
     <meta http-equiv="content-type" content="text/html; charset=utf-8" />
-    <meta http-equiv="content-language" content="en" />
-    <meta name="robots" content="all,follow" />
-
-    <meta name="author" lang="en" content="All: web2py [www.web2py.com]" />
-    <meta name="copyright" lang="en" content="All: web2py [www.web2py.com]" />
-
+    <meta http-equiv="content-language" content="cs" />
+    <meta name="author" lang="cs" content="{{=response.author}}" />
     <meta name="description" content="{{=response.description}}" />
     <meta name="keywords" content="{{=response.keywords}}" />
-    
-    <link rel="stylesheet" media="screen,projection" type="text/css" href="{{=URL(r=request,c='static',f='css/main.css')}}" />
+    <meta name="robots" content="all,follow" />
+    <link href="{{=URL(r=request,c='static',f='styles.css')}}" type="text/css" rel="stylesheet" media="screen,projection,print" />
 
-    <title>{{=response.title or 'web2py example'}}</title>
-{{include 'web2py_ajax.html'}}
-</head>
+    <title>web2py: Enterprose Web Framework</title>
+    {{include 'web2py_ajax.html'}}
+  </head>
+  <body>
 
-<body>
-<div id="header">
-    <div class="main">
-        <h3 id="logo"><a href="http://www.web2py.com">{{=response.title or 'web2py example'}}</a></h3>
-        <p id="slogan">rock solid framework for agile and secure web applications</p>
-        <div id="search">
-            <form action="http://www.google.com/search" method="get">
-            	<div>
-                    <input type="text" size="30" name="as_q" id="search-input" /><input type="hidden" name="as_sitesearch" value="mdp.cti.depaul.edu" /><input type="submit" value="Search" id="search-submit" />
-            	</div>
-            </form>
-        </div>
-
-<!-- AddThis Button BEGIN -->
-<div style="text-align:right">
-<script type="text/javascript">addthis_pub  = 'mdipierro';</script>
-<a href="http://www.addthis.com/bookmark.php" onmouseover="return addthis_open(this, '', '[URL]', '[TITLE]')" onmouseout="addthis_close()" onclick="return addthis_sendto()"><img src="http://s9.addthis.com/button1-bm.gif" width="125" height="16" border="0" alt="" /></a><script type="text/javascript" src="http://s7.addthis.com/js/152/addthis_widget.js"></script>
-</div>
-<!-- AddThis Button END -->
-
-    </div>
-</div>
-
-<div id="nav" class="box">
-    {{if response.menu:}}
-    <div class="main">
+    <div class="layout">      
+      <div class="header">
+        <h1 class="logo"><a href="http://www.web2py.com" title="Company">web<span class="orange">2</span>py</a></h1>
+      </div>
+      <div class="menu">
         <ul>
-            {{for name,active,link in response.menu:}}
-            <li {{if active:}}id="nav-active"{{pass}}><a href="{{=link}}">{{=name}}</a></li>
-            {{pass}}
-        </ul>
-    </div>
-    {{pass}}
-</div>
-
-<div id="cols">
-    <div class="main box">
-        <div id="content">
-{{if response.flash:}}<div id="flash">{{=response.flash}}</div>{{pass}}
-{{include}}        
+          <li><a href="{{=URL(r=request,c='default',f='index')}}">Home<br /><span>Overview of features</span></a></li>
+          <li><a href="{{=URL(r=request,c='default',f='what')}}">What<br /><span>Read this first</span></a></li>
+          <li><a href="{{=URL(r=request,c='default',f='download')}}">Download<br /><span>web2py is 100% free</span></a></li>
+          <li><a href="{{=URL(r=request,c='default',f='docs')}}">Documentation<br /><span>Start learning web2py today</span></a></li>
+          <li><a href="{{=URL(r=request,c='default',f='who')}}">Who<br /><span>Contributors</span></a></li>
+          <li><a href="{{=URL(r=request,c='default',f='support')}}">Support<br /><span>Affiliated companies</span></a></li>
+	</ul>
+      </div> 
+      <div class="container">
+        <div class="content">
+            {{if response.flash:}}<div class="flash">{{=response.flash}}</div>{{pass}}
+            {{include}}
         </div>
-
-        <div id="aside">
-
-            <h3>Resources</h3>
-            <ul>
-                <li><a href="http://mdp.cti.depaul.edu/examples">Home</a></li>
-                <li><a href="http://mdp.cti.depaul.edu/examples/default/download">{{=open('VERSION','r').read().strip()}}</a></li>
-                <li><a href="http://mdp.cti.depaul.edu/examples/default/examples">Examples</a> | <a href="http://mdp.cti.depaul.edu/examples/default/api">API</a> | <a href="http://mdp.cti.depaul.edu/examples/default/orm">ORM</a></li>
-                <li><a href="http://mdp.cti.depaul.edu/examples/static/web2py_vs_others.pdf">Compare</a> | <a href="http://mdp.cti.depaul.edu/AlterEgo/default/show/101">Django</a> | <a href="http://mdp.cti.depaul.edu/AlterEgo/default/show/102">TG</a> | <a href="http://mdp.cti.depaul.edu/AlterEgo/default/show/103">Rails</a> | <a href="http://mdp.cti.depaul.edu/AlterEgo/default/show/106">PHP</a> | <a href="http://mdp.cti.depaul.edu/AlterEgo/default/show/107">Java</a></li>
-                <li><a href="http://mdp.cti.depaul.edu/examples/static/cookbook.pdf">Tutorial</a> | <a href="http://www.amazon.com/Web2Py-Manual-Massimo-DiPierro/dp/0470432322">Book</a> | <a href="http://mdp.cti.depaul.edu/examples/static/epydoc/index.html">epydocs</a> </li>
-                <li><a href="http://mdp.cti.depaul.edu/examples/static/web2py_cheatsheet.pdf">Cheat Sheet</a> | <a href="http://mdp.cti.depaul.edu/examples/static/web2py_dependency_graph.pdf">Dependency Graph</a></li>
-                <li><a href="http://www.vimeo.com/875433">Screencast short</a> | <a href="http://www.vimeo.com/428474">long</a> | <a href="http://www.vimeo.com/879939">shell</a> | <a href="http://www.vimeo.com/932708">GAE</a></li>
-                <li><a href="https://mdp.cti.depaul.edu/demo_admin">Online Demo</a></li>
-                <li><a href="http://mdp.cti.depaul.edu/AlterEgo">Interactive FAQ (AlterEgo)</a></li>
-                <li><a href="http://mdp.cti.depaul.edu/appliances">Repository of free web2py apps</a></li>
-                <li><a href="http://www.vimeo.com/1098656">KPAX (the web2py CMS)</a></li>
-                <li><a href="http://mdp.cti.depaul.edu/sqldesigner">Model Builder</a> | <a href="http://mdp.cti.depaul.edu/layouts">Layout Builder</a></li>
-                <li><a href="https://mdp.cti.depaul.edu/cas">Central Authentication Service</a></li>
-                <li><a href="http://groups.google.com/group/web2py">Users Group (free to join)</a></li>
-                <li><a href="http://code.google.com/p/web2py">Development Trunk (svn)</a></li>
-            </ul>
-
-            <h3>Contact</h3>
-            
-            <address>
-                <strong>Massimo Di Pierro</strong><br />
-                School of Computing<br />
-                DePaul University<br />
-                243 S. Wabash Ave<br />
-                Chicago, IL 60604 (USA)<br />
-                <a href="mailto:mdipierro@cs.depaul.edu">mdipierro@cs.depaul.edu</a>
-            </address>
-        
-        </div>
-    
+      </div>
     </div>
-</div>
-<div id="footer">
-    <div class="main">
-        <p>&copy;&nbsp;2009 - Powered by <a href="http://www.web2py.com">web2py</a></p>
+    <div class="footer">
+      <span>&copy; 2009 - Powered by <a href="http://web2py.com">web2py</a></span>
     </div>
-</div>
-
-</body>
+  </body>
 </html>

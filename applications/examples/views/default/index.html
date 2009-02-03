@@ -1,75 +1,53 @@
 {{extend 'layout.html'}}
 
-<h1>web2py<sup style="font-size:0.5em;">TM</sup> Enterprise Web Framework</h1>
+<h1 class="light">web2py<sup style="font-size:0.5em;">TM</sup> Enterprise Web Framework</h1>
 
-<p><b>
+<p>
 Free and open source full-stack enterprise framework
-for agile development of secure database-driven web-based applications,
-written and programmable in <a href="http://www.python.org">Python</a>.
-Created by <a href="http://mycti.cti.depaul.edu/people/facultyInfo_mycti.asp?id=343">Massimo Di Pierro</a>. &copy; 2007-2008.
-</b></p>
+for agile development of fast, secure and posrtable database-driven web-based applications.
+Written and programmable in <a href="http://www.python.org">Python</a>.<br/>
+Created by <a href="http://mycti.cti.depaul.edu/people/facultyInfo_mycti.asp?id=343">Massimo Di Pierro</a>. &copy; 2007-2009.
+</p>
 
-<center><table width="100%"><tr><td class="main_box" width="30%">
-<a href="http://mdp.cti.depaul.edu/examples/static/web2py_comics.pdf"><img src="/{{=request.application}}/static/web2py_comics.jpg"/></a>
-</td><td class="main_box">
-<object type="application/x-shockwave-flash" width="200" height="125" data="http://www.vimeo.com/moogaloop.swf?clip_id=875433&amp;server=www.vimeo.com&amp;fullscreen=1&amp;show_title=1&amp;show_byline=1&amp;show_portrait=0&amp;color="><param name="quality" value="best" /><param name="allowfullscreen" value="true" /><param name="scale" value="showAll" /><param name="movie" value="http://www.vimeo.com/moogaloop.swf?clip_id=875433&amp;server=www.vimeo.com&amp;fullscreen=1&amp;show_title=1&amp;show_byline=1&amp;show_portrait=0&amp;color=" /></object>
-</td><td class="main_box">
-<a href="http://www3.clustrmaps.com/counter/maps.php?url=http://mdp.cti.depaul.edu" id="clustrMapsLink"><img src="http://www3.clustrmaps.com/counter/index2.php?url=http://mdp.cti.depaul.edu" style="border:0px;" alt="Locations of visitors to this page" title="Locations of visitors to this page" id="clustrMapsImg" onError="this.onError=null; this.src='http://www2.clustrmaps.com/images/clustrmaps-back-soon.jpg'; document.getElementById('clustrMapsLink').href='http://www2.clustrmaps.com'" /></a>
-</td></tr></table>
-</center>
-
-<center>
-<a style="font-size:1.5em;" href="http://mdp.cti.depaul.edu/examples/static/pyworks.pdf">web2py at PyWorks 2008! (pdf slides)</a><br/>
-<a style="font-size:1.5em;" href="http://www.amazon.com/Web2Py-Manual-DiPierro/dp/0470432322">Order the book on Amazon</a> or <a style="font-size:1.5em;" href="http://www.lulu.com/content/4968879">the PDF</a> or
-<a style="font-size:1.5em;" href="/{{=request.application}}/static/web2py_manual_cut.pdf">Download sample</a><br/>
-<a style="font-size:1.5em;" href="http://mdp.cti.depaul.edu/who">Who is using web2py?</a><br/>
-<a style="font-size:1.5em;" href="http://mdp.cti.depaul.edu/demo_admin">Try web2py administrative interface here</a><br/>
-<a style="font-size:1.5em;" href="http://web2py.appspot.com/">Try this Reddit clone (written in web2py) running on Google App Engine</a>
-</center>
-
-
-<h2>Features</h2>
 <ul>
-<li>No installation, no configuration, no dependencies. All in one package. You can run it off a USB drive</li>
-<li>Runs on Windows, OSX, Unix/Linux, and Windows CE phones.</li>
-<li>Allows development, debugging, testing, deployment, maintenance and administration, including database administration, via the provided web interface.</li>
-<li>Enforces good Software Engineer practices, like the Model-View-Controller design, validation and self-submission of forms.</li>
-<li>Strong on security. Prevents the most common types of vulnerabilities: Cross Site Scripting, Injection Flaws, and Malicious File Execution.</li>
-<li>Talks HTML, XML, RSS, ATOM, AJAX, JSON, RTF, CSV, WIKI, XML-RPC, REST, Flash, etc.</li>
-<li>Dynamically and transparently generates SQL queries for you for SQLite, MySQL, PostgreSQL, MSSQL, FireBird and Oracle. 
-    Even creates and alters tables for you when required. Performs automatic transactions.</li>
-<li>Allows you to create apps easily, byte-code compile them, and distribute them in open or closed source under any license you like.</li>
-<li>Faster then the competition, designed for small as well as large projects, includes the ability to upload/download/stream large files, internationalization support, distributed transactions, ...</li>
+<li>Runs on Linux, Mac, Windows, Windows Mobile, iPhone (jailbroken), and on the <a href="http://code.google.com/appengine/">Google App Engine</a></li>
+<li>Requires no installation and can run off a USB drive</li>
+<li>Has no configuration files. You just unzip it and click on it</li>
+<li>Includes a multi-threaded <a href="http://www.wsgi.org/wsgi/">wsgi</a>-compliant <a href="http://127.0.0.1:8000/init/static/epydoc/gluon.wsgiserver-module.html">web-server</a> (also works with <a href="http://www.apache.org/">Apache</a> and others)</li> 
+<li>Includes a transaction-safe relational database (<a href="http://www.sqlite.org/">sqlite</a>)</li>
+<li>Includes a web-based integrated development environment (<a href="http://mdp.cti.depaul.edu//demo_admin">demo</a>)</li>
+<li>Includes a ticketing system to help you debug deployed applications</li> 
+<li>Includes a sophisticated <a href="{{=URL(r=request,f='dal')}}">Database Abstraction Layer</a> that can handle joins, left joins, nested selects, aggregates, transactions and distributed transactions. Writes SQL code for you, transparently and in real time, for <a href="http://www.sqlite.org/">SQLite</a>, <a href="http://www.postgresql.org/">PostgreSQL</a>, <a href="http://www.mysql.com/">MySQL</a>, <a href="http://www.microsoft.com/sqlserver">MSSQL</a>, <a href="http://www.firebirdsql.org/">FireBird</a> and <a href="http://www.oracle.com/">Oracle</a></li>
+<li>Automatically Generates a database administrative intarface for your applications</li> 
+<li><a href="{{=URL(r=request,f='security')}}">Prevents</a> the most common types of vulnerabilities: Cross Site Scripting, Injection Flaws, and Malicious File Execution</li>
+<li>Enforces good Software Engineer practices (<a href="http://en.wikipedia.org/wiki/Model-view-controller">Model-View-Controller design</a>, Server-side form validation, <a href="http://en.wikipedia.org/wiki/Postback">postbacks</a>)</li>
+<li>Includes intarnationalization support and a web based translation intarface</li>
+<li>Includes functions for caching in ram, disk, memcache and combinations thereof</li>
+<li>Includes libraries for <a href="{{=URL(r=request,f='authentication')}}">Authentication</a> (login, logout, registration, change password, etc.)</li> 
+<li>Includes libraries for <a href="{{=URL(r=request,f='authorization')}}">Authorization</a> (<a href="http://en.wikipedia.org/wiki/Role-based_access_control">Role Based Access Control</a>)</li>
+<li>Includes libraries to generate and process Create/Update <a href="{{=URL(r=request,f='crud')}}">forms</a> directly from database</li>
+<li>Includes libraries to handle <a href="{{=URL(r=request,f='examples#form_examples')}}">HTML</a>, <a href="{{=URL(r=request,f='examples#example_rss')}}">ATOM</a>, <a href="{{=URL(r=request,f='examples#example_rss')}}">RSS</a>, <a href="{{=URL(r=request,f='examples#example_rtf')}}">RTF</a>, <a href="{{=URL(r=request,f='examples#example_json')}}">JSON</a>, <a href="{{=URL(r=request,f='examples#examples_wiki')}}">AJAX</a>, <a href="{{=URL(r=request,f='examples#xmlrpc_examples')}}">XML-RPC</a>, <a href="{{=URL(r=request,f='dal#csv')}}">CSV</a>, <a href="{{=URL(r=request,f='crud#rest')}}">REST</a>, <a href="{{=URL(r=request,f='examples#examples_wiki')}}">WIKI</a></li>
+<li>Handles automatically upload and download <a href="{{=URL(r=request,f='examples#example_stream')}}">streaming</a> for large media files</li>
+<li>Includes portable cron mechanism for creating and running recurrent tasks in background</li>
+<li><a href="{{=URL(r=request,f='license')}}">Allows</a> to bytecode-compile applications and distribute them in closed source</li>
 </ul>
 
-<h2>A taste of web2py</h2>
+<p>We guarantee backward compatibility of the web2py API since 1.0.</p>
 
-Consider the following complete application which consists a <b>model</b> (which describes the data representation): <tt>db.py</tt>
-{{=CODE("""
-db=SQLDB('sqlite://images.db')
-db.define_table('image',SQLField('file','upload'))
-""".strip(),language='web2py',link='/examples/global/vars/')}}
-a <b>controller</b> (which describes the application logic and workflow): <tt>images_examples.py</tt>
-{{=CODE("""
-def index():
-    form=SQLFORM(db.image)
-    if form.accepts(request.vars,session): response.flash='image uploaded'
-    return dict(form=form)
-""".strip(),language='web2py',link='/examples/global/vars/')}}
-and a <b>view</b> (which describes the data presentation): <tt>images_examples/index.html</tt>:
-{{=CODE("{"+"{extend 'layout.html'}"+"""}
-<h1>Upload page</h1>
-{"""+"{=form}"+"}",language='html')}}
-What does it do?
-<ul>
-<li>Creates the database db in file 'images.db'</li>
-<li>Creates the table 'image' which contains a field called 'file'. If the table exists but does not match the definition it is altered accordingly.</li>
-<li>Creates a web-based database administrative interface for db.image</li>
-<li>Creates a web page called index with upload form for db.image. Try it <a href="/{{=request.application}}/images_examples/index">here</a></li>
-<li>On upload the file is renamed in a secure way, saved, and the name of the file is stored in a new field db.image record.</li>
-</ul>
-
-
-
-
+</div>
+<div class="sidebar">
+<object type="application/x-shockwave-flash" width="150" height="100" data="http://www.vimeo.com/moogaloop.swf?clip_id=875433&amp;server=www.vimeo.com&amp;fullscreen=1&amp;show_title=1&amp;show_byline=1&amp;show_portrait=0&amp;color="><param name="quality" value="best" /><param name="allowfullscreen" value="true" /><param name="scale" value="showAll" /><param name="movie" value="http://www.vimeo.com/moogaloop.swf?clip_id=875433&amp;server=www.vimeo.com&amp;fullscreen=1&amp;show_title=1&amp;show_byline=1&amp;show_portrait=0&amp;color="/></object>
+<a href="http://www.vimeo.com/videos/search:web2py">video tutorials</a>
+<br/>
+<br/>
+<a href="http://mdp.cti.depaul.edu/demo_admin"><img src="{{=URL(r=request,c='static',f='demo.png')}}" width="150px"/></a><br/><a href="http://mdp.cti.depaul.edu/demo_admin">interactive demo</a>
+<br/>
+<br/>
+<a href="http://mdp.cti.depaul.edu/appliances"><img src="{{=URL(r=request,c='static',f='kpax.png')}}" width="150px"/></a><br/><a href="http://mdp.cti.depaul.edu/appliances">free applances</a>
+<br/>
+<br/>
+<a href="http://www3.clustrmaps.com/counter/maps.php?url=http://mdp.cti.depaul.edu" id="clustrMapsLin"><img width="150px" src="http://www3.clustrmaps.com/counter/index2.php?url=http://mdp.cti.depaul.edu" style="border:0px;" alt="Locations of visitors to this page" title="Locations of visitors to this page" id="clustrMapsImg" onError="this.onError=null; this.src='http://www2.clustrmaps.com/images/clustrmaps-back-soon.jpg'; document.getElementById('clustrMapsLink').href='http://www2.clustrmaps.com'" /></a><br/>
+<a href="http://www3.clustrmaps.com/counter/maps.php?url=http://mdp.cti.depaul.edu">map of visitors</a>
+<br/>
+<br/>
 

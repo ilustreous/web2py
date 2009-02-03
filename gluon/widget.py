@@ -322,6 +322,8 @@ def console():
                   help='-W install|start|stop as windows service')
     parser.add_option('-C', '--cron', action='store_true', dest='extcron', default=False,
                   help='trigger a cron run manually, usually invoked from a system crontab')
+    parser.add_option('-N', '--no-cron', action='store_true', dest='nocron', default=False,
+                  help='Do not start cron automatically')
     parser.add_option('-L', '--config', dest='config', default='',
                   help='Config file')
     parser.add_option('-t', '--taskbar',
@@ -392,11 +394,15 @@ def start():
             print "Cannot import config file [%s]" % options.config
             sys.exit(1)
     ### if -C start cron run
-    if options.extcron:
-        from gluon.contrib.cron import extcron
-        cron = extcron()
-        cron.start()
-        return
+    ### if -N disable cron in this *process* - note, startup tasks WILL be run regardless !
+    if options.extcron or options.nocron:
+        import gluon.contrib.cron
+        gluon.contrib.cron.crontype = 'External'
+        if options.extcron:
+            cron = gluon.contrib.cron.extcron()
+            cron.start()
+            cron.join()
+            return
 
     ### if no password provided and havetk start Tk interface
     ### or start interface if we want to put in taskbar (system tray)

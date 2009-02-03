@@ -3,7 +3,7 @@
 
 <h1>web2py<sup style="font-size:0.5em;">TM</sup> API</h1>
 
-<p>For more detailed information see the <a href="{{='/%s/global/vars'%request.application}}">global variables</a> documentation or the epydoc generated <a href="/{{=request.application}}/static/epydoc/index.html">api docs</a>.</p>
+<p>For more detailed information see also <a href="{{=URL(r=request,c='static',f='epydoc/index.html')}}">epydocs</a>.</p>
 
 <br/><h2>URL mapping overview</h2>
 
@@ -39,7 +39,6 @@ IS_LIST_OF, CLEANUP, CRYPT, IS_IN_DB, IS_NOT_IN_DB""", language="web2py",link='/
 
 <h3>Database API</h3>
 {{=CODE("SQLDB, SQLField", language="web2py",link='/examples/global/vars/', counter=None)}}
-More examples here: <a href="/{{=request.application}}/default/orm">orm</a>
 
 <h3>Database to HTML</h3>
 {{=CODE("SQLFORM, SQLTABLE", language="web2py",link='/examples/global/vars/', counter=None)}}

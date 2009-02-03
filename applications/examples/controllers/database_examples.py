@@ -7,31 +7,31 @@ def register_user():
     """ simple user registration form with validation and database.insert() 
         also lists all records currently in the table"""
     ### create an insert form from the table
-    form=SQLFORM(dba.users)
+    form=SQLFORM(db.users)
     ### if form correct perform the insert
     if form.accepts(request.vars,session):
         response.flash='new record inserted'
     ### and get a list of all users
-    records=SQLTABLE(dba().select(dba.users.ALL))
+    records=SQLTABLE(db().select(db.users.ALL))
     return dict(form=form,records=records)
 
 def register_dog():
     """ simple user registration form with validation and database.insert() 
         also lists all records currently in the table"""
-    form=SQLFORM(dba.dogs)
+    form=SQLFORM(db.dogs)
     if form.accepts(request.vars,session):
         response.flash='new record inserted'
     download=URL(r=request,f='download') # to see the picture
-    records=SQLTABLE(dba().select(dba.dogs.ALL),upload=download)
+    records=SQLTABLE(db().select(db.dogs.ALL),upload=download)
     return dict(form=form,records=records)
 
 def register_product():
     """ simple user registration form with validation and database.insert() 
         also lists all records currently in the table"""
-    form=SQLFORM(dba.products)
+    form=SQLFORM(db.products)
     if form.accepts(request.vars,session):
         response.flash='new record inserted'
-    records=SQLTABLE(dba().select(dba.products.ALL))
+    records=SQLTABLE(db().select(db.products.ALL))
     return dict(form=form,records=records)
 
 def buy():
@@ -43,38 +43,38 @@ def buy():
                     TR("",INPUT(_type="submit",_value="Order"))))
     if form.accepts(request.vars,session,keepvalues=True):
         ### check if user is in the database
-        if len(dba(dba.users.id==form.vars.buyer_id).select())==0:
+        if len(db(db.users.id==form.vars.buyer_id).select())==0:
             form.errors.buyer_id="buyer not in database"
         ### check if product is the database
-        if len(dba(dba.products.id==form.vars.product_id).select())==0:
+        if len(db(db.products.id==form.vars.product_id).select())==0:
             form.errors.product_id="product not in database"
         ### if no errors
         if len(form.errors)==0:
             ### get a list of same purchases by same user
-            purchases=dba((dba.purchases.buyer_id==form.vars.buyer_id)&
-                         (dba.purchases.product_id==form.vars.product_id)).select()
+            purchases=db((db.purchases.buyer_id==form.vars.buyer_id)&
+                         (db.purchases.product_id==form.vars.product_id)).select()
             ### if list contains a record, update that record
             if len(purchases)>0: 
                 purchases[0].update_record(quantity=purchases[0].quantity+form.vars.quantity)
             ### or insert a new record in table
             else:         
-                dba.purchases.insert(buyer_id=form.vars.buyer_id,
+                db.purchases.insert(buyer_id=form.vars.buyer_id,
                                     product_id=form.vars.product_id,
                                     quantity=form.vars.quantity)
             response.flash="product purchased!"
     if len(form.errors): response.flash="invalid values in form!"
     ### now get a list of all purchases
-    records=dba(purchased).select(dba.users.name,dba.purchases.quantity,dba.products.name)
+    records=db(purchased).select(db.users.name,db.purchases.quantity,db.products.name)
     return dict(form=form,records=SQLTABLE(records),vars=form.vars,vars2=request.vars)
 
 def delete_purchased():
     """ delete all records in purchases """
-    dba(dba.purchases.id>0).delete()
+    db(db.purchases.id>0).delete()
     redirect(URL(r=request,f='buy'))
 
 def reset_purchased():
     """ set quantity=0 for all records in purchases """
-    dba(dba.purchases.id>0).update(quantity=0)
+    db(db.purchases.id>0).update(quantity=0)
     redirect(URL(r=request,f='buy'))
 
 def download():
