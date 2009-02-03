@@ -1,0 +1,81 @@
+{{extend 'layout.html'}} {{import os}}
+
+<h1>web2py<sup style="font-size:0.5em;">TM</sup> Authentication</h1>
+
+<p>Web2Py includes an authentication class which can be used to register users (with optional <a href="http://recaptcha.net/" target=_blank>Recaptcha</a> support), log them in & out.
+<br/>These identities can then be used as the basis for <a href="{{URL(r=request,c='default',f='authorization')}}">authorization</a>.
+<br/>This class is defined in gluon/tools.py & can optionally be extended in your own module.</p>
+
+<h3>Model</h3>
+<b>In models/db.py:</b>
+{{=CODE("""
+from gluon.tools import *
+
+mail=Mail()
+mail.settings.server='mail:25'
+mail.sender='you@yourdomain.com'
+
+auth=Auth(globals(),db)
+auth.define_tables()
+# Require email verification for registration
+auth.settings.mailer=mail
+# Require captcha verification for registration
+#auth.settings.captcha=RECAPTCHA(request,public_key='RECAPTCHA_PUBLIC_KEY',private_key='RECAPTCHA_PRIVATE_KEY')
+""".strip(),language='web2py',link='/examples/global/vars/')}}
+
+<p>Instantiate the Mail & Auth classes.<br/>
+Set auth to use Email Verification &, optionally, Captcha.</p>
+
+<h3>Controller</h3>
+<b>In controllers/default.py:</b>
+{{=CODE("""
+def user():
+    "Auth functions based on arg. See gluon/tools.py"
+    return dict(form=auth())
+""".strip(),language='web2py',link='/examples/global/vars/')}}
+
+<p>Functions accessible to users as:<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;http://.../default/user/register<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;http://.../default/user/login<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;http://.../default/user/logout<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;http://.../default/user/profile<br/></p>
+
+<h3>Module</h3>
+<b>In modules/mymodule.py:</b>
+{{=CODE("""
+from gluon.tools import *
+DEFAULT=lambda:None
+class MyAuth(Auth):
+    def __init__(self,environment,T,db=None):
+        "Initialise parent class & make any necessary modifications"
+        Auth.__init__(self,environment,db)
+        self.messages.logged_in=T("Logged in")
+        self.messages.email_sent=T("Email sent")
+        self.messages.email_verified=T("Email verified")
+        self.messages.logged_out=T("Logged out")
+        self.messages.registration_succesful=T("Registration successful")
+        self.messages.invalid_email=T("Invalid email")
+        self.messages.invalid_login=T("Invalid login")
+        self.messages.verify_email_subject=T("Password verify")
+        self.messages.username_sent=T("Your username was emailed to you")
+        self.messages.new_password_sent=T("A new password was emailed to you")
+        self.messages.invalid_email=T("Invalid email")
+        self.messages.password_changed=T("Password changed")
+        self.messages.retrieve_username=str(T("Your username is"))+": %(username)s"
+        self.messages.retrieve_username_subject="Username retrieve"
+        self.messages.retrieve_password=str(T("Your password is"))+": %(password)s"
+        self.messages.retrieve_password_subject=T("Password retrieve")
+        self.messages.profile_updated=T("Profile updated")
+""".strip(),language='web2py',link='/examples/global/vars/')}}
+
+<p>Extend the class to provide Internationalized strings. Internationalization doesn't pick up T strings in gluon.</p>
+
+<b>In models/db.py:</b>
+{{=CODE("""
+from applications.modules.mymodule import MyAuth
+auth=MyAuth(globals(),T,db)
+""".strip(),language='web2py',link='/examples/global/vars/')}}
+
+<p>Controllers & Views are as-normal.</p>
+
+<p></p>

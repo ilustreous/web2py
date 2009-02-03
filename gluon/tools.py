@@ -233,7 +233,8 @@ class Auth(object):
                                     f='index')
         self.settings.mailer=None
         self.settings.expiration=3600 # seconds
-        self.on_failed_authorization=lambda: self._HTTP(404,"NOT AUTHORIZED")
+        #self.settings.on_failed_authorization=lambda: self._HTTP(404,"NOT AUTHORIZED")
+        self.settings.on_failed_authorization=None
         ### table names to be used
         self.settings.table_user_name='auth_user'
         self.settings.table_group_name='auth_group'
@@ -282,6 +283,7 @@ class Auth(object):
         self.settings.delete_label='Check to delete:'
         ### these are messages that can be customized
         self.messages=Settings()
+        self.messages.access_denied="Insufficient privileges"
         self.messages.logged_in="Logged in"
         self.messages.email_sent="Email sent"
         self.messages.email_verified="Email verified"
@@ -766,16 +768,23 @@ class Auth(object):
             return f
         return decorator
 
-    def requires_membership(self,group_id):
+    def requires_membership(self,role):
         """
         decorator that prevents access to action if not logged in or
-        if user logged in is not a member of group_id
+        if user logged in is not a member of group_id.
+        If role is provided instead of group_id then the group_id is calculated.
         """
         def decorator(action):
+            group_id=self.id_group(role)
             def f(*a,**b):
                 if not self.is_logged_in(): redirect(self.settings.login_url)
                 if not self.has_membership(group_id):
-                    self.settings.on_failed_authorization()
+                    self.environment.session.flash=self.messages.access_denied
+                    if self.settings.on_failed_authorization:
+                        next=self.settings.on_failed_authorization
+                    else:
+                        next=URL(r=self.environment.request,c='default',f='index')
+                    redirect(next)
                 return action(*a,**b)
             return f
         return decorator
@@ -790,7 +799,12 @@ class Auth(object):
             def f(*a,**b):
                 if not self.is_logged_in(): redirect(self.settings.login_url)
                 if not self.has_permission(name,table_name,record_id):
-                    self.settings.on_failed_authorization()
+                    self.environment.session.flash=self.messages.access_denied
+                    if self.settings.on_failed_authorization:
+                        next=self.settings.on_failed_authorization
+                    else:
+                        next=URL(r=self.environment.request,c='default',f='index')
+                    redirect(next)
                 return action(*a,**b)
             return f
         return decorator
@@ -815,7 +829,7 @@ class Auth(object):
         if log: self.log_event(log % dict(group_id=group_id))
 
     def id_group(self,role):
-        rows=db(self.settings.table_group.role==role).select()
+        rows=self.db(self.settings.table_group.role==role).select()
         if not rows: return None
         return rows[0].id
 
