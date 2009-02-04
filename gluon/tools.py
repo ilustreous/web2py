@@ -80,7 +80,7 @@ Subject: %s\r
         return True
 
 
-class RECAPTCHA(DIV):
+class Recaptcha(DIV):
 
     API_SSL_SERVER = 'https://api-secure.recaptcha.net'
     API_SERVER = 'http://api.recaptcha.net'

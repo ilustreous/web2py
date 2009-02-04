@@ -15,7 +15,7 @@
 <p>To use authentication, write something like this in a model file:</p>
 
 {{=CODE("""
-from gluon.tools import Mail, Auth
+from gluon.tools import Mail, Auth, Recaptcha
 
 mail=Mail()
 ## specify your SMTP server
@@ -32,7 +32,7 @@ auth.define_tables()
 ## optional: require email verification for registration
 # auth.settings.mailer = mail
 ## optional: if you require captcha verification for registration
-# auth.settings.captcha = RECAPTCHA(request,public_key='RECAPTCHA_PUBLIC_KEY',private_key='RECAPTCHA_PRIVATE_KEY')
+# auth.settings.captcha = Recaptcha(request,public_key='RECAPTCHA_PUBLIC_KEY',private_key='RECAPTCHA_PRIVATE_KEY')
 """.strip(),language='web2py',link=URL(r=request,c='global',f='vars'))}}
 
 <p>In your controller (for example in <b>default.py</b>) expose the <b>auth</b> object (for example via a <b>user</b> action):
