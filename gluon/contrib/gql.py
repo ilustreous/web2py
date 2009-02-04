@@ -271,7 +271,11 @@ class SQLTable(gluon.sql.SQLTable):
 
         pass
 
-    def drop(self):
+    def drop(self, mode = None):
+
+        self.truncate(mode = mode)
+
+    def truncate(self, mode = None):
 
         # nothing to do, here for backward compatility
 

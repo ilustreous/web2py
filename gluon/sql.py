@@ -1200,20 +1200,21 @@ end;
 
         pass
 
-    def _drop(self):
+    def _drop(self, mode = None):
         t = self._tablename
+        c = mode or ''
         if self._db._dbname == 'oracle':
-            return ['DROP TABLE %s;' % t, 'DROP SEQUENCE %s_sequence;'
+            return ['DROP TABLE %s %s;' % (t,c), 'DROP SEQUENCE %s_sequence;'
                      % t]
         elif self._db._dbname == 'firebird':
-            return ['DROP TABLE %s;' % t, 'DROP GENERATOR GENID_%s;'
+            return ['DROP TABLE %s %s;' % (t,c), 'DROP GENERATOR GENID_%s;'
                      % t]
         return ['DROP TABLE %s;' % t]
 
-    def drop(self):
+    def drop(self, mode = None):
         if self._dbt:
             logfile = open(self._logfilename, 'a')
-        queries = self._drop()
+        queries = self._drop(mode = mode)
         self._db['_lastsql'] = '\n'.join(queries)
         for query in queries:
             if self._dbt:
@@ -1335,17 +1336,18 @@ end;
     def on(self, query):
         return SQLJoin(self, query)
 
-    def _truncate(self):
+    def _truncate(self, mode = None):
         t = self._tablename
+        c = mode or ''
         if self._db._dbname == 'sqlite':
             return ['DELETE FROM %s;' % t,
                     "DELETE FROM sqlite_sequence WHERE name='%s';" % t]
-        return ['TRUNCATE TABLE %s;' % t]
+        return ['TRUNCATE TABLE %s %s;' % (t,c)]
 
-    def truncate(self):
+    def truncate(self, mode = None):
         if self._dbt:
             logfile = open(self._logfilename, 'a')
-        queries = self._truncate()
+        queries = self._truncate(mode = mode)
         self._db['_lastsql'] = '\n'.join(queries)
         for query in queries:
             if self._dbt:
