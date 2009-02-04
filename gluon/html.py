@@ -413,10 +413,7 @@ class SCRIPT(DIV):
         co = '\n'.join([str(component) for component in
                        self.components])
         if co:
-            return '''<%s%s><!--
-%s
-//--></%s>''' % (self.tag, fa, co,
-                    self.tag)
+            return '<%s%s><!--\n%s\n//--></%s>' % (self.tag, fa, co, self.tag)
         else:
             return DIV.xml(self)
 
@@ -851,8 +848,7 @@ class FORM(DIV):
 
     def __init__(self, *components, **attributes):
         if self.tag[-1:] == '/' and components:
-            raise SyntaxError, '<%s> tags cannot have components'\
-                 % self.tag
+            raise SyntaxError, '<%s> tags cannot have components' % self.tag
         if len(components) == 1 and isinstance(components[0], (list,
                 tuple)):
             self.components = list(components[0])

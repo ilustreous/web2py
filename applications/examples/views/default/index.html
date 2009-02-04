@@ -10,10 +10,10 @@ Created by <a href="http://mycti.cti.depaul.edu/people/facultyInfo_mycti.asp?id=
 </p>
 
 <ul>
-<li>Runs on Linux, Mac, Windows, Windows Mobile, iPhone (jailbroken), and on the <a href="http://code.google.com/appengine/">Google App Engine</a></li>
+<li>Runs on Linux, Mac, Windows, Windows Mobile, and on the <a href="http://code.google.com/appengine/">Google App Engine</a></li>
 <li>Requires no installation and can run off a USB drive</li>
 <li>Has no configuration files. You just unzip it and click on it</li>
-<li>Includes a multi-threaded <a href="http://www.wsgi.org/wsgi/">wsgi</a>-compliant <a href="http://127.0.0.1:8000/init/static/epydoc/gluon.wsgiserver-module.html">web-server</a> (also works with <a href="http://www.apache.org/">Apache</a> and others)</li> 
+<li>Includes a multi-threaded <a href="http://www.wsgi.org/wsgi/">wsgi</a>-compliant <a href="{{=URL(r=request,c='static',f='epydoc/gluon.wsgiserver-module.html')}}">web-server</a> (also works with <a href="http://www.apache.org/">Apache</a> and others)</li> 
 <li>Includes a transaction-safe relational database (<a href="http://www.sqlite.org/">sqlite</a>)</li>
 <li>Includes a web-based integrated development environment (<a href="http://mdp.cti.depaul.edu//demo_admin">demo</a>)</li>
 <li>Includes a ticketing system to help you debug deployed applications</li> 
@@ -21,12 +21,14 @@ Created by <a href="http://mycti.cti.depaul.edu/people/facultyInfo_mycti.asp?id=
 <li>Automatically Generates a database administrative interface for your applications</li> 
 <li><a href="{{=URL(r=request,f='security')}}">Prevents</a> the most common types of vulnerabilities: Cross Site Scripting, Injection Flaws, and Malicious File Execution</li>
 <li>Enforces good Software Engineer practices (<a href="http://en.wikipedia.org/wiki/Model-view-controller">Model-View-Controller design</a>, Server-side form validation, <a href="http://en.wikipedia.org/wiki/Postback">postbacks</a>)</li>
-<li>Includes internationalization support and a web based translation intarface</li>
+<li>Includes internationalization support and a web based translation interface</li>
 <li>Includes functions for caching in ram, disk, memcache and combinations thereof</li>
-<li>Includes libraries for <a href="{{=URL(r=request,f='authentication')}}">Authentication</a> (login, logout, registration, change password, etc.)</li> 
-<li>Includes libraries for <a href="{{=URL(r=request,f='authorization')}}">Authorization</a> (<a href="http://en.wikipedia.org/wiki/Role-based_access_control">Role Based Access Control</a>)</li>
-<li>Includes libraries to generate and process Create/Update <a href="{{=URL(r=request,f='crud')}}">forms</a> directly from database</li>
-<li>Includes libraries to handle <a href="{{=URL(r=request,f='examples#form_examples')}}">HTML</a>, <a href="{{=URL(r=request,f='examples#example_rss')}}">ATOM</a>, <a href="{{=URL(r=request,f='examples#example_rss')}}">RSS</a>, <a href="{{=URL(r=request,f='examples#example_rtf')}}">RTF</a>, <a href="{{=URL(r=request,f='examples#example_json')}}">JSON</a>, <a href="{{=URL(r=request,f='examples#example_wiki')}}">AJAX</a>, <a href="{{=URL(r=request,f='examples#xmlrpc_examples')}}">XML-RPC</a>, <a href="{{=URL(r=request,f='dal#csv')}}">CSV</a>, <a href="{{=URL(r=request,f='crud#rest')}}">REST</a>, <a href="{{=URL(r=request,f='examples#example_wiki')}}">WIKI</a></li>
+<li>Includes libraries for <a href="{{=URL(r=request,f='tools#authentication')}}">Authentication</a> (login, logout, registration, change password, etc.)</li> 
+<li>Includes libraries for <a href="{{=URL(r=request,f='tools#authorization')}}">Authorization</a> (<a href="http://en.wikipedia.org/wiki/Role-based_access_control">Role Based Access Control</a>)</li>
+<li>Includes libraries to generate and process Create/Update <a href="{{=URL(r=request,f='tools#crud')}}">forms</a> directly from a database</li>
+<li>Includes libraries to handle <a href="{{=URL(r=request,f='examples#form_examples')}}">HTML</a>, <a href="{{=URL(r=request,f='examples#example_rss')}}">ATOM</a>, <a href="{{=URL(r=request,f='examples#example_rss')}}">RSS</a>, <a href="{{=URL(r=request,f='examples#example_rtf')}}">RTF</a>, <a href="{{=URL(r=request,f='examples#example_json')}}">JSON</a>, <a href="{{=URL(r=request,f='examples#example_wiki')}}">AJAX</a>, <a href="{{=URL(r=request,f='examples#xmlrpc_examples')}}">XML-RPC</a>, <a href="{{=URL(r=request,f='dal#csv')}}">CSV</a>, <a href="{{=URL(r=request,f='tools#rest')}}">REST</a>, <a href="{{=URL(r=request,f='examples#example_wiki')}}">WIKI</a></li>
+<li>Includes <a href="http://wwww.jquery.com">jQuery</a> for Effects and Ajax</li>
+<li>Includes a powerful Python-based template laguage to render objects into HTML or other text-based protocol.</li>
 <li>Handles automatically upload and download <a href="{{=URL(r=request,f='examples#example_stream')}}">streaming</a> for large media files</li>
 <li>Includes portable cron mechanism for creating and running recurrent tasks in background</li>
 <li><a href="{{=URL(r=request,f='license')}}">Allows</a> to bytecode-compile applications and distribute them in closed source</li>
@@ -47,7 +49,6 @@ Created by <a href="http://mycti.cti.depaul.edu/people/facultyInfo_mycti.asp?id=
 <br/>
 <br/>
 <a href="http://www3.clustrmaps.com/counter/maps.php?url=http://mdp.cti.depaul.edu" id="clustrMapsLin"><img width="150px" src="http://www3.clustrmaps.com/counter/index2.php?url=http://mdp.cti.depaul.edu" style="border:0px;" alt="Locations of visitors to this page" title="Locations of visitors to this page" id="clustrMapsImg" onError="this.onError=null; this.src='http://www2.clustrmaps.com/images/clustrmaps-back-soon.jpg'; document.getElementById('clustrMapsLink').href='http://www2.clustrmaps.com'" /></a><br/>
-<a href="http://www3.clustrmaps.com/counter/maps.php?url=http://mdp.cti.depaul.edu">map of visitors</a>
 <br/>
 <br/>
 

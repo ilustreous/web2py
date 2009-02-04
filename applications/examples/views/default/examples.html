@@ -637,7 +637,9 @@ def index():
 def streamer():
     return response.stream(open('largefile.mpg4','rb'),chunk_size=4096)
 """.strip(),language='web2py',link=URL(r=request,c='global',f='vars'))}}
-<p></p>
+<p>By default all static files and files stored in 'upload' fields in the database are streamed when larger than 1MByte.</p>
+
+</p>web2py automatically and transparently handles PARTIAL_CONTENT and RANGE requests.</p>
 
 <h2 id="xmlrpc_examples">XML-RPC Examples</h2>
 

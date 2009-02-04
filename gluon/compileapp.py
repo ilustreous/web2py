@@ -50,8 +50,7 @@ def _TEST():
     if not gluon.fileutils.check_credentials(request):
         raise HTTP(400,web2py_error='invalid credentials')
     stdout=sys.stdout
-    html='<h2>Testing controller "%s.py" ... done.</h2><br/>
-' % request.controller
+    html='<h2>Testing controller "%s.py" ... done.</h2><br/>\n' % request.controller
     for key in [key for key in globals() if not key in __symbols__+['_TEST']]:
         if type(eval(key))==types.FunctionType: 
             if doctest.DocTestFinder().find(eval(key)):
@@ -61,12 +60,11 @@ def _TEST():
                 report=sys.stdout.getvalue().strip()
                 if report: pf='failed'
                 else: pf='passed'
-                html+='<h3 class="%s">Function %s [%s]</h3>'%(pf,key,pf)
+                html+='<h3 class="%s">Function %s [%s]</h3>\n' % (pf,key,pf)
                 if report: html+=CODE(report,language='web2py',link='/examples/global/vars/').xml()
-                html+='<br/>
-'
+                html+='<br/>\n'
             else:
-                html+='<h3 class="nodoctests">Function %s [no doctests]</h3><br/>'%(key)
+                html+='<h3 class="nodoctests">Function %s [no doctests]</h3><br/>\n' % (key)
     response._vars=html
     sys.stdout=stdout
 _TEST()

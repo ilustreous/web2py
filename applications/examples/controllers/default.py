@@ -47,12 +47,5 @@ def license():
     return response.render(dict())
 
 
-def authentication():
-    return response.render(dict())
-
-
-def authorization():
-    return response.render(dict())
-
-def crud():
+def tools():
     return response.render(dict())

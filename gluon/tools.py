@@ -387,10 +387,11 @@ class Auth(object):
         def authentication(): return dict(form=auth())
         """
 
-        args = self.environment.request.args
+        request = self.environment.reques
+        args = request.args
         if not args:
-            redirect(URL(r=self.environment.request, args='login'))
-        elif args[0] == 'login':
+            redirect(URL(r=request, args='login'))
+        if args[0] == 'login':
             return self.login()
         elif args[0] == 'logout':
             return self.logout()
@@ -1233,7 +1234,8 @@ class Crud(object):
         self.messages.lock_keys = True
 
     def __call__(self):
-        args = self.environment.request.args
+
+        args = self.environment.request.args        
         if len(args) < 1:
             redirect(URL(r=self.environment.request, args='tables'))
         elif args[0] == 'tables' and self.has_permission(*args):
@@ -1404,6 +1406,7 @@ class Crud(object):
         fields=None,
         orderby=None,
         limitby=None,
+        headers={},
         **attr
         ):
         request = self.environment.request
@@ -1415,13 +1418,14 @@ class Crud(object):
             query = table.id > 0
         if not fields:
             fields = [table.ALL]
+        rows=self.db(query).select(*fields, **dict(orderby=orderby, limitby=limitby))
+        if not rows:
+            return None # Nicer than an empty table.
         if not attr.has_key('linkto'):
             attr['linkto'] = URL(r=request, args='read')
         if not attr.has_key('upload'):
             attr['upload'] = URL(r=request, f='download')
-        return SQLTABLE(self.db(query).select(*fields,
-                        **dict(orderby=orderby, limitby=limitby)),
-                        **attr)
+        return SQLTABLE(rows, headers, **attr)
 
 
 def fetch(url):

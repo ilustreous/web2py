@@ -59,9 +59,7 @@ def parse(text):
     text = '}}%s{{' % re_write.sub('{{response.write(\g<value>)}}',
                                    text)
     text = replace(re_html, text, lambda x: \
-                   '''
-response.write(%s,escape=False)
-'''\
+                   '''\nresponse.write(%s,escape=False)\n'''\
                     % repr(x[2:-2]))
     text = replace(re_strings, text, lambda x: x.replace('\n', '\\n'))
     return reindent(text)
