@@ -1355,7 +1355,7 @@ class Markdown(object):
                         .replace('*', g_escape_table['*'])
                         .replace('_', g_escape_table['_']))
                 link = '<a href="%s">%s</a>' % (escaped_href, text[start:end])
-                hash = md5.md5(link).hexdigest()
+                hash = md5(link).hexdigest()
                 link_from_hash[hash] = link
                 text = text[:start] + hash + text[end:]
         for hash, link in link_from_hash.items():
@@ -1588,7 +1588,7 @@ def _xml_encode_email_char_at_random(ch):
         return '&#%s;' % ord(ch)
 
 def _hash_text(text):
-    return '!'+md5.md5(text.encode("utf-8")).hexdigest()+'!'
+    return '!'+md5(text.encode("utf-8")).hexdigest()+'!'
 
 
 #---- mainline

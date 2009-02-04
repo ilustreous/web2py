@@ -387,7 +387,7 @@ class Auth(object):
         def authentication(): return dict(form=auth())
         """
 
-        request = self.environment.reques
+        request = self.environment.request
         args = request.args
         if not args:
             redirect(URL(r=request, args='login'))
@@ -1425,7 +1425,7 @@ class Crud(object):
             attr['linkto'] = URL(r=request, args='read')
         if not attr.has_key('upload'):
             attr['upload'] = URL(r=request, f='download')
-        return SQLTABLE(rows, headers, **attr)
+        return SQLTABLE(rows, headers=headers, **attr)
 
 
 def fetch(url):

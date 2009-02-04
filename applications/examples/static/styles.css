@@ -24,21 +24,21 @@ h5 { font-size:100%; }
 
 .container { padding-top: 0px; }
 
-.header { position:relative; padding-left: 10px;}
+.header { position:relative; padding-left: 10px; }
   
 .logo { font-family: Impact, 'Techno CE', sans-serif; font-weight: normal; color: #fff; position: relative; height: 70px; font-size:260%; margin: 0; line-height: 100px; }
 .logo a { color: #fff; text-decoration: none; }
         
-.menu { position:relative; z-index:2; border-right: none; border-left: none; padding: 7px 0;}
+.menu { position:relative; z-index:2; border-right: none; border-left: none; padding: 7px 0px;}
 .menu ul {margin:0; padding:0; list-style:none;}
 .menu ul li {float:left; display:inline; margin:0; padding:0;}
 .menu ul li a { font-size: 19px; font-weight: bold; display: block; float: left; float:none; padding: 7px 25px 7px 7px; line-height: 18px; }
 .menu ul li a:hover { text-decoration: none;}
 .menu ul li a span { font-size: 11px; font-weight: normal; color: white; }
-.menu ul li a:hover { background: #000; }
+.menu ul li a:hover { background: #000000; }
 // .menu:after { display:block; visibility:hidden; clear:both; line-height:0; font-size:0; content:"."; }
     
-.content { float: left; padding: 0 0 0 0; width:620px; z-index: 10;
+.content { float: left; padding: 15px 0 0 0; width:620px; z-index: 10;
       //border: 3px solid #67707a; // background-color: #EEEEEE; //color: #333333;
 }
   
@@ -70,8 +70,9 @@ li { display:list-item; }
 fieldset { margin:15px 0; padding:10px; border:1px solid #CCC; }
 legend { margin-left:10px; font-weight:bold; color:#000; }
 blockquote { margin:15px 20px; font-style:italic; }
-td { text-align:left; vertical-alignment: top }
+tr, td { text-align:left; vertical-align: top }
 hr { display:block; height:1px; margin:10px 0; padding:0; border:0 solid #CCC; background:#CCC; color:#CCC;} 
+textarea, input { border: 1px solid #666666; padding: 2px;}
 .left {text-align:left;}
 .center {text-align:center;}
 .right {text-align:right;}
