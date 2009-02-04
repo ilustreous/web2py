@@ -30,6 +30,7 @@ class Highlighter(object):
         """
 
         mode = mode.upper()
+        if link and link[-1]!='/': link=link+'/'
         self.link = link
         self.styles = styles
         self.output = []

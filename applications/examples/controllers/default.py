@@ -54,4 +54,5 @@ def authentication():
 def authorization():
     return response.render(dict())
 
-
+def crud():
+    return response.render(dict())

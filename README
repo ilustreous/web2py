@@ -391,7 +391,7 @@ new notation for DB
 
 record=db.table[id]
 db.table[id]=dict(...)
-del db.table[i]
+del db.table[id]
 
 - request.env.web2py_version
 - new class gluon.storage.Settings has lock_keys, lock_values
