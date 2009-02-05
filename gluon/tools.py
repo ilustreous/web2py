@@ -637,7 +637,7 @@ class Auth(object):
             description = \
                 'group uniquely assigned to %(first_name)s %(last_name)s'\
                  % form.vars
-            group_id = self.add_group(form.vars.id, description)
+            group_id = self.add_group("user_%s" % form.vars.id, description)
             self.add_membership(group_id, form.vars.id)
             if self.settings.mailer:
                 user[form.vars.id] = dict(registration_key=key)

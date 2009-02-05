@@ -49,3 +49,6 @@ def license():
 
 def tools():
     return response.render(dict())
+
+def version():
+   return request.env.web2py_version

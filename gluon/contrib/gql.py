@@ -172,6 +172,11 @@ class GQLDB(gluon.sql.SQLDB):
             where = ''
         return SQLSet(self, where)
 
+    def commit(self):
+        pass
+
+    def rollback(self)
+        pass
 
 class SQLALL(object):
 
