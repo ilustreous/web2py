@@ -72,7 +72,7 @@ Each tag, DIV for example, takes three types of arguments:</p>
 <h3>Example {{=c}}{{c+=1}}</h3><b>In controller: simple_examples.py</b>
 {{=CODE("""
 def hello6():
-    respone.flash=T("Hello World in a flash!")
+    response.flash=T("Hello World in a flash!")
     return dict(message=T("Hello World"))
 """.strip(),language='web2py',link=URL(r=request,c='global',f='vars'))}}
 
@@ -591,7 +591,7 @@ def data():
 """.strip(),language='web2py',link=URL(r=request,c='global',f='vars'))}}
 <b>In view: ajax_examples/index.html</b>
 {{=CODE(open(request.folder+'views/ajax_examples/index.html','r').read(),language='html',link=URL(r=request,c='global',f='vars'))}}
-<p>The javascript function "ajax" is provided in "web2py_ajax.html" and included by "layout.html". It takes three arguments, a url, a list of ids and a target it. When called it send to the url (via a get) the values of the ids and display the respose in the value (of innerHTML) of the target id.
+<p>The javascript function "ajax" is provided in "web2py_ajax.html" and included by "layout.html". It takes three arguments, a url, a list of ids and a target it. When called it send to the url (via a get) the values of the ids and display the response in the value (of innerHTML) of the target id.
 <br/>Try it here: <a href="/{{=request.application}}/ajax_examples/index">index</a></p>
 
 <h3>Example {{=c}}{{c+=1}}</h3><b>In controller: ajax_examples.py </b>
