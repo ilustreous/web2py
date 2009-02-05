@@ -175,7 +175,7 @@ class GQLDB(gluon.sql.SQLDB):
     def commit(self):
         pass
 
-    def rollback(self)
+    def rollback(self):
         pass
 
 class SQLALL(object):
