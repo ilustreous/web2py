@@ -5,22 +5,23 @@
 # ## Import required modules/functions
 # ###########################################################
 
-from gluon.fileutils import listdir, cleanpath, tar, tar_compiled, \
-    untar, fix_newlines
-from gluon.languages import findT, update_all_languages
-from gluon.myregex import *
-from gluon.restricted import *
-from gluon.contrib.markdown import WIKI
-from gluon.compileapp import compile_application, \
-    remove_compiled_application
 import time
 import os
 import sys
 import re
 import urllib
 import socket
-import md5
 import cgi
+
+from hashlib import md5
+
+from gluon.fileutils import listdir, cleanpath
+from gluon.fileutils import tar, tar_compiled, untar, fix_newlines
+from gluon.languages import findT, update_all_languages
+from gluon.myregex import *
+from gluon.restricted import *
+from gluon.contrib.markdown import WIKI
+from gluon.compileapp import compile_application, remove_compiled_application
 
 # ###########################################################
 # ## make sure administrator is on localhost
@@ -198,7 +199,7 @@ def site():
             response.flash = \
                 T('application %(appname)s installed with md5sum: %(digest)s'
                   , dict(appname=appname,
-                  digest=md5.new(tarfile).hexdigest()))
+                  digest=md5(tarfile).hexdigest()))
         except Exception:
             if mkdir:
                 for (root, dirs, files) in os.walk(path, topdown=False):
@@ -397,7 +398,7 @@ def edit():
         except IOError:
             session.flash = 'Invalid action'
             redirect(URL(r=request, f='site'))
-        file_hash = md5.new(data).hexdigest()
+        file_hash = md5(data).hexdigest()
         open(path, 'w').write(data)
         open(path + '.bak', 'w').write(data1)
         response.flash = T('file "%s" restored', filename)
@@ -407,7 +408,7 @@ def edit():
         except IOError:
             session.flash = 'Invalid action'
             redirect(URL(r=request, f='site'))
-        file_hash = md5.new(data).hexdigest()
+        file_hash = md5(data).hexdigest()
         if request.vars.file_hash and request.vars.file_hash\
              != file_hash:
             session.flash = T('file changed on disk')
@@ -420,7 +421,7 @@ def edit():
             data = request.vars.data.replace('\r\n', '\n').strip()\
                  + '\n'
             open(path, 'w').write(data)
-            file_hash = md5.new(data).hexdigest()
+            file_hash = md5(data).hexdigest()
             response.flash = T('file saved on %(time)s',
                                dict(time=time.ctime()))
     if (request.vars.data or request.vars.restore) and request.args[1]\

@@ -1110,11 +1110,17 @@ try:
 except:
     pass
 
+try:
+    from hashlib import md5
+except:
+    pass
+
+try:
+    from hashlib import sha
+except:
+    pass
+
 if sys.version.startswith('2.5'):
-    try:
-        import md5
-    except:
-        pass
 
     try:
         import mhlib
@@ -1133,11 +1139,6 @@ if sys.version.startswith('2.5'):
 
     try:
         import multifile
-    except:
-        pass
-
-    try:
-        import sha
     except:
         pass
 

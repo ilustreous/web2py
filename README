@@ -401,3 +401,5 @@ del db.table[id]
 - runs on jython (no database drivers yet, thanks Phyo)
 - fixed bugs in tests
 - passes all unittest but test_rewite (not sure it should pass that one)
+
+Lots of patches from Fran Boone (about tools) and Dougla Soares de Andarde (Python 2.6 compliance, user use of hashlib instead of md5, new markdown2.py)

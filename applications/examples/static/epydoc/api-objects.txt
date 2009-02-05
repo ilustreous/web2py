@@ -143,7 +143,6 @@ gluon.sql.sql_represent	gluon.sql-module.html#sql_represent
 gluon.sql.sqlite3_web2py_extract	gluon.sql-module.html#sqlite3_web2py_extract
 gluon.sql.pickle_SQLDB	gluon.sql-module.html#pickle_SQLDB
 gluon.sql.parse_tablenames	gluon.sql-module.html#parse_tablenames
-gluon.sql.hash5	gluon.sql-module.html#hash5
 gluon.sql.sql_locker	gluon.sql-module.html#sql_locker
 gluon.sql.xorify	gluon.sql-module.html#xorify
 gluon.sql.unpickle_SQLDB	gluon.sql-module.html#unpickle_SQLDB
@@ -190,7 +189,6 @@ gluon.validators.http_schemes	gluon.validators-module.html#http_schemes
 gluon.validators.regex1	gluon.validators-module.html#regex1
 gluon.validators.regex2	gluon.validators-module.html#regex2
 gluon.validators.regex_time	gluon.validators-module.html#regex_time
-gluon.validators.have_hashlib	gluon.validators-module.html#have_hashlib
 gluon.validators.url_split_regex	gluon.validators-module.html#url_split_regex
 gluon.validators.all_url_schemes	gluon.validators-module.html#all_url_schemes
 gluon.validators.official_url_schemes	gluon.validators-module.html#official_url_schemes

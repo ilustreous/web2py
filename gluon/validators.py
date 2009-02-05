@@ -17,13 +17,8 @@ import datetime
 import time
 import cgi
 import hmac
-try:
-    import hashlib
-    have_hashlib = True
-except:
-    import sha
-    import md5
-    have_hashlib = False
+from hashlib import md5,sha512
+
 from storage import Storage
 
 __all__ = [
@@ -1425,16 +1420,9 @@ class CRYPT(object):
 
     def __call__(self, value):
         if self.key:
-            if have_hashlib:
-                return (hmac.new(self.key, value,
-                        hashlib.sha512).hexdigest(), None)
-            else:
-                return (hmac.new(self.key, value, sha).hexdigest(),
-                        None)
-        if have_hashlib:
-            return (hashlib.md5(value).hexdigest(), None)
+            return (hmac.new(self.key, value, sha512).hexdigest(), None)
         else:
-            return (md5.new(value).hexdigest(), None)
+            return (md5(value).hexdigest(), None)
 
 
 class IS_IN_SUBSET(IS_IN_SET):

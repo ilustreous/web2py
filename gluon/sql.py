@@ -26,27 +26,14 @@ import socket
 import logging
 import copy_reg
 import base64
+
+from hashlib import md5
+
 import contrib.simplejson as json
 
 table_field = re.compile('[\w_]+\.[\w_]+')
 
 drivers = []
-
-try:
-    import hashlib
-
-
-    def hash5(txt):
-        return hashlib.md5(txt).hexdigest()
-
-
-except:
-    import md5
-
-
-    def hash5(txt):
-        return md5.new(txt).hexdigest()
-
 
 try:
     import sqlite3
@@ -1086,7 +1073,7 @@ class SQLTable(dict):
             self._dbt = os.path.join(self._db._folder, migrate)
         else:
             self._dbt = os.path.join(self._db._folder, '%s_%s.table'
-                     % (hash5(self._db._uri), self._tablename))
+                     % (md5(self._db._uri).hexdigest(), self._tablename))
         if self._dbt:
             self._logfilename = os.path.join(self._db._folder, 'sql.log'
                     )
