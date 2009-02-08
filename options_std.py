@@ -1,7 +1,9 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
+
 import socket
 import os
+
 ip = '127.0.0.1'
 port = 8000
 password = '<recycle>'  # ## <recycle> means use the previous password

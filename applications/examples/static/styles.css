@@ -29,10 +29,10 @@ h5 { font-size:100%; }
 .logo { font-family: Impact, 'Techno CE', sans-serif; font-weight: normal; color: #fff; position: relative; height: 70px; font-size:260%; margin: 0; line-height: 100px; }
 .logo a { color: #fff; text-decoration: none; }
         
-.menu { position:relative; z-index:2; border-right: none; border-left: none; padding: 7px 0px;}
+.menu { position:relative; z-index:2; border-right: none; border-left: none; padding: 7px 0px; overflow: hidden;}
 .menu ul {margin:0; padding:0; list-style:none;}
 .menu ul li {float:left; display:inline; margin:0; padding:0;}
-.menu ul li a { font-size: 19px; font-weight: bold; display: block; float: left; float:none; padding: 7px 25px 7px 7px; line-height: 18px; }
+.menu ul li a { font-size: 18px; font-weight: bold; display: block; float: left; float:none; padding: 7px 20px 7px 7px; line-height: 18px; }
 .menu ul li a:hover { text-decoration: none;}
 .menu ul li a span { font-size: 11px; font-weight: normal; color: white; }
 .menu ul li a:hover { background: #000000; }

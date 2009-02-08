@@ -45,7 +45,7 @@ def index():
 <h1>Image upload form</h1>
 [[= form]]""".replace('[','{').replace(']','}').strip(),counter=None)}}
 
-<p>Uploaded images are safely renamed to avoid directory trafersal vulnerabilities, stored on the fliesystem (or database) and a corresponding entry is inserted in the database, linking the file. A built-in mechanism prevents involuntary double form submission. All DB IO is transaction safe by default. Any exeception in the code causes the transaction to rollback.</p>
+<p>Uploaded images are safely renamed to avoid directory traversal vulnerabilities, stored on the filesystem (or database) and a corresponding entry is inserted in the database, linking the file. A built-in mechanism prevents involuntary double form submission. All DB IO is transaction safe by default. Any exeception in the code causes the transaction to rollback.</p>
 
 <p>Examples of more complex sample applications can be found <a href="{{=URL(r=request,c='default',f='examples')}}">here</a></p>
 

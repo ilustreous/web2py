@@ -198,7 +198,6 @@ gluon.validators.official_top_level_domains	gluon.validators-module.html#officia
 gluon.widget	gluon.widget-module.html
 gluon.widget.ProgramAuthor	gluon.widget-module.html#ProgramAuthor
 gluon.widget.try_start_browser	gluon.widget-module.html#try_start_browser
-gluon.widget.save_password	gluon.main-module.html#save_password
 gluon.widget.run	gluon.shell-module.html#run
 gluon.widget.console	gluon.widget-module.html#console
 gluon.widget.start	gluon.widget-module.html#start
@@ -206,8 +205,11 @@ gluon.widget.havetk	gluon.widget-module.html#havetk
 gluon.widget.ProgramVersion	gluon.widget-module.html#ProgramVersion
 gluon.widget.test	gluon.shell-module.html#test
 gluon.widget.presentation	gluon.widget-module.html#presentation
+gluon.widget.msg	gluon.widget-module.html#msg
 gluon.widget.start_browser	gluon.widget-module.html#start_browser
 gluon.widget.ProgramName	gluon.widget-module.html#ProgramName
+gluon.widget.save_password	gluon.main-module.html#save_password
+gluon.widget.ProgramInfo	gluon.widget-module.html#ProgramInfo
 gluon.winservice	gluon.winservice-module.html
 gluon.winservice.web2py_windows_service_handler	gluon.winservice-module.html#web2py_windows_service_handler
 gluon.wsgiserver	gluon.wsgiserver-module.html

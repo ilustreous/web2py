@@ -150,22 +150,29 @@ crud = Crud(globals(),db)
 <p>and in a controller (for example in <b>default.py</b>) expose it via an action (for example <b>data</b>):</p>
 
 {{=CODE("""
-def data()
+def data():
     return dict(form = crud())
+
+def download():
+    return response.download(request, db)
 """.strip(),language='web2py',link=URL(r=request,c='global',f='vars'))}}
 
 <p>This will expose the following URLs:</p>
 
 <ul>
 <li>http://locahost:8000/application/default/data/tables</li>
-<li>http://locahost:8000/application/default/data/select/tablename</li>
-<li>http://locahost:8000/application/default/data/select/create/tablename</li>
-<li>http://locahost:8000/application/default/data/select/read/tablename/record_id</li>
-<li>http://locahost:8000/application/default/data/select/update/tablename/record_id</li>
-<li>http://locahost:8000/application/default/data/select/delete/tablename/record_id</li>
+<li>http://locahost:8000/application/default/data/select/<i>tablename</i></li>
+<li>http://locahost:8000/application/default/data/create/<i>tablename</i></li>
+<li>http://locahost:8000/application/default/data/read/<i>tablename</i>/<i>record_id</i></li>
+<li>http://locahost:8000/application/default/data/update/<i>tablename</i>/<i>record_id</i></li>
+<li>http://locahost:8000/application/default/data/delete/<i>tablename</i>/<i>record_id</i></li>
+<li>http://locahost:8000/application/default/download/<i>filename</i></li>
 </ul>
 
 <p>"tables" list of current database tables.</p>
+
+<p>"download" only allows to download uploaded files (whether they are in the uploads folder or in the database).</p>
+
 
 <p>To enforce authorization on these CRUD URLs simply set</p>
 {{=CODE("""
@@ -189,7 +196,7 @@ html = fetch("http://www.web2py.com")
 <p>Another very common need of modern web applications is that of converting an address into latitude and longitude. We also provide a portable function to do it that uses the Google Geocoding API:</p>
 
 {{=CODE("""
-from google.tools import geocode
+from gluon.tools import geocode
 (latitude, longitude) = geocode("243 S Wabash Ave, Chicago IL 60604, USA")
 """.strip(),language='web2py',link=URL(r=request,c='global',f='vars'))}}
 

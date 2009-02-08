@@ -1,5 +1,6 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
+
 import time
 import os
 import sys
@@ -14,7 +15,6 @@ import google
 sys.modules['cPickle'] = sys.modules['pickle']
 debug = os.environ.get('SERVER_SOFTWARE', '').startswith('Devel')
 
-
 def log_stats(fun):
     """Function that will act as a decorator to make logging"""
 
@@ -27,10 +27,10 @@ def log_stats(fun):
             (t0, c0) = timer(time)
             executed_function = fun(env, res)
             (ti, c1) = timer(time)
-            log_info = \
-                """**** Request: %5.0fms/%.0fms (real time/cpu time)"""
+            log_info = """**** Request: %5.0fms/%.0fms (real time/cpu time)"""
             log_info = log_info % ((t1 - t0) * 1000, (c1 - c0) * 1000)
             logging.info(log_info)
+
             return executed_function
 
         return newfun
@@ -38,13 +38,11 @@ def log_stats(fun):
         return fun
 
 
-# comment logging and uncomment @log_stats to enable logging of stats on GAE
-
+# comment the line below and uncomment the decorator @log_stats to enable
+# logging of stats on GAE
 logging.basicConfig(level=35)
 
 # @log_stats
-
-
 def wsgiapp(env, res):
     """Return the wsgiapp"""
 
