@@ -423,7 +423,7 @@ class SQLFORM(FORM):
         raw_vars = dict(vars.items())
         request_vars = vars
         if vars.get('delete_this_record', False):
-            self.table._db(self.table.id == record_id).delete()
+            self.table._db(self.table.id == self.record.id).delete()
             return True
         else:
 
@@ -526,7 +526,10 @@ class SQLFORM(FORM):
             if record_id:
                 self.vars.id = self.record.id
                 if fields:
-                    self.table[record_id] = fields
+                    self.table._db(self.table.id==self.record.id).update(**fields)
+                    ### should really be 
+                    # self.table[record_id] = fields
+                    ### but on mysql update seems to return none
             else:
                 self.vars.id = self.table.insert(**fields)
         return ret

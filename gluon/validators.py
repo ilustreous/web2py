@@ -17,9 +17,10 @@ import datetime
 import time
 import cgi
 import hmac
-from hashlib import md5,sha512
+from hashlib import sha512
 
 from storage import Storage
+from gluon.utils import md5_hash
 
 __all__ = [
     'IS_ALPHANUMERIC',
@@ -973,7 +974,6 @@ official_top_level_domains = [
 
 
 class IS_HTTP_URL(object):
-
     """
     Rejects a URL string if any of the following is true:
        * The string is empty or None
@@ -1116,7 +1116,6 @@ class IS_HTTP_URL(object):
 
 
 class IS_URL(object):
-
     """
     Rejects a URL string if any of the following is true:
        * The string is empty or None
@@ -1210,7 +1209,6 @@ regex_time = \
 
 
 class IS_TIME(object):
-
     """
     example:
 
@@ -1251,7 +1249,6 @@ class IS_TIME(object):
 
 
 class IS_DATE(object):
-
     """
     example:
 
@@ -1288,7 +1285,6 @@ class IS_DATE(object):
 
 
 class IS_DATETIME(object):
-
     """
     example:
 
@@ -1385,7 +1381,6 @@ class IS_NULL_OR(object):
 
 
 class CLEANUP(object):
-
     """
     example:
 
@@ -1406,7 +1401,6 @@ class CLEANUP(object):
 
 
 class CRYPT(object):
-
     """
     example:
 
@@ -1422,7 +1416,7 @@ class CRYPT(object):
         if self.key:
             return (hmac.new(self.key, value, sha512).hexdigest(), None)
         else:
-            return (md5(value).hexdigest(), None)
+            return (md5_hash(value), None)
 
 
 class IS_IN_SUBSET(IS_IN_SET):
@@ -1436,5 +1430,3 @@ class IS_IN_SUBSET(IS_IN_SET):
         if failures:
             return (value, self.error_message)
         return (value, None)
-
-

@@ -27,9 +27,9 @@ import logging
 import copy_reg
 import base64
 
-from hashlib import md5
-
 import contrib.simplejson as json
+
+from gluon.utils import md5_hash
 
 table_field = re.compile('[\w_]+\.[\w_]+')
 
@@ -1073,7 +1073,7 @@ class SQLTable(dict):
             self._dbt = os.path.join(self._db._folder, migrate)
         else:
             self._dbt = os.path.join(self._db._folder, '%s_%s.table'
-                     % (md5(self._db._uri).hexdigest(), self._tablename))
+                     % (md5_hash(self._db._uri), self._tablename))
         if self._dbt:
             self._logfilename = os.path.join(self._db._folder, 'sql.log'
                     )
