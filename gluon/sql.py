@@ -76,6 +76,12 @@ try:
     logging.warning('Informx support is experimental')
 except:
     logging.debug('no informixdb driver')
+try:
+    from com.ziclix.python.sql import zxJDBC
+    drivers.append('zxJDBC')
+    logging.warning('zxJDBC support is experimental')
+except:
+    logging.debug('no zxJDBC driver')
 import portalocker
 import validators
 
@@ -542,13 +548,11 @@ class SQLDB(SQLStorage):
 
         if self._uri[:14] == 'sqlite:memory:':
             self._dbname = 'sqlite'
-            self._pool_connection(lambda : sqlite3.Connection(':memory:'
-                                  ))
+            self._pool_connection(lambda : sqlite3.Connection(':memory:'))
             self._connection.create_function('web2py_extract', 2,
                     sqlite3_web2py_extract)
             self._cursor = self._connection.cursor()
-            self._execute = lambda *a, **b: self._cursor.execute(*a,
-                    **b)
+            self._execute = lambda *a, **b: self._cursor.execute(*a, **b)
         elif self._uri[:9] == 'sqlite://':
             self._dbname = 'sqlite'
             if uri[9] != '/':
@@ -746,6 +750,20 @@ class SQLDB(SQLStorage):
             self._pool_connection(lambda : informixdb.connect('%s@%s'
                                    % (db, host), user=user,
                                   password=passwd))
+            self._cursor = self._connection.cursor()
+            self._execute = lambda a: self._cursor.execute(a[:-1])
+        elif self._uri[:5] == 'jdbc:':
+            self._dbname = self._uri.split(':')[1]
+            if self._dbname=='sqlite':
+                if uri[14] != '/':
+                    dbpath = os.path.join(self._folder, uri[14:])
+                else:
+                    dbpath = os.path.join(self._folder, uri[14:])
+                self._pool_connection(lambda : zxJDBC.connect(uri[:14] + dbpath))
+                self._connection.create_function('web2py_extract', 2,
+                       sqlite3_web2py_extract)
+            else:
+                raise SyntaxError, "sorry only sqlite on jdbc for now"
             self._cursor = self._connection.cursor()
             self._execute = lambda a: self._cursor.execute(a[:-1])
         elif self._uri == 'None':
