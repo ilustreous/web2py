@@ -341,7 +341,7 @@ FORM.accepts(..) trys to validate the form and, on success, stores vars into for
 
 <h3>Example {{=c}}{{c+=1}}</h3><b>in model: db.py</b>
 {{=CODE("""
-dba=SQLDB('sqlite://tests.db')
+db=SQLDB('sqlite://tests.db')
 
 db.define_table('users',
                 SQLField('name'),
@@ -368,12 +368,12 @@ db.define_table('purchases',
 purchased=((db.users.id==db.purchases.buyer_id)&(db.products.id==db.purchases.product_id))
 
 db.users.name.requires=IS_NOT_EMPTY()
-db.users.email.requires=[IS_EMAIL(), IS_NOT_IN_DB(dba,'users.email')]
-db.dogs.owner_id.requires=IS_IN_DB(dba,'users.id','users.name')
+db.users.email.requires=[IS_EMAIL(), IS_NOT_IN_DB(db,'users.email')]
+db.dogs.owner_id.requires=IS_IN_DB(db,'users.id','users.name')
 db.dogs.name.requires=IS_NOT_EMPTY()
 db.dogs.type.requires=IS_IN_SET(['small','medium','large'])
-db.purchases.buyer_id.requires=IS_IN_DB(dba,'users.id','users.name')
-db.purchases.product_id.requires=IS_IN_DB(dba,'products.id','products.name')
+db.purchases.buyer_id.requires=IS_IN_DB(db,'users.id','users.name')
+db.purchases.product_id.requires=IS_IN_DB(db,'products.id','products.name')
 db.purchases.quantity.requires=IS_INT_IN_RANGE(0,10)
 """.strip(),language='web2py',link=URL(r=request,c='global',f='vars'))}}
 <p>
