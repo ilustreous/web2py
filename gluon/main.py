@@ -24,6 +24,8 @@ import socket
 import stat
 import tempfile
 import logging
+import cProfile
+import pstats
 
 # from wsgiref.simple_server import make_server, demo_app
 
@@ -416,9 +418,13 @@ def save_password(password, port):
     file.close()
 
 
-def appfactory(wsgiapp=wsgibase, logfilename='httpsever.log',
+def appfactory(wsgiapp=wsgibase,
+               logfilename='httpsever.log',
+               profilerfilename='profiler.log',
                web2py_path=web2py_path):
-
+    if os.path.exists(profilerfilename):
+        os.unlink(profilerfilename)
+    locker=thread.allocate_lock()
     def app_with_logging(environ, responder):
         environ['web2py_path'] = web2py_path
         status_headers = []
@@ -429,7 +435,22 @@ def appfactory(wsgiapp=wsgibase, logfilename='httpsever.log',
             return responder(s, h)
 
         time_in = time.time()
-        ret = wsgiapp(environ, responder2)
+        ret=[0]
+        if not profilerfilename:
+            ret[0] = wsgiapp(environ, responder2)
+        else:
+            locker.acquire()
+            cProfile.runctx('ret[0] = wsgiapp(environ, responder2)',
+                            globals(), locals(), profilerfilename+'.tmp')
+            stat = pstats.Stats(profilerfilename+'.tmp')
+            stat.stream = cStringIO.StringIO()
+            stat.strip_dirs().sort_stats(-1).print_stats()
+            profile_out = stat.stream.getvalue()
+            profile_file = open(profilerfilename,'a')
+            profile_file.write('%s\n%s\n%s\n%s\n\n' % \
+               ('='*60, environ['PATH_INFO'], '='*60, profile_out))
+            profile_file.close()
+            locker.release()
         try:
             line = '%s, %s, %s, %s, %s, %s, %f\n' % (
                 environ['REMOTE_ADDR'],
@@ -447,7 +468,7 @@ def appfactory(wsgiapp=wsgibase, logfilename='httpsever.log',
                 sys.stdout.write(line)
         except:
             pass
-        return ret
+        return ret[0]
 
     return app_with_logging
 
@@ -461,6 +482,7 @@ class HttpServer(object):
         password='',
         pid_filename='httpserver.pid',
         log_filename='httpserver.log',
+        profiler_filename=None,
         ssl_certificate=None,
         ssl_private_key=None,
         numthreads=10,
@@ -468,7 +490,7 @@ class HttpServer(object):
         request_queue_size=5,
         timeout=10,
         shutdown_timeout=5,
-        path=web2py_path,
+        path=web2py_path,        
         ):
         """
         starts the web server.
@@ -483,7 +505,7 @@ class HttpServer(object):
         self.server = wsgiserver.CherryPyWSGIServer(
             (ip, port),
             appfactory(ExecuteOnCompletion2(wsgibase, callback),
-                       log_filename, web2py_path=path),
+                       log_filename, profiler_filename, web2py_path=path),
             numthreads=int(numthreads),
             server_name=server_name,
             request_queue_size=int(request_queue_size),

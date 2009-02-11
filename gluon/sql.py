@@ -932,6 +932,8 @@ def is_integer(x):
         long(x)
     except ValueError:
         return False
+    except TypeError:
+        return False
     return True
 
 
@@ -2037,26 +2039,17 @@ class SQLRows(object):
                     (h, mi, s) = time_items
                 else:
                     (h, mi, s) = time_items + [0]
-                row[tablename][fieldname] = datetime.datetime(
-                    y,
-                    m,
-                    d,
-                    h,
-                    mi,
-                    s,
-                    )
+                row[tablename][fieldname] = datetime.datetime(y,m,d,h,mi,s)
             else:
                 row[tablename][fieldname] = value
             if fieldname == 'id':
                 id = row[tablename].id
                 row[tablename].update_record = lambda t=row[tablename], \
-                    s=self._db(table.id == id), **a: update_record(t,
-                        s, a)
+                    s=self._db(table.id == id), **a: update_record(t,s, a)
                 for (referee_table, referee_name) in \
                     table._referenced_by:
                     s = self._db[referee_table][referee_name]
-                    row[tablename][referee_table] = SQLSet(self._db, s
-                             == id)
+                    row[tablename][referee_table] = SQLSet(self._db, s == id)
         keys = row.keys()
         if len(keys) == 1 and keys[0] != '_extra':
             return row[row.keys()[0]]

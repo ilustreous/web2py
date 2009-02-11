@@ -494,16 +494,11 @@ def obj_represent(obj, fieldtype, db):
                 (h, mi, s) = time_items
             else:
                 (h, mi, s) = time_items + [0]
-            obj = datetime.datetime(
-                y,
-                m,
-                d,
-                h,
-                mi,
-                s,
-                )
+            obj = datetime.datetime(y, m, d, h, mi, s)
         elif fieldtype == 'integer' and not isinstance(obj, long):
             obj = long(obj)
+        elif fieldtype == 'double' and not isinstance(obj, double):
+            obj = float(obj)
         elif fieldtype[:9] == 'reference' and not isinstance(obj, long):
             obj = long(obj)
         elif fieldtype == 'blob':
@@ -515,8 +510,9 @@ def obj_represent(obj, fieldtype, db):
                 obj = False
         elif isinstance(obj, str):
             obj = obj.decode('utf8')
+        elif not isinstance(obj,unicode):
+            obj = unicode(obj)
     return obj
-
 
 class QueryException:
 

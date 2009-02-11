@@ -102,6 +102,7 @@ class Web2pyService(Service):
             password=options.password,
             pid_filename=options.pid_filename,
             log_filename=options.log_filename,
+            profiler_filename=options.profiler_filename,
             ssl_certificate=options.ssl_certificate,
             ssl_private_key=options.ssl_private_key,
             numthreads=options.numthreads,

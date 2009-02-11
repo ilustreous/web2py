@@ -371,6 +371,7 @@ class web2pyDialog(object):
                                      password,
                                      pid_filename=options.pid_filename,
                                      log_filename=options.log_filename,
+                                     profiler_filename=options.profiler_filename,
                                      ssl_certificate=options.ssl_certificate,
                                      ssl_private_key=options.ssl_private_key,
                                      numthreads=options.numthreads,
@@ -644,6 +645,12 @@ def console():
                       default='',
                       help='Config file')
 
+    parser.add_option('-F',
+                      '--profiler',
+                      dest='profiler_filename',
+                      default=None,
+                      help='profiler filename')
+
     parser.add_option('-t',
                       '--taskbar',
                       action='store_true',
@@ -807,6 +814,7 @@ def start():
                         password=options.password,
                         pid_filename=options.pid_filename,
                         log_filename=options.log_filename,
+                        profiler_filename=options.profiler_filename,
                         ssl_certificate=options.ssl_certificate,
                         ssl_private_key=options.ssl_private_key,
                         numthreads=options.numthreads,
