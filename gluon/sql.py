@@ -1321,21 +1321,19 @@ end;
                     value = id_map[field.type[9:].strip()][value]
                 except KeyError:
                     pass
-            return (col, value)
+            return (field.name, value)
 
         for line in reader:
             if not line:
                 break
             if not colnames:
                 colnames = [x[x.find('.') + 1:] for x in line]
-                c = [i for i in xrange(len(line)) if colnames[i] != 'id'
-                     ]
-                cid = [i for i in xrange(len(line)) if colnames[i]
-                        == 'id']
+                c = [i for i in xrange(len(line)) if colnames[i] != 'id']
+                cid = [i for i in xrange(len(line)) if colnames[i] == 'id']
                 if cid:
                     cid = cid[0]
             else:
-                items = [fix(self[c], line[i], id_map) for i in c]
+                items = [fix(self[colnames[i]], line[i], id_map) for i in c]
                 new_id = self.insert(**dict(items))
                 if id_map and cid != []:
                     id_map_self[line[cid]] = new_id

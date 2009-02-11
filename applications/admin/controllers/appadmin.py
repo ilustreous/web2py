@@ -140,24 +140,13 @@ def csv():
     query = get_query(request)
     if not query:
         return None
-    response.headers['Content-disposition'] = \
-        'attachment; filename=%s_%s.csv'\
+    response.headers['Content-disposition'] = 'attachment; filename=%s_%s.csv'\
          % tuple(request.vars.query.split('.')[:2])
     return str(db(query).select())
 
 
 def import_csv(table, file):
-    import csv
-    reader = csv.reader(file)
-    colnames = None
-    for line in reader:
-        if not colnames:
-            colnames = [x[x.find('.') + 1:] for x in line]
-            c = [i for i in range(len(line)) if colnames[i] != 'id']
-        else:
-            items = [(colnames[i], line[i]) for i in c]
-            table.insert(**dict(items))
-
+    table.import_from_csv_file(file)
 
 def select():
     import re
