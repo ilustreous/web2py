@@ -279,6 +279,8 @@ class Auth(object):
 
         self.settings.login_url = URL(r=self.environment.request,
                 f='user', args='login')
+        self.settings.logged_url = URL(r=self.environment.request,
+                f='user', args='profile')
         self.settings.after_login_url = URL(r=self.environment.request,
                 f='index')
         self.settings.mailer = None
@@ -616,6 +618,8 @@ class Auth(object):
 
         request = self.environment.request
         session = self.environment.session
+        if self.is_logged_in():
+            redirect(self.settings.logged_url)
         if not request.vars._next:
             request.vars._next = request.env.http_referer or ''
         if next == DEFAULT:
@@ -631,6 +635,11 @@ class Auth(object):
                        showid=self.settings.showid,
                        submit_button=self.settings.submit_button,
                        delete_label=self.settings.delete_label)
+        td = form.element(_id="%s_password__row" % user._tablename)[1]
+        td.append(BR())
+        td.append(INPUT(_name="password2",
+                        _type="password",
+                  requires=IS_EXPR('value==%s' % repr(request.vars.password))))
         key = str(uuid.uuid4())
         if form.accepts(request.vars, session,
                         onvalidation=onvalidation):
@@ -738,7 +747,7 @@ class Auth(object):
             fields=['email'],
             hidden=dict(_next=request.vars._next),
             showid=self.settings.showid,
-            submit_button=self.settings.submit_botton,
+            submit_button=self.settings.submit_button,
             delete_label=self.settings.delete_label,
             )
         if FORM.accepts(form, request.vars, session,
@@ -798,7 +807,7 @@ class Auth(object):
             fields=['email'],
             hidden=dict(_next=request.vars._next),
             showid=self.settings.showid,
-            submit_button=self.settings.submit_botton,
+            submit_button=self.settings.submit_button,
             delete_label=self.settings.delete_label,
             )
         if FORM.accepts(form, request.vars, session,
@@ -918,7 +927,7 @@ class Auth(object):
             self.user.id,
             hidden=dict(_next=request.vars._next),
             showid=self.settings.showid,
-            submit_button=self.settings.submit_botton,
+            submit_button=self.settings.submit_button,
             delete_label=self.settings.delete_label,
             )
         if form.accepts(request.vars, session,

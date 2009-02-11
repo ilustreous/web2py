@@ -9,6 +9,7 @@ port = 8000
 password = '<recycle>'  # ## <recycle> means use the previous password
 pid_filename = 'httpserver.pid'
 log_filename = 'httpserver.log'
+profiler_filename = None
 ssl_certificate = ''  # ## path to certificate file
 ssl_private_key = ''  # ## path to private key file
 numthreads = 10

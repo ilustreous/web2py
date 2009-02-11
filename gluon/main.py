@@ -24,8 +24,6 @@ import socket
 import stat
 import tempfile
 import logging
-import cProfile
-import pstats
 
 # from wsgiref.simple_server import make_server, demo_app
 
@@ -452,6 +450,9 @@ def appfactory(wsgiapp=wsgibase,
         if not profilerfilename:
             ret[0] = wsgiapp(environ, responder2)
         else:
+            import cProfile
+            import pstats
+
             locker.acquire()
             cProfile.runctx('ret[0] = wsgiapp(environ, responder2)',
                             globals(), locals(), profilerfilename+'.tmp')
