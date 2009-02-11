@@ -365,7 +365,7 @@ class SQLField(SQLXorable):
 
     example:
 
-    a=SQLField(name,'string',length=32,required=False,default=None,requires=IS_NOT_EMPTY(),notnull=False,unique=False,uploadfield=True,widget=None,label=None,comment=None,writable=True,readable=True,update=None,authorize=None,autodelete=False)
+    a=SQLField(name,'string',length=32,required=False,default=None,requires=IS_NOT_EMPTY(),notnull=False,unique=False,uploadfield=True,widget=None,label=None,comment=None,writable=True,readable=True,update=None,authorize=None,autodelete=False,represent=None)
     
     to be used as argument of GQLDB.define_table
 
@@ -399,6 +399,7 @@ class SQLField(SQLXorable):
         update=None,
         authorize=None,
         autodelete=False,
+        represent=None,
         ):
 
         self.name = fieldname = cleanup(fieldname)
@@ -428,6 +429,7 @@ class SQLField(SQLXorable):
         self.update = update
         self.authorize = authorize
         self.autodelete = autodelete
+        self.represent = represent
         if self.label == None:
             self.label = ' '.join([x.capitalize() for x in
                                   fieldname.split('_')])

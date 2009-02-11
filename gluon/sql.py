@@ -1440,7 +1440,7 @@ class SQLField(SQLXorable):
 
     example:
 
-    a=SQLField(name,'string',length=32,required=False,default=None,requires=IS_NOT_EMPTY(),notnull=False,unique=False,uploadfield=True,widget=None,label=None,comment=None,writable=True,readable=True,update=None,authorize=None,autodelete=False)
+    a=SQLField(name,'string',length=32,required=False,default=None,requires=IS_NOT_EMPTY(),notnull=False,unique=False,uploadfield=True,widget=None,label=None,comment=None,writable=True,readable=True,update=None,authorize=None,autodelete=False,represent=None)
     
     to be used as argument of SQLDB.define_table
 
@@ -1450,7 +1450,7 @@ class SQLField(SQLXorable):
 
     strings must have a length or 32 by default.
     fields should have a default or they will be required in SQLFORMs
-    the requires argument are used to validate the field input in SQLFORMs
+    the requires argument is used to validate the field input in SQLFORMs
 
     """
 
@@ -1474,6 +1474,7 @@ class SQLField(SQLXorable):
         update=None,
         authorize=None,
         autodelete=False,
+        represent=None,
         ):
 
         self.name = fieldname = cleanup(fieldname)
@@ -1497,12 +1498,13 @@ class SQLField(SQLXorable):
         self.uploadfield = uploadfield
         self.widget = widget
         self.label = label
-        self.comment = None
+        self.comment = comment
         self.writable = writable
         self.readable = readable
         self.update = update
-        self.authorize = None
+        self.authorize = authorize
         self.autodelete = autodelete
+        self.represent = represent
         if self.label == None:
             self.label = ' '.join([x.capitalize() for x in
                                   fieldname.split('_')])
@@ -1511,7 +1513,6 @@ class SQLField(SQLXorable):
         elif requires is None:
             requires = []
         self.requires = requires  # list of validators
-        self.represent = None
 
     def formatter(self, value):
         if value is None or not self.requires:

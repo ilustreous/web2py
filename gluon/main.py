@@ -80,6 +80,9 @@ web2py_version = open(os.path.join(web2py_path, 'VERSION'), 'r').read()
 
 
 def get_client(env):
+    """
+    guess the client address from the environment variables
+    """
     g = regex_client.search(env.get('http_x_forwarded_for', ''))
     if g:
         return g.group()
@@ -422,14 +425,24 @@ def appfactory(wsgiapp=wsgibase,
                logfilename='httpsever.log',
                profilerfilename='profiler.log',
                web2py_path=web2py_path):
-    if os.path.exists(profilerfilename):
+    """
+    generates a wsgi applicaiton that does logging and profiling and calls
+    wsgibase
+    """
+    if profilerfilename and os.path.exists(profilerfilename):
         os.unlink(profilerfilename)
     locker=thread.allocate_lock()
     def app_with_logging(environ, responder):
+        """
+        a wsgi app that does logging and profiling and calls wsgibase
+        """
         environ['web2py_path'] = web2py_path
         status_headers = []
 
         def responder2(s, h):
+            """
+            wsgi responder app
+            """
             status_headers.append(s)
             status_headers.append(h)
             return responder(s, h)
@@ -454,8 +467,7 @@ def appfactory(wsgiapp=wsgibase,
         try:
             line = '%s, %s, %s, %s, %s, %s, %f\n' % (
                 environ['REMOTE_ADDR'],
-                datetime.datetime.today().strftime('%Y-%m-%d %H:%M:%S'
-                        ),
+                datetime.datetime.today().strftime('%Y-%m-%d %H:%M:%S'),
                 environ['REQUEST_METHOD'],
                 environ['PATH_INFO'].replace(',', '%2C'),
                 environ['SERVER_PROTOCOL'],
@@ -474,7 +486,9 @@ def appfactory(wsgiapp=wsgibase,
 
 
 class HttpServer(object):
-
+    """
+    the web2py web server (wsgiserver)
+    """
     def __init__(
         self,
         ip='127.0.0.1',
@@ -528,6 +542,9 @@ class HttpServer(object):
             logging.info('SSL is ON')
 
     def start(self):
+        """
+        start the web server
+        """
         try:
             signal.signal(signal.SIGTERM, lambda a, b, s=self: s.stop())
         except:
@@ -536,6 +553,9 @@ class HttpServer(object):
         self.server.start()
 
     def stop(self):
+        """
+        stop the web server
+        """
         self.server.stop()
         os.unlink(self.pid_filename)
 
