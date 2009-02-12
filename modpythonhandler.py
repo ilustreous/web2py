@@ -26,8 +26,14 @@ once for each child process or thread.
 import traceback
 import sys
 import os
-import gluon.main
 from mod_python import apache
+
+path = os.path.dirname(os.path.abspath(__file__))
+if not path in sys.path:
+    sys.path.append(path)
+os.chdir(path)
+
+import gluon.main
 
 class InputWrapper(object):
     """ Input wrapper for the wsgi handler  """
@@ -93,8 +99,7 @@ class ErrorWrapper(object):
         self.write(''.join(seq))
 
 
-bad_value = "You must provide a PythonOption '%s', either 'on' or 'off', when " + \
-            "running a version of mod_python < 3.1"
+bad_value = "You must provide a PythonOption '%s', either 'on' or 'off', when running a version of mod_python < 3.1"
 
 class Handler:
     """ Defines the handler  """
@@ -207,11 +212,9 @@ class Handler:
         self.request.write(data)
 
 
-path = os.path.dirname(os.path.abspath(__file__))
-os.chdir(path)
-
 def handler(req):
     """ Execute the gluon app  """
 
     Handler(req).run(gluon.main.wsgibase)
     return apache.OK
+`

@@ -80,7 +80,6 @@ gluon.main.handler	gluon.xmlrpc-module.html#handler
 gluon.main.web2py_path	gluon.main-module.html#web2py_path
 gluon.main.regex_client	gluon.main-module.html#regex_client
 gluon.main.wsgibase	gluon.main-module.html#wsgibase
-gluon.main.run_models_in	gluon.compileapp-module.html#run_models_in
 gluon.main.web2py_version	gluon.main-module.html#web2py_version
 gluon.main.regex_space	gluon.main-module.html#regex_space
 gluon.main.appfactory	gluon.main-module.html#appfactory
@@ -88,6 +87,7 @@ gluon.main.serve_controller	gluon.main-module.html#serve_controller
 gluon.main.check_error_route	gluon.main-module.html#check_error_route
 gluon.main.save_storage	gluon.storage-module.html#save_storage
 gluon.main.run_controller_in	gluon.compileapp-module.html#run_controller_in
+gluon.main.run_models_in	gluon.compileapp-module.html#run_models_in
 gluon.myregex	gluon.myregex-module.html
 gluon.myregex.regex_expose	gluon.myregex-module.html#regex_expose
 gluon.myregex.regex_tables	gluon.myregex-module.html#regex_tables

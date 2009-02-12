@@ -14,17 +14,15 @@ In httpd.conf put something like:
 
 import sys
 import os
-import gluon.main
-
-from gluon.contrib.wsgihooks import ExecuteOnCompletion2, callback
 
 sys.path.insert(0, '')
 path = os.path.dirname(os.path.abspath(__file__))
-
 if not path in sys.path:
     sys.path.append(path)
-
 os.chdir(path)
+
+import gluon.main
+from gluon.contrib.wsgihooks import ExecuteOnCompletion2, callback
 
 application = ExecuteOnCompletion2(gluon.main.wsgibase, callback)
 # # or
