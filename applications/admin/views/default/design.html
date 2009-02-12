@@ -45,7 +45,7 @@ def file_create_form(location):
 {{if os.access(os.path.join(request.folder,'..',app,'databases','sql.log'),os.R_OK):}}| {{=A('sql.log',_href=URL(r=request,f='peek/%s/databases/sql.log'%app))}}{{pass}} ] {{pass}}
 <ul>
 {{for m in models:}}<li>{{=peekfile('models',m)}}
-[ {{=editfile('models',m)}} | <a href="/{{=request.application}}/default/delete/{{=app}}/models/{{=m}}?sender={{=request.function}}/{{=app}}">delete</a> ]
+[ {{=editfile('models',m)}} | <a href="{{=URL(r=request,f='delete',args=[app,'models',m],vars=dict(sender=request.function+'/'+app))}}">delete</a> ]
 {{if len(defines[m]):}}defines tables {{pass}}{{=XML(', '.join([B(table).xml() for table in defines[m]]))}}
 </li>{{pass}}
 <li>{{=file_create_form('%s/models/' % app)}}</li>
@@ -60,12 +60,12 @@ for c in controllers: controller_functions+=[c[:-3]+'/%s.html'%x for x in functi
 <div id="controllers_inner"><i>the application logic, each URL path is mapped in one exposed function in the controller</i>
 <br/><br/>
 {{if not controllers:}}There are no controllers{{else:}}
-[ <a href='/{{=request.application}}/default/test/{{=app}}'>test</a> ]
+[ <a href='{{=URL(r=request,f='test',args=app)}}'>test</a> ]
 {{pass}}
 <ul>
 {{for c in controllers:}}<li>{{=peekfile('controllers',c)}}
 [ {{=testfile('controllers',c)}} | {{=editfile('controllers',c)}} |
-<a href="/{{=request.application}}/default/delete/{{=app}}/controllers/{{=c}}?sender={{=request.function}}/{{=app}}">delete</a> ]
+<a href="{{=URL(r=request,f='delete',args=[app,'controllers',c],vars=dict(sender=request.function+'/'+app))}}">delete</a> ]
 {{if functions[c]:}}exposes {{pass}}{{=XML(', '.join([A(f,_href=URL(a=app,c=c[:-3],f=f)).xml() for f in functions[c]]))}}
 </li>{{pass}}
 <li>{{=file_create_form('%s/controllers/' % app)}}</li>
@@ -79,7 +79,7 @@ for c in controllers: controller_functions+=[c[:-3]+'/%s.html'%x for x in functi
 <ul>
 {{for c in views:}}<li>{{=peekfile('views',c)}}
 [ {{=editfile('views',c)}} | {{=htmleditfile('views',c)}} |
-<a href="/{{=request.application}}/default/delete/{{=app}}/views/{{=c}}?sender={{=request.function}}/{{=app}}">delete</a> ]
+<a href="{{=URL(r=request,f='delete',args=[app,'views',c],vars=dict(sender=request.function+'/'+app))}}">delete</a> ]
 {{if extend.has_key(c):}}extends <b>{{=extend[c]}}</b> {{pass}}
 {{if include[c]:}}includes {{pass}}{{=XML(', '.join([B(f).xml() for f in include[c]]))}}
 </li>{{pass}}
@@ -94,7 +94,7 @@ for c in controllers: controller_functions+=[c[:-3]+'/%s.html'%x for x in functi
 {{if not languages:}}There are no translators, only default language is supported{{pass}}
 <ul>
 {{for file in languages:}}<li>{{=peekfile('languages',file)}} [ 
-{{=editlanguagefile('languages',file)}} | <a href="/{{=request.application}}/default/delete/{{=app}}/languages/{{=file}}?sender={{=request.function}}/{{=app}}">delete</a> ]</li>
+{{=editlanguagefile('languages',file)}} | <a href="{{=URL(r=request,f='delete',args=[app,'languages',file],vars=dict(sender=request.function+'/'+app))}}">delete</a> ]</li>
 {{pass}}
 <li>{{=file_create_form('%s/languages/' % app)}}(something like "it-it")</li>
 </ul>
@@ -127,7 +127,7 @@ for file in statics+['']:
         i=i+1
         pass
     if filename:
-}}<li>{{='/'.join(file_path[:i]+[''])}}<a href="/{{=app}}/static/{{=file}}">{{=filename}}</a> [ {{=editfile('static',file)}} | <a href="/{{=request.application}}/default/delete/{{=app}}/static/{{=file}}?sender={{=request.function}}/{{=app}}">delete</a> ]</li>{{
+}}<li>{{='/'.join(file_path[:i]+[''])}}<a href="{{=URL(a=app,c='static',f=file)}}">{{=filename}}</a> [ {{=editfile('static',file)}} | <a href="{{=URL(r=request,f='delete',args=[app,'static',file],vars=dict(sender=request.function+'/'+app))}}">delete</a> ]</li>{{
         pass
     pass
 }}
@@ -146,7 +146,7 @@ There are no modules
 <ul>
 {{for m in modules:}}<li>{{=peekfile('modules',m)}}
 [ {{=editfile('modules',m)}} {{if m!='__init__.py':}} |
-<a href="/{{=request.application}}/default/delete/{{=app}}/modules/{{=m}}?sender={{=request.function}}/{{=app}}">delete</a>{{pass}} ]
+<a href="{{=URL(r=request,f='delete',args=[app,'modules',m],vars=dict(sender=request.function+'/'+app))}}">delete</a>{{pass}} ]
 </li>{{pass}}
 <li>{{=file_create_form('%s/modules/' % app)}}</li>
 <li>{{=file_upload_form('%s/modules/' % app)}}</li>

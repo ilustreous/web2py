@@ -1,14 +1,14 @@
 {{extend 'layout.html'}}
-<script src="/{{=request.application}}/static/nicEdit.js" type="text/javascript"></script>
+<script src="{{=URL(r=request,c='static',f='nicEdit.js')}}" type="text/javascript"></script>
 <script><!--
 $(document).ready(function(){
-new nicEditor({fullPanel : true, iconsPath : '/{{=request.application}}/static/nicEditorIcons.gif'}).panelInstance('body');
+new nicEditor({fullPanel : true, iconsPath : '{{=URL(r=request,c='static',f='nicEditorIcons.gif')}}'}).panelInstance('body');
 });
 //--></script>
 
 <h1>Editing file "{{=filename}}"</h1><br/><br/>
 
-<form action="/{{=request.application}}/default/edit/{{=filename}}" method="post">
+<form action="{{=URL(r=request,f='edit',args=filename)}}" method="post">
 <input type="submit" value="save"/><br/>
 <textarea style="width: 100%; height:400px" id="body" name="data">{{=XML(data)}}</textarea>
 

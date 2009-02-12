@@ -288,14 +288,18 @@ class DIV(object):
 
         # for input, textarea, select, option, deal with 'value' and 'validation'
 
+        name = self['_name']
         if newstatus:
             newstatus = self._validate()
             self._postprocessing()
         elif self.attributes.has_key('old_value'):
             self['value'] = self['old_value']
             self._postprocessing()
-        if self['_name']:
-            self.latest[self['_name']] = self['value']
+        elif name and self.vars.has_key(name):
+            self['value'] = self.vars[name]
+            self._postprocessing()
+        if name:
+            self.latest[name] = self['value']
         return newstatus
 
     def _validate(self):

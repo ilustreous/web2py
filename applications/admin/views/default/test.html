@@ -7,7 +7,7 @@
 <div id='output_{{=controller}}'><h2>Testing controller "{{=controller}}"... <blink>please wait!</blink></h2></div>
 
 <script><!--
-ajax('/{{=app}}/{{=controller[:-3]}}/_TEST',[],'output_{{=controller}}');
+ajax('{{=URL(a=app,c=controller[:-3],f='_TEST')}}',[],'output_{{=controller}}');
 //-></script>
 
 {{pass}}
