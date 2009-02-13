@@ -452,6 +452,7 @@ def appfactory(wsgiapp=wsgibase,
         else:
             import cProfile
             import pstats
+            logging.warn('profiler is on. this makes web2py slower and serial')
 
             locker.acquire()
             cProfile.runctx('ret[0] = wsgiapp(environ, responder2)',

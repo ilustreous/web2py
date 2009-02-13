@@ -13,9 +13,9 @@
 'db':'db',
 'design':'progetta',
 'done!':'fatto!',
-'invalid request':'richiesta invalida!'
-'new record inserted':'nuovo record inserito'
-'record does not exist':'il record non esiste'
+'invalid request':'richiesta invalida!',
+'new record inserted':'nuovo record inserito',
+'record does not exist':'il record non esiste',
 'state':'stato',
 'unable to parse csv file':'non so leggere questo csv file'
 }

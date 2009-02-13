@@ -73,7 +73,7 @@ except:
 try:
     import informixdb
     drivers.append('Informix')
-    logging.warning('Informx support is experimental')
+    logging.warning('Informix support is experimental')
 except:
     logging.debug('no informixdb driver')
 try:

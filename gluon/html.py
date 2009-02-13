@@ -106,12 +106,13 @@ def URL(
     r=None,
     args=[],
     vars={},
+    anchor='',
     ):
     """
     example:
 
-    >>> URL(a='a',c='c',f='f',args=['x','y','z'],vars={'p':1, 'q':2})
-    '/a/c/f/x/y/z?q=2&p=1'
+    >>> URL(a='a',c='c',f='f',args=['x','y','z'],vars={'p':1, 'q':2},anchor='1')
+    '/a/c/f/x/y/z#1?q=2&p=1'
 
     generates a url \"/a/c/f\" corresponding to application a, controller c 
     and function f. If r=request is passed, a,c,f are set, respectively,
@@ -144,6 +145,8 @@ def URL(
         args = [args]
     if args:
         other = urllib.quote('/' + '/'.join([str(x) for x in args]))
+    if anchor:
+        other += '#' + urllib.quote(str(anchor))
     if vars:
         other += '?%s' % urllib.urlencode(vars)
     url = '/%s/%s/%s%s' % (application, controller, function, other)
