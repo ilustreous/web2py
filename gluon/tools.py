@@ -546,6 +546,7 @@ class Auth(object):
             delete_label=self.settings.delete_label,
             )
         if FORM.accepts(form, request.vars, session,
+                        formname='login',
                         onvalidation=onvalidation):
 
             # ## BEGIN
@@ -641,7 +642,7 @@ class Auth(object):
                         _type="password",
                   requires=IS_EXPR('value==%s' % repr(request.vars.password))))
         key = str(uuid.uuid4())
-        if form.accepts(request.vars, session,
+        if form.accepts(request.vars, session, formname='register',
                         onvalidation=onvalidation):
             description = \
                 'group uniquely assigned to %(first_name)s %(last_name)s'\
@@ -751,6 +752,7 @@ class Auth(object):
             delete_label=self.settings.delete_label,
             )
         if FORM.accepts(form, request.vars, session,
+                        formname='retrieve_username',
                         onvalidation=onvalidation):
             users = self.db(user.email == form.vars.email).select()
             if not users:
@@ -811,6 +813,7 @@ class Auth(object):
             delete_label=self.settings.delete_label,
             )
         if FORM.accepts(form, request.vars, session,
+                        formname='retrieve_password',
                         onvalidation=onvalidation):
             users = self.db(user.email == form.vars.email).select()
             if not users:
@@ -880,6 +883,7 @@ class Auth(object):
                             requires=[IS_EXPR('value==%s'
                              % repr(pass1))]))
         if form.accepts(request.vars, session,
+                        formname='change_password',
                         onvalidation=onvalidation):
             s.update(password=form.vars.password)
             session.flash = self.messages.password_changed
@@ -931,6 +935,7 @@ class Auth(object):
             delete_label=self.settings.delete_label,
             )
         if form.accepts(request.vars, session,
+                        form_name='profile',
                         onvalidation=onvalidation):
             session.flash = self.messages.profile_updated
             log = self.settings.profile_log
