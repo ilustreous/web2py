@@ -14,6 +14,7 @@ import os
 import uuid
 import shutil
 import cStringIO
+import copy
 from html import *
 from validators import *
 from sql import SQLStorage, SQLDB
@@ -272,6 +273,7 @@ class SQLFORM(FORM):
         showid=True,
         readonly=False,
         comments=True,
+        keepopts=[],
         **attributes
         ):
         """
@@ -282,6 +284,8 @@ class SQLFORM(FORM):
                linkto=URL(r=request,f='table/db/')
         """
 
+        NOTAG=TAG['']
+        nbsp=XML('&nbsp;') # Firefox2 does not display fields with blanks
         FORM.__init__(self, *[], **attributes)
         if fields == None:
             if readonly:
@@ -302,6 +306,11 @@ class SQLFORM(FORM):
         self.record_id = None
         self.trows = {}
         xfields = []
+        self.fields=fields
+        self.custom=Storage()
+        self.custom.dspval=Storage()
+        self.custom.inpval=Storage()
+        self.custom.label=Storage()
         for fieldname in self.fields:
             if fieldname.find('.') >= 0:
                 continue
@@ -314,15 +323,18 @@ class SQLFORM(FORM):
                 label = labels[fieldname]
             else:
                 label = str(field.label) + ': '
+            self.custom.label[fieldname]=label
             field_id = '%s_%s' % (table._tablename, fieldname)
-            label = LABEL(label, _for=field_id, _id='%s__label'
-                           % field_id)
+            label = LABEL(label, _for=field_id, _id='%s__label' % field_id)
             row_id = field_id + '__row'
             if fieldname == 'id':
+                self.custom.dspval.id=nbsp
+                self.custom.inpval.id=''
                 if record:
                     if showid and 'id' in fields:
-                        xfields.append(TR(label, B(record['id']),
-                                comment, _id='id__row'))
+                        v=record['id']
+                        self.custom.dspval.id=str(v)
+                        xfields.append(TR(label, B(v), comment, _id='id__row'))
                     self.record_id = str(record['id'])
                 continue
             if record:
@@ -331,6 +343,8 @@ class SQLFORM(FORM):
                 default = field.default
             if not readonly and default:
                 default = field.formatter(default)
+            dspval=default
+            inpval=default
             if readonly:
 
                 # ## if field.represent is available else
@@ -351,15 +365,29 @@ class SQLFORM(FORM):
                 inp = self.widgets.upload.widget(field, default, upload)
             elif field.type == 'boolean':
                 inp = self.widgets.boolean.widget(field, default)
+                if default:
+                  inpval='checked'
+                  default='ON'
+                else:
+                  inpval=''
+                  default=''
             elif OptionsWidget.has_options(field):
                 if not field.requires.multiple:
                     inp = self.widgets.options.widget(field, default)
                 else:
                     inp = self.widgets.multiple.widget(field, default)
+                if fieldname in keepopts:
+                    inpval=NOTAG(*inp.components)
+                else:
+                    inpval=''
             elif field.type == 'text':
                 inp = self.widgets.text.widget(field, default)
             elif field.type == 'password':
                 inp = self.widgets.password.widget(field, default)
+                if self.record:
+                    dspval='********'
+                else:
+                    dspval=''
             elif field.type == 'blob':
                 continue
             else:
@@ -367,6 +395,8 @@ class SQLFORM(FORM):
             tr = self.trows[fieldname] = TR(label, inp, comment,
                     _id=row_id)
             xfields.append(tr)
+            self.custom.dspval[fieldname]=dspval or nbsp
+            self.custom.inpval[fieldname]=inpval or ''
         if record and linkto:
             if linkto:
                 for (rtable, rfield) in table._referenced_by:
@@ -403,7 +433,7 @@ class SQLFORM(FORM):
 
     def accepts(
         self,
-        vars,
+        request_vars,
         session=None,
         formname='%(tablename)s',
         keepvalues=False,
@@ -415,123 +445,120 @@ class SQLFORM(FORM):
 
         if formname:
             formname = formname % dict(tablename=self.table._tablename)
-        record_id = vars.get('id', None)
+        record_id = request_vars.get('id', None)
         if isinstance(record_id, (list, tuple)):
             record_id = record_id[0]
+
+        # ## THIS IS FOR UNIQUE RECORDS, read IS_NOT_IN_DB
+
+        for fieldname in self.fields:
+            field = self.table[fieldname]
+            requires = field.requires or []
+            if not isinstance(requires, (list, tuple)):
+                requires = [requires]
+            [item.set_self_id(self.record_id) for item in requires
+            if hasattr(item, 'set_self_id')]
+
+        # ## END
+
+        fields = {}
+        for key in self.vars.keys():
+            fields[key] = self.vars[key]
+        ret = FORM.accepts(
+            self,
+            request_vars,
+            session,
+            formname,
+            keepvalues,
+            onvalidation,
+            )
+        if not ret:
+            for fieldname in self.fields:
+                field = self.table[fieldname]
+                if hasattr(field, 'widget') and field.widget\
+                    and request_vars.has_key(fieldname):
+                    self.trows[fieldname][1][0].components = \
+                        [field.widget(field, request_vars[fieldname])]
+            return ret
+
         if record_id and record_id != self.record_id:
             raise SyntaxError, 'user is tampering with form'
-        raw_vars = dict(vars.items())
-        request_vars = vars
-        if vars.get('delete_this_record', False):
+
+        if request_vars.get('delete_this_record', False):
             self.table._db(self.table.id == self.record.id).delete()
             return True
+
+        for fieldname in self.fields:
+            if fieldname == 'id':
+                continue
+            if not self.table.has_key(fieldname):
+                continue
+            field = self.table[fieldname]
+            if field.type == 'boolean':
+                if self.vars.get(fieldname, False):
+                    fields[fieldname] = True
+                else:
+                    fields[fieldname] = False
+            elif field.type == 'password' and self.record\
+                and request_vars.get(fieldname, None) == '********':
+                continue  # do not update if password was not changed
+            elif field.type == 'upload':
+                f = self.vars[fieldname]
+                fd = fieldname + '__delete'
+                if not isinstance(f, (str, unicode)):
+                    try:
+                        e = re_extension.findall(f.filename.strip())[0]
+                    except IndexError:
+                        e = '.txt'
+                    source_file = f.file
+                else:
+                    e = '.txt'  # ## DO NOT KNOW WHY THIS HAPPENS!
+                    source_file = cStringIO.StringIO(f)
+                if f != '':
+                    newfilename = '%s.%s.%s%s'\
+                        % (self.table._tablename, fieldname,
+                           uuid.uuid4(), e)
+                    self.vars['%s_newfilename' % fieldname] = newfilename
+                    fields[fieldname] = newfilename
+                    if field.uploadfield == True:
+                        pathfilename = \
+                            os.path.join(self.table._db._folder,
+                                '../uploads/', newfilename)
+                        dest_file = open(pathfilename, 'wb')
+                        shutil.copyfileobj(source_file, dest_file)
+                        dest_file.close()
+                    elif field.uploadfield:
+                        fields[field.uploadfield] = source_file.read()
+                elif self.vars.get(fd, False) or not self.record:
+                    fields[fieldname] = ''
+                else:
+                    fields[fieldname] = self.record[fieldname]
+                continue
+            elif self.vars.has_key(fieldname):
+                fields[fieldname] = self.vars[fieldname]
+            elif field.default == None:
+                self.errors[fieldname] = 'no data'
+                return False
+            if field.type[:9] in ['integer', 'reference']:
+                if fields[fieldname] != None:
+                    fields[fieldname] = int(fields[fieldname])
+            elif field.type == 'double':
+                if fields[fieldname] != None:
+                    fields[fieldname] = float(fields[fieldname])
+        for fieldname in self.vars:
+            if fieldname != 'id' and fieldname in self.table.fields\
+                 and not fieldname in fields and not fieldname\
+                 in request_vars:
+                fields[fieldname] = self.vars[fieldname]
+        if record_id:
+            self.vars.id = self.record.id
+            if fields:
+                self.table._db(self.table.id==self.record.id).update(**fields)
+                ### should really be 
+                # self.table[record_id] = fields
+                ### but on mysql update seems to return none
         else:
-
-            # ## THIS IS FOR UNIQUE RECORDS, read IS_NOT_IN_DB
-
-            for fieldname in self.fields:
-                field = self.table[fieldname]
-                requires = field.requires or []
-                if not isinstance(requires, (list, tuple)):
-                    requires = [requires]
-                [item.set_self_id(self.record_id) for item in requires
-                 if hasattr(item, 'set_self_id')]
-
-            # ## END
-
-            fields = {}
-            for key in self.vars.keys():
-                fields[key] = self.vars[key]
-            ret = FORM.accepts(
-                self,
-                vars,
-                session,
-                formname,
-                keepvalues,
-                onvalidation,
-                )
-            if not ret:
-                for fieldname in self.fields:
-                    field = self.table[fieldname]
-                    if hasattr(field, 'widget') and field.widget\
-                         and vars.has_key(fieldname):
-                        self.trows[fieldname][1][0].components = \
-                            [field.widget(field, vars[fieldname])]
-                return ret
-            vars = self.vars
-            for fieldname in self.fields:
-                if fieldname == 'id':
-                    continue
-                if not self.table.has_key(fieldname):
-                    continue
-                field = self.table[fieldname]
-                if field.type == 'boolean':
-                    if vars.get(fieldname, False):
-                        fields[fieldname] = True
-                    else:
-                        fields[fieldname] = False
-                elif field.type == 'password' and self.record\
-                     and raw_vars.get(fieldname, None) == '********':
-                    continue  # do not update if password was not changed
-                elif field.type == 'upload':
-                    f = vars[fieldname]
-                    fd = fieldname + '__delete'
-                    if not isinstance(f, (str, unicode)):
-                        try:
-                            e = \
-                                re_extension.findall(f.filename.strip())[0]
-                        except IndexError:
-                            e = '.txt'
-                        source_file = f.file
-                    else:
-                        e = '.txt'  # ## DO NOT KNOW WHY THIS HAPPENS!
-                        source_file = cStringIO.StringIO(f)
-                    if f != '':
-                        newfilename = '%s.%s.%s%s'\
-                             % (self.table._tablename, fieldname,
-                                uuid.uuid4(), e)
-                        vars['%s_newfilename' % fieldname] = newfilename
-                        fields[fieldname] = newfilename
-                        if field.uploadfield == True:
-                            pathfilename = \
-                                os.path.join(self.table._db._folder,
-                                    '../uploads/', newfilename)
-                            dest_file = open(pathfilename, 'wb')
-                            shutil.copyfileobj(source_file, dest_file)
-                            dest_file.close()
-                        elif field.uploadfield:
-                            fields[field.uploadfield] = \
-                                source_file.read()
-                    elif vars.get(fd, False) or not self.record:
-                        fields[fieldname] = ''
-                    else:
-                        fields[fieldname] = self.record[fieldname]
-                    continue
-                elif vars.has_key(fieldname):
-                    fields[fieldname] = vars[fieldname]
-                elif field.default == None:
-                    self.errors[fieldname] = 'no data'
-                    return False
-                if field.type[:9] in ['integer', 'reference']:
-                    if fields[fieldname] != None:
-                        fields[fieldname] = int(fields[fieldname])
-                elif field.type == 'double':
-                    if fields[fieldname] != None:
-                        fields[fieldname] = float(fields[fieldname])
-            for fieldname in vars:
-                if fieldname != 'id' and fieldname in self.table.fields\
-                     and not fieldname in fields and not fieldname\
-                     in raw_vars:
-                    fields[fieldname] = vars[fieldname]
-            if record_id:
-                self.vars.id = self.record.id
-                if fields:
-                    self.table._db(self.table.id==self.record.id).update(**fields)
-                    ### should really be 
-                    # self.table[record_id] = fields
-                    ### but on mysql update seems to return none
-            else:
-                self.vars.id = self.table.insert(**fields)
+            self.vars.id = self.table.insert(**fields)
         return ret
 
 

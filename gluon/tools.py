@@ -936,7 +936,7 @@ class Auth(object):
             delete_label=self.settings.delete_label,
             )
         if form.accepts(request.vars, session,
-                        form_name='profile',
+                        formname='profile',
                         onvalidation=onvalidation):
             session.flash = self.messages.profile_updated
             log = self.settings.profile_log
