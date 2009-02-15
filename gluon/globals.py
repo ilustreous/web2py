@@ -28,6 +28,7 @@ import stat
 import uuid
 import datetime
 import re
+import logging
 
 regex_session_id = re.compile('^[\w\-]+$')
 

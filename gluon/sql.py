@@ -980,9 +980,9 @@ class SQLTable(dict):
             field._db = self._db
         self.ALL = SQLALL(self)
 
-    def _filter_fields(self, record):
+    def _filter_fields(self, record, id=False):
         return dict([(k, v) for (k, v) in record.items() if k
-                     in self.fields and k != 'id'])
+                     in self.fields and (id or k != 'id')])
 
     def __getitem__(self, key):
         if is_integer(key):
@@ -1299,15 +1299,17 @@ end;
         csvfile,
         id_map=None,
         null='<NULL>',
+        unique='uuid',
         ):
         """
         import records from csv file. Column headers must have same names as
         table fields. field 'id' is ignored. If column names read 'table.file'
         the 'table.' prefix is ignored.
+        'unique' argument is a field which must be unique (typically a uuid field)
         """
 
         reader = csv.reader(csvfile)
-        (colnames, fields) = (None, None)
+        colnames = None
         if isinstance(id_map, dict):
             if not id_map.has_key(self._tablename):
                 id_map[self._tablename] = {}
@@ -1334,7 +1336,17 @@ end;
                     cid = cid[0]
             else:
                 items = [fix(self[colnames[i]], line[i], id_map) for i in c]
-                new_id = self.insert(**dict(items))
+                if not unique or unique not in colnames:
+                    new_id = self.insert(**dict(items))
+                else:
+                    # Validation. Check for duplicate of 'unique' &, if present, update instead of insert.
+                    for i in c:
+                        if colnames[i]==unique:
+                            _unique=line[i]
+                    if self._db(self._db[self][unique]==_unique).count():
+                        self._db(self[unique]==_unique).update(**dict(items))
+                    else:
+                        new_id = self.insert(**dict(items))
                 if id_map and cid != []:
                     id_map_self[line[cid]] = new_id
 
@@ -1361,7 +1373,6 @@ end;
         self._db.commit()
         if self._dbt:
             logfile.write('success!\n')
-
 
 class SQLXorable(object):
 

@@ -475,33 +475,33 @@ GQLDB.Table = SQLTable  # ## needed in gluon/globals.py session.connect
 
 def obj_represent(obj, fieldtype, db):
     if obj != None:
-        if fieldtype == 'date' and not isinstance(obj, datetime.date):
-            (y, m, d) = [int(x) for x in str(obj).strip().split('-')]
-            obj = datetime.date(y, m, d)
-        elif fieldtype == 'time' and not isinstance(obj, datetime.time):
-            time_items = [int(x) for x in str(obj).strip().split(':'
-                          )[:3]]
-            if len(time_items) == 3:
-                (h, mi, s) = time_items
-            else:
-                (h, mi, s) = time_items + [0]
-            obj = datetime.time(h, mi, s)
-        elif fieldtype == 'datetime' and not isinstance(obj,
-                datetime.datetime):
-            (y, m, d) = [int(x) for x in str(obj)[:10].strip().split('-'
-                         )]
-            time_items = [int(x) for x in
-                          str(obj)[11:].strip().split(':')[:3]]
-            if len(time_items) == 3:
-                (h, mi, s) = time_items
-            else:
-                (h, mi, s) = time_items + [0]
-            obj = datetime.datetime(y, m, d, h, mi, s)
-        elif fieldtype == 'integer' and not isinstance(obj, long):
+        if fieldtype == 'date':
+            if not isinstance(obj, datetime.date):
+                (y, m, d) = [int(x) for x in str(obj).strip().split('-')]
+                obj = datetime.date(y, m, d)
+        elif fieldtype == 'time':
+            if not isinstance(obj, datetime.time):
+                time_items = [int(x) for x in str(obj).strip().split(':')[:3]]
+                if len(time_items) == 3:
+                    (h, mi, s) = time_items
+                else:
+                    (h, mi, s) = time_items + [0]
+                obj = datetime.time(h, mi, s)
+        elif fieldtype == 'datetime':
+            if not isinstance(obj, datetime.datetime):
+                (y, m, d) = [int(x) for x in str(obj)[:10].strip().split('-')]
+                time_items = [int(x) for x in
+                              str(obj)[11:].strip().split(':')[:3]]
+                if len(time_items) == 3:
+                    (h, mi, s) = time_items
+                else:
+                    (h, mi, s) = time_items + [0]
+                obj = datetime.datetime(y, m, d, h, mi, s)
+        elif fieldtype == 'integer':
             obj = long(obj)
-        elif fieldtype == 'double' and not isinstance(obj, double):
+        elif fieldtype == 'double':
             obj = float(obj)
-        elif fieldtype[:9] == 'reference' and not isinstance(obj, long):
+        elif fieldtype[:9] == 'reference':
             obj = long(obj)
         elif fieldtype == 'blob':
             pass

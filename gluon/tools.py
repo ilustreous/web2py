@@ -359,6 +359,7 @@ class Auth(object):
         self.messages.registration_succesful = 'Registration successful'
         self.messages.invalid_email = 'Invalid email'
         self.messages.invalid_login = 'Invalid login'
+        self.messages.mismatched_password = "Password fields don't match"
         self.messages.verify_email = \
             'Click on the link http://...verify_email/%(key)s to verify your email'
         self.messages.verify_email_subject = 'Password verify'
@@ -482,7 +483,7 @@ class Auth(object):
                 db.Field('client_ip',
                          default=self.environment.request.client),
                 db.Field('user_id', self.settings.table_user,
-                         default=0),
+                         default=None),
                 db.Field('origin', default='auth'),
                 db.Field('description', 'text', default=''),
                 )
@@ -640,7 +641,7 @@ class Auth(object):
         td.append(BR())
         td.append(INPUT(_name="password2",
                         _type="password",
-                  requires=IS_EXPR('value==%s' % repr(request.vars.password))))
+                  requires=IS_EXPR('value==%s' % repr(request.vars.password),error_message=self.messages.mismatched_password)))
         key = str(uuid.uuid4())
         if form.accepts(request.vars, session, formname='register',
                         onvalidation=onvalidation):
