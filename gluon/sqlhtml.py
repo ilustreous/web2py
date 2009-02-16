@@ -284,7 +284,6 @@ class SQLFORM(FORM):
                linkto=URL(r=request,f='table/db/')
         """
 
-        NOTAG=TAG['']
         nbsp=XML('&nbsp;') # Firefox2 does not display fields with blanks
         FORM.__init__(self, *[], **attributes)
         if fields == None:
@@ -367,17 +366,15 @@ class SQLFORM(FORM):
                 inp = self.widgets.boolean.widget(field, default)
                 if default:
                   inpval='checked'
-                  default='ON'
                 else:
                   inpval=''
-                  default=''
             elif OptionsWidget.has_options(field):
                 if not field.requires.multiple:
                     inp = self.widgets.options.widget(field, default)
                 else:
                     inp = self.widgets.multiple.widget(field, default)
                 if fieldname in keepopts:
-                    inpval=NOTAG(*inp.components)
+                    inpval=TAG[''](*inp.components)
                 else:
                     inpval=''
             elif field.type == 'text':
