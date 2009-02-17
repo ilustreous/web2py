@@ -77,8 +77,7 @@ Rejects a URL string if any of the following is true:
    * The string breaks any of the HTTP syntactic rules
    * The URL scheme specified (if one is specified) is not 'http' or 'https'
    * The top-level domain (if a host name is specified) does not exist
-
-Based on RFC 2616: http://www.faqs.org/rfcs/rfc2616.html
+(These rules are based on RFC 2616: http://www.faqs.org/rfcs/rfc2616.html)
 
 This function only checks the URL's syntax. It does not check that the URL points to a real document, 
 for example, or that it otherwise makes sense semantically. This function does automatically prepend
@@ -89,8 +88,7 @@ string if any of the following is true:
    * The string is empty or None
    * The string uses characters that are not allowed in a URL
    * The URL scheme specified (if one is specified) is not valid
-
-Based on RFC 2396: http://www.faqs.org/rfcs/rfc2396.html
+(These rules are based on RFC 2396: http://www.faqs.org/rfcs/rfc2396.html)
 
 The list of allowed schemes is customizable with the allowed_schemes parameter. If you exclude None from
 the list, then abbreviated URLs (lacking a scheme such as 'http') will be rejected.
@@ -99,13 +97,23 @@ The default prepended scheme is customizable with the prepend_scheme parameter. 
 to None then prepending will be disabled. URLs that require prepending to parse will still be accepted, 
 but the return value will not be modified.
 
-Examples:
+IS_URL is compatible with the Internationalized Domain Name (IDN) standard specified in RFC 3490
+(http://tools.ietf.org/html/rfc3490). As a result, URLs can be regular strings or unicode strings.
+If the URL's domain component (e.g. google.ca) contains non-US-ASCII letters, then the domain will
+be converted into Punycode (defined in RFC 3492, http://tools.ietf.org/html/rfc3492). IS_URL goes a 
+bit beyond the standards, and allows non-US-ASCII characters to be present in the path
+and query components of the URL as well. These non-US-ASCII characters will be escaped using the 
+standard '%20' type syntax. e.g. the unicode character with hex code 0x4e86 will become '%4e%86'
+
+Code Examples:
 
 INPUT(_type='text',_name='name',requires=IS_URL())
 INPUT(_type='text',_name='name',requires=IS_URL(mode='generic'))
 INPUT(_type='text',_name='name',requires=IS_URL(allowed_schemes=['https']))
 INPUT(_type='text',_name='name',requires=IS_URL(prepend_scheme='https'))
 INPUT(_type='text',_name='name',requires=IS_URL(mode='generic', allowed_schemes=['ftps', 'https'], prepend_scheme='https'))
+
+@author: Jonathan Benn
 
 </pre>
 
@@ -137,9 +145,7 @@ INPUT(_type='text',_name='name',requires=IS_URL(mode='generic', allowed_schemes=
         <span class="summary-sig-arg">mode</span>=<span class="summary-sig-default"><code class="variable-quote">'</code><code class="variable-string">http</code><code class="variable-quote">'</code></span>,
         <span class="summary-sig-arg">allowed_schemes</span>=<span class="summary-sig-default">None</span>,
         <span class="summary-sig-arg">prepend_scheme</span>=<span class="summary-sig-default"><code class="variable-quote">'</code><code class="variable-string">http</code><code class="variable-quote">'</code></span>)</span><br />
-      @param error_message a string, the error message to give the end user
-      if the URL does not validate @param allowed_schemes a list containing
-      strings or None.</td>
+      x.__init__(...) initializes x; see x.__class__.__doc__ for signature</td>
           <td align="right" valign="top">
             <span class="codelink"><a href="gluon.validators-pysrc.html#IS_URL.__init__">source&nbsp;code</a></span>
             
@@ -157,7 +163,9 @@ INPUT(_type='text',_name='name',requires=IS_URL(mode='generic', allowed_schemes=
         <tr>
           <td><span class="summary-sig"><a href="gluon.validators.IS_URL-class.html#__call__" class="summary-sig-name">__call__</a>(<span class="summary-sig-arg">self</span>,
         <span class="summary-sig-arg">value</span>)</span><br />
-      @param value a string, the URL to validate...</td>
+      Returns:
+      a (string, string) tuple, where tuple[0] is the modified input value 
+      and tuple[1] is either None (success!) or the string error_message.</td>
           <td align="right" valign="top">
             <span class="codelink"><a href="gluon.validators-pysrc.html#IS_URL.__call__">source&nbsp;code</a></span>
             
@@ -245,12 +253,18 @@ INPUT(_type='text',_name='name',requires=IS_URL(mode='generic', allowed_schemes=
     </td>
   </tr></table>
   
-  <p>@param error_message a string, the error message to give the end user 
-  if the URL does not validate @param allowed_schemes a list containing 
-  strings or None. Each element is a scheme the inputed URL is allowed to 
-  use @param prepend_scheme a string, this scheme is prepended if it's 
-  necessary to make the URL valid</p>
+  <p>x.__init__(...) initializes x; see x.__class__.__doc__ for 
+  signature</p>
   <dl class="fields">
+    <dt>Parameters:</dt>
+    <dd><ul class="nomargin-top">
+        <li><strong class="pname"><code>error_message</code></strong> - a string, the error message to give the end user if the URL does 
+          not validate</li>
+        <li><strong class="pname"><code>allowed_schemes</code></strong> - a list containing strings or None. Each element is a scheme the 
+          inputed URL is allowed to use</li>
+        <li><strong class="pname"><code>prepend_scheme</code></strong> - a string, this scheme is prepended if it's necessary to make the 
+          URL valid</li>
+    </ul></dd>
     <dt>Overrides:
         object.__init__
     </dt>
@@ -273,14 +287,19 @@ INPUT(_type='text',_name='name',requires=IS_URL(mode='generic', allowed_schemes=
     </td>
   </tr></table>
   
-  <pre class="literalblock">
-
-@param value a string, the URL to validate
-@return a tuple, where tuple[0] is the inputed value (possible prepended with prepend_scheme),
-        and tuple[1] is either None (success!) or the string error_message  
-
-</pre>
+  
   <dl class="fields">
+    <dt>Parameters:</dt>
+    <dd><ul class="nomargin-top">
+        <li><strong class="pname"><code>value</code></strong> - a unicode or regular string, the URL to validate</li>
+    </ul></dd>
+    <dt>Returns:</dt>
+        <dd>a (string, string) tuple, where tuple[0] is the modified input 
+          value and tuple[1] is either None (success!) or the string 
+          error_message. The input value will never be modified in the case
+          of an error. However, if there is success then the input URL may 
+          be modified to (1) prepend a scheme, and/or (2) convert a 
+          non-compliant unicode URL into a compliant US-ASCII version.</dd>
   </dl>
 </td></tr></table>
 </div>
@@ -316,7 +335,7 @@ INPUT(_type='text',_name='name',requires=IS_URL(mode='generic', allowed_schemes=
 <table border="0" cellpadding="0" cellspacing="0" width="100%%">
   <tr>
     <td align="left" class="footer">
-    Generated by Epydoc 3.0.1 on Mon Feb 16 23:26:29 2009
+    Generated by Epydoc 3.0.1 on Tue Feb 17 09:15:31 2009
     </td>
     <td align="right" class="footer">
       <a target="mainFrame" href="http://epydoc.sourceforge.net"

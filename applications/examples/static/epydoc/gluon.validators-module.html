@@ -206,6 +206,7 @@
    * The string breaks any of the HTTP syntactic rules
    * The URL scheme specified (if one is specified) is not 'http' or 'https'
    * The top-level domain (if a host name is specified) does not exist
+(These rules are based on RFC 2616: http://www.faqs.org/rfcs/rfc2616.html)
     </td>
   </tr>
 <tr>
@@ -307,10 +308,47 @@
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a href="gluon.validators-module.html#unescape_url" class="summary-sig-name" onclick="show_private();">unescape_url</a>(<span class="summary-sig-arg">url</span>)</span><br />
-      Unescapes characters in a URL string.</td>
+          <td><span class="summary-sig"><a href="gluon.validators-module.html#escape_unicode" class="summary-sig-name" onclick="show_private();">escape_unicode</a>(<span class="summary-sig-arg">string</span>)</span><br />
+      Converts a unicode string into US-ASCII, using a simple conversion 
+      scheme.</td>
           <td align="right" valign="top">
-            <span class="codelink"><a href="gluon.validators-pysrc.html#unescape_url">source&nbsp;code</a></span>
+            <span class="codelink"><a href="gluon.validators-pysrc.html#escape_unicode">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="gluon.validators-module.html#unicode_to_ascii_authority" class="summary-sig-name" onclick="show_private();">unicode_to_ascii_authority</a>(<span class="summary-sig-arg">authority</span>)</span><br />
+      Follows the steps in RFC 3490, Section 4 to convert a unicode 
+      authority string into its ASCII equivalent.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="gluon.validators-pysrc.html#unicode_to_ascii_authority">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="gluon.validators-module.html#unicode_to_ascii_url" class="summary-sig-name" onclick="show_private();">unicode_to_ascii_url</a>(<span class="summary-sig-arg">url</span>,
+        <span class="summary-sig-arg">prepend_scheme</span>)</span><br />
+      Converts the inputed unicode url into a US-ASCII equivalent.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="gluon.validators-pysrc.html#unicode_to_ascii_url">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -414,6 +452,13 @@
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
+        <a name="label_split_regex"></a><span class="summary-name">label_split_regex</span> = <code title="re.compile(r'[\.\u3002\uff0e\uff61]')">re.compile(r'<code class="re-group">[</code>\.\u3002\uff0e\uff61<code class="re-group">]</code>')</code>
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
         <a href="gluon.validators-module.html#official_top_level_domains" class="summary-name" onclick="show_private();">official_top_level_domains</a> = <code title="['ac',
  'ad',
  'ae',
@@ -452,25 +497,118 @@
   </td>
 </tr>
 </table>
-<a name="unescape_url"></a>
+<a name="escape_unicode"></a>
 <div class="private">
 <table class="details" border="1" cellpadding="3"
        cellspacing="0" width="100%" bgcolor="white">
 <tr><td>
   <table width="100%" cellpadding="0" cellspacing="0" border="0">
   <tr valign="top"><td>
-  <h3 class="epydoc"><span class="sig"><span class="sig-name">unescape_url</span>(<span class="sig-arg">url</span>)</span>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">escape_unicode</span>(<span class="sig-arg">string</span>)</span>
   </h3>
   </td><td align="right" valign="top"
-    ><span class="codelink"><a href="gluon.validators-pysrc.html#unescape_url">source&nbsp;code</a></span>&nbsp;
+    ><span class="codelink"><a href="gluon.validators-pysrc.html#escape_unicode">source&nbsp;code</a></span>&nbsp;
     </td>
   </tr></table>
   
-  <p>Unescapes characters in a URL string. e.g. &quot;%20&quot; will become
-  &quot; &quot;</p>
-  <p>@param url a string containing the url, or a part of the url, whose 
-  characters we wish to unescape @return the inputed string, but with any 
-  escaped characters made unescaped</p>
+  <p>Converts a unicode string into US-ASCII, using a simple conversion 
+  scheme. Each unicode character that does not have a US-ASCII equivalent 
+  is converted into a URL escaped form based on its hexadecimal value. For 
+  example, the unicode character '\u4e86' will become the string 
+  '%4e%86'</p>
+  <dl class="fields">
+    <dt>Parameters:</dt>
+    <dd><ul class="nomargin-top">
+        <li><strong class="pname"><code>string</code></strong> - unicode string, the unicode string to convert into an escaped 
+          US-ASCII form</li>
+    </ul></dd>
+    <dt>Returns:</dt>
+        <dd>string, the US-ASCII escaped form of the inputed string</dd>
+  </dl>
+<div class="fields">      <p><strong>Author:</strong>
+        Jonathan Benn
+      </p>
+</div></td></tr></table>
+</div>
+<a name="unicode_to_ascii_authority"></a>
+<div class="private">
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">unicode_to_ascii_authority</span>(<span class="sig-arg">authority</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="gluon.validators-pysrc.html#unicode_to_ascii_authority">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Follows the steps in RFC 3490, Section 4 to convert a unicode 
+  authority string into its ASCII equivalent. For example, 
+  u'www.Alliancefran&#231;aise.nu' will be converted into 
+  'www.xn--alliancefranaise-npb.nu'</p>
+  <dl class="fields">
+    <dt>Parameters:</dt>
+    <dd><ul class="nomargin-top">
+        <li><strong class="pname"><code>authority</code></strong> - unicode string, the URL authority component to convert, e.g. 
+          u'www.Alliancefran&#231;aise.nu'</li>
+    </ul></dd>
+    <dt>Returns:</dt>
+        <dd>string, the US-ASCII character equivalent to the inputed 
+          authority, e.g. 'www.xn--alliancefranaise-npb.nu'</dd>
+    <dt>Raises:</dt>
+    <dd><ul class="nomargin-top">
+        <li><code><strong class='fraise'>Exception</strong></code> - if the function is not able to convert the inputed authority</li>
+    </ul></dd>
+  </dl>
+<div class="fields">      <p><strong>Author:</strong>
+        Jonathan Benn
+      </p>
+</div></td></tr></table>
+</div>
+<a name="unicode_to_ascii_url"></a>
+<div class="private">
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">unicode_to_ascii_url</span>(<span class="sig-arg">url</span>,
+        <span class="sig-arg">prepend_scheme</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="gluon.validators-pysrc.html#unicode_to_ascii_url">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <pre class="literalblock">
+
+Converts the inputed unicode url into a US-ASCII equivalent. This function goes a little beyond 
+RFC 3490, which is limited in scope to the domain name (authority) only. Here, the functionality is expanded 
+to what was observed on Wikipedia on 2009-Jan-22:
+
+   Component    Can Use Unicode?
+   ---------    ----------------
+   scheme       No
+   authority    Yes
+   path         Yes
+   query        Yes
+   fragment     No
+   
+The authority component gets converted to punycode, but occurences of unicode in other components get 
+converted into a pair of URI escapes (we assume 4-byte unicode). E.g. the unicode character U+4E2D will be
+converted into '%4E%2D'. Testing with Firefox v3.0.5 has shown that it can understand this kind of
+URI encoding.
+
+@param url: unicode string, the URL to convert from unicode into US-ASCII
+@param prepend_scheme: string, a protocol scheme to prepend to the URL if we're having trouble parsing it.
+                       e.g. &quot;http&quot;. Input None to disable this functionality
+@return: string, a US-ASCII equivalent of the inputed url
+         
+@author: Jonathan Benn
+
+</pre>
   <dl class="fields">
   </dl>
 </td></tr></table>
@@ -668,7 +806,7 @@ re.compile(r'<code class="re-group">(</code><code class="re-group">(?P&lt;</code
 <table border="0" cellpadding="0" cellspacing="0" width="100%%">
   <tr>
     <td align="left" class="footer">
-    Generated by Epydoc 3.0.1 on Mon Feb 16 23:26:28 2009
+    Generated by Epydoc 3.0.1 on Tue Feb 17 09:15:29 2009
     </td>
     <td align="right" class="footer">
       <a target="mainFrame" href="http://epydoc.sourceforge.net"

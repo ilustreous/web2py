@@ -18,7 +18,9 @@ import time
 import cgi
 import hmac
 from hashlib import sha512
-
+import encodings.idna
+import urllib
+from cStringIO import StringIO
 from storage import Storage
 from gluon.utils import md5_hash
 
@@ -529,26 +531,6 @@ all_url_schemes = [None] + official_url_schemes + unofficial_url_schemes
 http_schemes = [None, 'http', 'https']
 
 
-def unescape_url(url):
-    """
-    Unescapes characters in a URL string. e.g. \"%20\" will become \" \" 
-    
-    @param url a string containing the url, or a part of the url, whose characters we wish to unescape
-    @return the inputed string, but with any escaped characters made unescaped
-    """
-
-    s = str(url)
-    index = 0
-    while True:
-        index = s.find('%', index)
-        if index == -1:
-            break
-        s = s.replace(s[index:index + 3], chr(eval('0x' + s[index
-                       + 1:index + 3])))
-
-    return s
-
-
 # This regex comes from RFC 2396, Appendix B. It's used to split a URL into its component parts
 # Here are the regex groups that it extracts:
 #    scheme = group(2)
@@ -560,6 +542,124 @@ def unescape_url(url):
 url_split_regex = \
     re.compile('^(([^:/?#]+):)?(//([^/?#]*))?([^?#]*)(\?([^#]*))?(#(.*))?'
                )
+
+#Defined in RFC 3490, Section 3.1, Requirement #1
+#Use this regex to split the authority component of a unicode URL into its component labels 
+label_split_regex = re.compile(u'[\u002e\u3002\uff0e\uff61]')
+
+
+def escape_unicode(string):
+    '''
+    Converts a unicode string into US-ASCII, using a simple conversion scheme. Each unicode character that
+    does not have a US-ASCII equivalent is converted into a URL escaped form based on its hexadecimal value.
+    For example, the unicode character '\u4e86' will become the string '%4e%86'
+    
+    @param string: unicode string, the unicode string to convert into an escaped US-ASCII form
+    @return: string, the US-ASCII escaped form of the inputed string 
+    
+    @author: Jonathan Benn
+    '''
+    returnValue = StringIO()
+    
+    for character in string:
+        code = ord(character)
+        if code > 0x7F:
+            hexCode = hex(code)
+            returnValue.write('%' + hexCode[2:4] + '%' + hexCode[4:6])
+        else:
+            returnValue.write(character)
+    
+    return returnValue.getvalue()
+
+
+def unicode_to_ascii_authority(authority):
+    '''
+    Follows the steps in RFC 3490, Section 4 to convert a unicode authority string into its ASCII equivalent.
+    For example, u'www.Alliancefran\xe7aise.nu' will be converted into 'www.xn--alliancefranaise-npb.nu'
+    
+    @param authority: unicode string, the URL authority component to convert,
+                      e.g. u'www.Alliancefran\xe7aise.nu'
+    @return: string, the US-ASCII character equivalent to the inputed authority,
+             e.g. 'www.xn--alliancefranaise-npb.nu'
+    @raise Exception: if the function is not able to convert the inputed authority
+    
+    @author: Jonathan Benn 
+    '''
+    #RFC 3490, Section 4, Step 1
+    #The encodings.idna Python module assumes that AllowUnassigned == True
+    
+    #RFC 3490, Section 4, Step 2
+    labels = label_split_regex.split(authority)
+
+    #RFC 3490, Section 4, Step 3
+    #The encodings.idna Python module assumes that UseSTD3ASCIIRules == False
+    
+    #RFC 3490, Section 4, Step 4
+    #We use the ToASCII operation because we are about to put the authority into an IDN-unaware slot
+    asciiLabels = []
+    for label in labels:
+        if label:
+            asciiLabels.append(encodings.idna.ToASCII(label))
+        else:
+            #encodings.idna.ToASCII does not accept an empty string, but it is necessary for us to
+            #allow for empty labels so that we don't modify the URL
+            asciiLabels.append('')
+    
+    #RFC 3490, Section 4, Step 5
+    return str(reduce(lambda x,y: x + unichr(0x002E) + y, asciiLabels))
+
+
+def unicode_to_ascii_url(url, prepend_scheme):
+    '''
+    Converts the inputed unicode url into a US-ASCII equivalent. This function goes a little beyond 
+    RFC 3490, which is limited in scope to the domain name (authority) only. Here, the functionality is expanded 
+    to what was observed on Wikipedia on 2009-Jan-22:
+    
+       Component    Can Use Unicode?
+       ---------    ----------------
+       scheme       No
+       authority    Yes
+       path         Yes
+       query        Yes
+       fragment     No
+       
+    The authority component gets converted to punycode, but occurences of unicode in other components get 
+    converted into a pair of URI escapes (we assume 4-byte unicode). E.g. the unicode character U+4E2D will be
+    converted into '%4E%2D'. Testing with Firefox v3.0.5 has shown that it can understand this kind of
+    URI encoding.
+    
+    @param url: unicode string, the URL to convert from unicode into US-ASCII
+    @param prepend_scheme: string, a protocol scheme to prepend to the URL if we're having trouble parsing it.
+                           e.g. "http". Input None to disable this functionality
+    @return: string, a US-ASCII equivalent of the inputed url
+             
+    @author: Jonathan Benn
+    '''
+    #convert the authority component of the URL into an ASCII punycode string, but encode the rest 
+    #using the regular URI character encoding 
+    
+    groups = url_split_regex.match(url).groups()
+    #If no authority was found
+    if not groups[3]:
+        #Try appending a scheme to see if that fixes the problem
+        scheme_to_prepend = prepend_scheme or 'http'
+        groups = url_split_regex.match(unicode(scheme_to_prepend) + u'://' + url).groups()
+    #if we still can't find the authority
+    if not groups[3]:
+        raise Exception('No authority component found, could not decode unicode to US-ASCII')
+    
+    #We're here if we found an authority, let's rebuild the URL
+    scheme = groups[1]
+    authority = groups[3]
+    path = groups[4] or ''
+    query = groups[5] or ''
+    fragment = groups[7] or ''
+    
+    if prepend_scheme:
+        scheme = str(scheme) + '://'
+    else:
+        scheme = ''
+    return scheme + unicode_to_ascii_authority(authority) + escape_unicode(path) + escape_unicode(query) + str(fragment)
 
 
 class IS_GENERIC_URL(object):
@@ -583,6 +683,8 @@ class IS_GENERIC_URL(object):
     The default prepended scheme is customizable with the prepend_scheme parameter. If you set prepend_scheme
     to None then prepending will be disabled. URLs that require prepending to parse will still be accepted, 
     but the return value will not be modified.
+    
+    @author: Jonathan Benn
     """
 
     def __init__(
@@ -592,9 +694,9 @@ class IS_GENERIC_URL(object):
         prepend_scheme=None,
         ):
         """
-        @param error_message a string, the error message to give the end user if the URL does not validate
-        @param allowed_schemes a list containing strings or None. Each element is a scheme the inputed URL is allowed to use   
-        @param prepend_scheme a string, this scheme is prepended if it's necessary to make the URL valid
+        @param error_message: a string, the error message to give the end user if the URL does not validate
+        @param allowed_schemes: a list containing strings or None. Each element is a scheme the inputed URL is allowed to use   
+        @param prepend_scheme: a string, this scheme is prepended if it's necessary to make the URL valid
         """
 
         self.error_message = error_message
@@ -612,9 +714,9 @@ class IS_GENERIC_URL(object):
 
     def __call__(self, value):
         """
-        @param value a string, the URL to validate
-        @return a tuple, where tuple[0] is the inputed value (possible prepended with prepend_scheme),
-                and tuple[1] is either None (success!) or the string error_message  
+        @param value: a string, the URL to validate
+        @return: a tuple, where tuple[0] is the inputed value (possible prepended with prepend_scheme),
+                 and tuple[1] is either None (success!) or the string error_message  
         """
 
         try:
@@ -636,7 +738,7 @@ class IS_GENERIC_URL(object):
                     # Clean up the scheme before we check it
 
                     if scheme != None:
-                        scheme = unescape_url(scheme).lower()
+                        scheme = urllib.unquote(scheme).lower()
 
                     # If the scheme really exists
 
@@ -994,6 +1096,8 @@ class IS_HTTP_URL(object):
     The default prepended scheme is customizable with the prepend_scheme parameter. If you set prepend_scheme
     to None then prepending will be disabled. URLs that require prepending to parse will still be accepted, 
     but the return value will not be modified.
+    
+    @author: Jonathan Benn
     """
 
     def __init__(
@@ -1003,9 +1107,9 @@ class IS_HTTP_URL(object):
         prepend_scheme='http',
         ):
         """
-        @param error_message a string, the error message to give the end user if the URL does not validate
-        @param allowed_schemes a list containing strings or None. Each element is a scheme the inputed URL is allowed to use   
-        @param prepend_scheme a string, this scheme is prepended if it's necessary to make the URL valid
+        @param error_message: a string, the error message to give the end user if the URL does not validate
+        @param allowed_schemes: a list containing strings or None. Each element is a scheme the inputed URL is allowed to use   
+        @param prepend_scheme: a string, this scheme is prepended if it's necessary to make the URL valid
         """
 
         self.error_message = error_message
@@ -1028,9 +1132,9 @@ class IS_HTTP_URL(object):
 
     def __call__(self, value):
         """
-        @param value a string, the URL to validate
-        @return a tuple, where tuple[0] is the inputed value (possible prepended with prepend_scheme),
-                and tuple[1] is either None (success!) or the string error_message  
+        @param value: a string, the URL to validate
+        @return: a tuple, where tuple[0] is the inputed value (possible prepended with prepend_scheme),
+                 and tuple[1] is either None (success!) or the string error_message
         """
 
         try:
@@ -1123,8 +1227,7 @@ class IS_URL(object):
        * The string breaks any of the HTTP syntactic rules
        * The URL scheme specified (if one is specified) is not 'http' or 'https'
        * The top-level domain (if a host name is specified) does not exist
-
-    Based on RFC 2616: http://www.faqs.org/rfcs/rfc2616.html
+    (These rules are based on RFC 2616: http://www.faqs.org/rfcs/rfc2616.html)
     
     This function only checks the URL's syntax. It does not check that the URL points to a real document, 
     for example, or that it otherwise makes sense semantically. This function does automatically prepend
@@ -1135,8 +1238,7 @@ class IS_URL(object):
        * The string is empty or None
        * The string uses characters that are not allowed in a URL
        * The URL scheme specified (if one is specified) is not valid
-
-    Based on RFC 2396: http://www.faqs.org/rfcs/rfc2396.html
+    (These rules are based on RFC 2396: http://www.faqs.org/rfcs/rfc2396.html)
     
     The list of allowed schemes is customizable with the allowed_schemes parameter. If you exclude None from
     the list, then abbreviated URLs (lacking a scheme such as 'http') will be rejected.
@@ -1145,13 +1247,23 @@ class IS_URL(object):
     to None then prepending will be disabled. URLs that require prepending to parse will still be accepted, 
     but the return value will not be modified.
     
-    Examples:
+    IS_URL is compatible with the Internationalized Domain Name (IDN) standard specified in RFC 3490
+    (http://tools.ietf.org/html/rfc3490). As a result, URLs can be regular strings or unicode strings.
+    If the URL's domain component (e.g. google.ca) contains non-US-ASCII letters, then the domain will
+    be converted into Punycode (defined in RFC 3492, http://tools.ietf.org/html/rfc3492). IS_URL goes a 
+    bit beyond the standards, and allows non-US-ASCII characters to be present in the path
+    and query components of the URL as well. These non-US-ASCII characters will be escaped using the 
+    standard '%20' type syntax. e.g. the unicode character with hex code 0x4e86 will become '%4e%86'
+    
+    Code Examples:
 
     INPUT(_type='text',_name='name',requires=IS_URL())
     INPUT(_type='text',_name='name',requires=IS_URL(mode='generic'))
     INPUT(_type='text',_name='name',requires=IS_URL(allowed_schemes=['https']))
     INPUT(_type='text',_name='name',requires=IS_URL(prepend_scheme='https'))
     INPUT(_type='text',_name='name',requires=IS_URL(mode='generic', allowed_schemes=['ftps', 'https'], prepend_scheme='https'))
+    
+    @author: Jonathan Benn
     """
 
     def __init__(
@@ -1162,9 +1274,9 @@ class IS_URL(object):
         prepend_scheme='http',
         ):
         """
-        @param error_message a string, the error message to give the end user if the URL does not validate
-        @param allowed_schemes a list containing strings or None. Each element is a scheme the inputed URL is allowed to use   
-        @param prepend_scheme a string, this scheme is prepended if it's necessary to make the URL valid
+        @param error_message: a string, the error message to give the end user if the URL does not validate
+        @param allowed_schemes: a list containing strings or None. Each element is a scheme the inputed URL is allowed to use   
+        @param prepend_scheme: a string, this scheme is prepended if it's necessary to make the URL valid
         """
 
         self.error_message = error_message
@@ -1184,9 +1296,11 @@ class IS_URL(object):
 
     def __call__(self, value):
         """
-        @param value a string, the URL to validate
-        @return a tuple, where tuple[0] is the inputed value (possible prepended with prepend_scheme),
-                and tuple[1] is either None (success!) or the string error_message  
+        @param value: a unicode or regular string, the URL to validate
+        @return: a (string, string) tuple, where tuple[0] is the modified input value and tuple[1] is either 
+                 None (success!) or the string error_message. The input value will never be modified in the case 
+                 of an error. However, if there is success then the input URL may be modified to (1) prepend a 
+                 scheme, and/or (2) convert a non-compliant unicode URL into a compliant US-ASCII version. 
         """
 
         try:
@@ -1200,7 +1314,23 @@ class IS_URL(object):
                                  + "' is not valid")
             else:
                 raise e
-        return subMethod(value)
+
+        if type(value) != unicode:
+            return subMethod(value)
+        else:
+            try:
+                asciiValue = unicode_to_ascii_url(value, self.prepend_scheme)
+            except Exception, e:
+                #If we are not able to convert the unicode url into a US-ASCII URL, then the URL is not valid
+                return (value, self.error_message)
+                
+            methodResult = subMethod(asciiValue)
+            #if the validation of the US-ASCII version of the value failed
+            if methodResult[1] != None:
+                # then return the original input value, not the US-ASCII version
+                return (value, methodResult[1])
+            else:
+                return methodResult
 
 
 regex_time = \
