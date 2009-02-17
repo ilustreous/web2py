@@ -431,20 +431,20 @@ class Auth(object):
                 db.Field('registration_key', writable=False,
                          readable=False),
                 )
-        table = self.settings.table_user
-        table.first_name.requires = IS_NOT_EMPTY()
-        table.last_name.requires = IS_NOT_EMPTY()
-        table.password.requires = CRYPT()
-        table.email.requires = [IS_EMAIL(), IS_NOT_IN_DB(db, '%s.email'
+            table = self.settings.table_user
+            table.first_name.requires = IS_NOT_EMPTY()
+            table.last_name.requires = IS_NOT_EMPTY()
+            table.password.requires = CRYPT()
+            table.email.requires = [IS_EMAIL(), IS_NOT_IN_DB(db, '%s.email'
                                  % self.settings.table_user._tablename)]
-        table.registration_key.default = ''
+            table.registration_key.default = ''
         if not self.settings.table_group:
             self.settings.table_group = \
                 db.define_table(self.settings.table_group_name,
                                 db.Field('role'), db.Field('description'
                                 , 'text'))
-        table = self.settings.table_group
-        table.role.requires = IS_NOT_IN_DB(db, '%s.role'
+            table = self.settings.table_group
+            table.role.requires = IS_NOT_IN_DB(db, '%s.role'
                  % self.settings.table_group._tablename)
         if not self.settings.table_membership:
             self.settings.table_membership = \
@@ -453,12 +453,12 @@ class Auth(object):
                                 self.settings.table_user),
                                 db.Field('group_id',
                                 self.settings.table_group))
-        table = self.settings.table_membership
-        table.user_id.requires = IS_IN_DB(db, '%s.id'
+            table = self.settings.table_membership
+            table.user_id.requires = IS_IN_DB(db, '%s.id'
                  % self.settings.table_user._tablename,
                 '%(id)s: %(first_name)s %(last_name)s\
 ')
-        table.group_id.requires = IS_IN_DB(db, '%s.id'
+            table.group_id.requires = IS_IN_DB(db, '%s.id'
                  % self.settings.table_group._tablename,
                 '%(id)s: %(role)s')
         if not self.settings.table_permission:
@@ -468,13 +468,13 @@ class Auth(object):
                                 default='default'),
                                 db.Field('table_name'),
                                 db.Field('record_id', 'integer'))
-        table = self.settings.table_permission
-        table.group_id.requires = IS_IN_DB(db, '%s.id'
+            table = self.settings.table_permission
+            table.group_id.requires = IS_IN_DB(db, '%s.id'
                  % self.settings.table_group._tablename,
                 '%(id)s: %(role)s')
-        table.name.requires = IS_NOT_EMPTY()
-        table.table_name.requires = IS_IN_SET(self.db.tables)
-        table.record_id.requires = IS_INT_IN_RANGE(0, 10 ** 9)
+            table.name.requires = IS_NOT_EMPTY()
+            table.table_name.requires = IS_IN_SET(self.db.tables)
+            table.record_id.requires = IS_INT_IN_RANGE(0, 10 ** 9)
         if not self.settings.table_event:
             self.settings.table_event = db.define_table(
                 self.settings.table_event_name,
@@ -487,13 +487,13 @@ class Auth(object):
                 db.Field('origin', default='auth'),
                 db.Field('description', 'text', default=''),
                 )
-        table = self.settings.table_event
-        table.user_id.requires = IS_IN_DB(db, '%s.id'
+            table = self.settings.table_event
+            table.user_id.requires = IS_IN_DB(db, '%s.id'
                  % self.settings.table_user._tablename,
                 '%(id)s: %(first_name)s %(last_name)s\
 ')
-        table.origin.requires = IS_NOT_EMPTY()
-        table.description.requires = IS_NOT_EMPTY()
+            table.origin.requires = IS_NOT_EMPTY()
+            table.description.requires = IS_NOT_EMPTY()
 
     def log_event(self, description, origin='auth'):
         """
@@ -505,7 +505,7 @@ class Auth(object):
         if self.is_logged_in():
             user_id = self.user.id
         else:
-            user_id = 0  # user unknown
+            user_id = None  # user unknown
         self.settings.table_event.insert(description=description,
                 origin=origin, user_id=user_id)
 
