@@ -29,6 +29,8 @@ regex_translate = re.compile(PY_STRING_LITERAL_RE, re.DOTALL)
 regex_language = \
     re.compile('^[a-zA-Z]{2}(\-[a-zA-Z]{2})?(\-[a-zA-Z]+)?$')
 
+def read_dict(filename):
+    return eval(open(filename, 'r').read().replace('\r\n','\n'))
 
 class lazyT(object):
 
@@ -99,7 +101,7 @@ class translator(object):
                         '%s.py' % language)
                 if os.path.exists(filename):
                     self.accepted_language = language
-                    self.t = eval(open(filename, 'r').read())
+                    self.t = read_dict(filename)
                     return
         self.t = None  # ## no langauge by default
 
@@ -116,8 +118,8 @@ def findT(application_path, language='en-us'):
 
     path = application_path
     try:
-        sentences = eval(open(os.path.join(path, 'languages', '%s.py'
-                          % language), 'r').read())
+        sentences = read_dict(os.path.join(path, 'languages', '%s.py' 
+                              % language))
     except:
         sentences = {}
     mp = os.path.join(path, 'models')
@@ -128,12 +130,14 @@ def findT(application_path, language='en-us'):
         data = open(file, 'r').read()
         items = regex_translate.findall(data)
         for item in items:
-            msg = eval(item)
-            if msg and not sentences.has_key(msg):
-                sentences[msg] = '*** %s' % msg
+            try:
+                msg = eval(item)
+                if msg and not sentences.has_key(msg):
+                    sentences[msg] = '*** %s' % msg
+            except:
+                pass
     keys = sorted(sentences)
-    file = open(os.path.join(path, 'languages', '%s.py' % language), 'w'
-                )
+    file = open(os.path.join(path, 'languages', '%s.py' % language), 'w')
     file.write('{\n')
     for key in keys:
         file.write('%s:%s,\n' % (repr(key), repr(str(sentences[key]))))

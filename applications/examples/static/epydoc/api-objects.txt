@@ -65,6 +65,7 @@ gluon.languages.regex_translate	gluon.languages-module.html#regex_translate
 gluon.languages.regex_language	gluon.languages-module.html#regex_language
 gluon.languages.findT	gluon.languages-module.html#findT
 gluon.languages.PY_STRING_LITERAL_RE	gluon.languages-module.html#PY_STRING_LITERAL_RE
+gluon.languages.read_dict	gluon.languages-module.html#read_dict
 gluon.languages.update_all_languages	gluon.languages-module.html#update_all_languages
 gluon.main	gluon.main-module.html
 gluon.main.build_environment	gluon.compileapp-module.html#build_environment

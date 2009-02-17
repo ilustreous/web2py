@@ -596,29 +596,29 @@ def edit_language():
     filename = '/'.join(request.args)
 
     # ## check if file is not there
-    strings = eval(open(apath(filename), 'r').read())
+    strings = eval(open(apath(filename), 'r').read().replace('\r\n','\n'))
     keys = sorted(strings.keys())
     rows = []
-    rows.append(TR(B(T('Original')), B(T('Translation'))))
+    rows.append(H2(T('Original/Translation')))
 
     for keyi in range(len(keys)):
         key = keys[keyi]
 
         if len(key) <= 40:
-            rows.append(TR(key + ' ',
-                           INPUT(_type='text',
+            rows.append(P(key,BR(),
+                          INPUT(_type='text',
                                  _name=str(keyi),
                                  value=strings[key],
-                                 _size=40)))
+                                 _size=70)))
         else:
-            rows.append(TR(key + ':',
+            rows.append(P(key,BR(),
                            TEXTAREA(_name=str(keyi),
                                     value=strings[key],
-                                    _cols=40,
+                                    _cols=70,
                                     _rows=5)))
 
-    rows.append(TR('', INPUT(_type='submit', _value='update')))
-    form = FORM(TABLE(*rows))
+    rows.append(INPUT(_type='submit', _value='update'))
+    form = FORM(*rows)
 
     if form.accepts(request.vars, keepvalues=True):
         # Start generating the language file data
