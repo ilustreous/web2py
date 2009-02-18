@@ -9,8 +9,7 @@ import os
 sys.path.append(os.path.realpath('../'))
 
 import unittest
-from validators import *
-import validators
+from validators import IS_URL, IS_HTTP_URL, IS_GENERIC_URL, unicode_to_ascii_authority
 
 # ##############################################################################
 
@@ -29,6 +28,8 @@ class TestIsUrl(unittest.TestCase):
                          None))
         self.assertEqual(x('unreal.blargg'), ('unreal.blargg',
                          'invalid url!'))
+        self.assertEqual(x('google..ca'), ('google..ca', 'invalid url!'))
+        self.assertEqual(x('google.ca..'), ('google.ca..', 'invalid url!'))
 
         # explicit use of 'http' mode
 
@@ -281,7 +282,7 @@ class TestIsUrl(unittest.TestCase):
 
 class TestIsGenericUrl(unittest.TestCase):
 
-    x = validators.IS_GENERIC_URL()
+    x = IS_GENERIC_URL()
 
     def testInvalidUrls(self):
         urlsToCheckA = []
@@ -390,7 +391,7 @@ class TestIsGenericUrl(unittest.TestCase):
 
         # Does not prepend if None type is not specified in allowed_scheme, because a scheme is required
 
-        y = validators.IS_GENERIC_URL(allowed_schemes=['http', 'blargg'
+        y = IS_GENERIC_URL(allowed_schemes=['http', 'blargg'
                 ], prepend_scheme='http')
         self.assertEqual(y('google.ca'), ('google.ca', 'invalid url!'))
 
@@ -400,7 +401,7 @@ class TestIsGenericUrl(unittest.TestCase):
 
 class TestIsHttpUrl(unittest.TestCase):
 
-    x = validators.IS_HTTP_URL()
+    x = IS_HTTP_URL()
 
     def testInvalidUrls(self):
         urlsToCheck = [
@@ -540,14 +541,14 @@ class TestIsHttpUrl(unittest.TestCase):
         self.assertEqual(self.x('https://google.ca'),
                          ('https://google.ca', None))  # does not prepend when scheme already exists
 
-        y = validators.IS_HTTP_URL(prepend_scheme='https')
+        y = IS_HTTP_URL(prepend_scheme='https')
         self.assertEqual(y('google.ca'), ('https://google.ca', None))  # prepends https if asked
 
-        z = validators.IS_HTTP_URL(prepend_scheme=None)
+        z = IS_HTTP_URL(prepend_scheme=None)
         self.assertEqual(z('google.ca:8080'), ('google.ca:8080', None))  # prepending disabled
 
         try:
-            validators.IS_HTTP_URL(prepend_scheme='mailto')
+            IS_HTTP_URL(prepend_scheme='mailto')
         except Exception, e:
             if str(e)\
                  != "prepend_scheme='mailto' is not in allowed_schemes=[None, 'http', 'https']":
@@ -557,14 +558,71 @@ class TestIsHttpUrl(unittest.TestCase):
 
         # Does not prepend if None type is not specified in allowed_scheme, because a scheme is required
 
-        a = validators.IS_HTTP_URL(allowed_schemes=['http'])
+        a = IS_HTTP_URL(allowed_schemes=['http'])
         self.assertEqual(a('google.ca'), ('google.ca', 'invalid url!'))
         self.assertEqual(a('google.ca:80'), ('google.ca:80',
                          'invalid url!'))
 
+class TestUnicode(unittest.TestCase):
+    x = IS_URL()
+    y = IS_URL(allowed_schemes=['https']) #excludes the option for abbreviated URLs with no scheme
+    z = IS_URL(prepend_scheme=None) # disables prepending the scheme in the return value
+    
+    
+    def testUnicodeToAsciiUrl(self):
+        self.assertEquals(unicode_to_ascii_authority(u'www.Alliancefran\xe7aise.nu'), 'www.xn--alliancefranaise-npb.nu')
+        self.assertEquals(unicode_to_ascii_authority(u'www.benn.ca'), 'www.benn.ca')
+        self.assertRaises(UnicodeError, unicode_to_ascii_authority, u'\u4e2d'*1000) #label is too long
+        
+        
+    def testValidUrls(self):
+        self.assertEquals(self.x(u'www.Alliancefrancaise.nu'), ('http://www.Alliancefrancaise.nu', None))
+        self.assertEquals(self.x(u'www.Alliancefran\xe7aise.nu'), ('http://www.xn--alliancefranaise-npb.nu', None))
+        self.assertEquals(self.x(u'www.Alliancefran\xe7aise.nu:8080'), ('http://www.xn--alliancefranaise-npb.nu:8080', None))
+        self.assertEquals(self.x(u'http://www.Alliancefran\xe7aise.nu'), ('http://www.xn--alliancefranaise-npb.nu', None))
+        self.assertEquals(self.x(u'http://www.Alliancefran\xe7aise.nu/parnaise/blue'), ('http://www.xn--alliancefranaise-npb.nu/parnaise/blue', None))
+        self.assertEquals(self.x(u'http://www.Alliancefran\xe7aise.nu/parnaise/blue#fragment'), ('http://www.xn--alliancefranaise-npb.nu/parnaise/blue#fragment', None))
+        self.assertEquals(self.x(u'http://www.Alliancefran\xe7aise.nu/parnaise/blue?query=value#fragment'), ('http://www.xn--alliancefranaise-npb.nu/parnaise/blue?query=value#fragment', None))
+        self.assertEquals(self.x(u'http://www.Alliancefran\xe7aise.nu:8080/parnaise/blue?query=value#fragment'), ('http://www.xn--alliancefranaise-npb.nu:8080/parnaise/blue?query=value#fragment', None))
+        self.assertEquals(self.x(u'www.Alliancefran\xe7aise.nu/parnaise/blue?query=value#fragment'), ('http://www.xn--alliancefranaise-npb.nu/parnaise/blue?query=value#fragment', None))
+        self.assertEquals(self.x(u'http://\u4e2d\u4fd4.com'), ('http://xn--fiq13b.com', None))
+        self.assertEquals(self.x(u'http://\u4e2d\u4fd4.com/\u4e86'), ('http://xn--fiq13b.com/%4e%86', None))
+        self.assertEquals(self.x(u'http://\u4e2d\u4fd4.com/\u4e86?query=\u4e86'), ('http://xn--fiq13b.com/%4e%86?query=%4e%86', None))
+        self.assertEquals(self.x(u'http://\u4e2d\u4fd4.com/\u4e86?query=\u4e86#fragment'), ('http://xn--fiq13b.com/%4e%86?query=%4e%86#fragment', None))
+        self.assertEquals(self.x(u'http://\u4e2d\u4fd4.com?query=\u4e86#fragment'), ('http://xn--fiq13b.com?query=%4e%86#fragment', None))
+        self.assertEquals(self.x(u'http://B\xfccher.ch'), ('http://xn--bcher-kva.ch', None))
+        self.assertEquals(self.x(u'http://\xe4\xf6\xfc\xdf.com'), ('http://xn--ss-uia6e4a.com', None))
+        self.assertEquals(self.x(u'http://visegr\xe1d.com'), ('http://xn--visegrd-mwa.com', None))
+        self.assertEquals(self.x(u'http://h\xe1zipatika.com'), ('http://xn--hzipatika-01a.com', None))
+        self.assertEquals(self.x(u'http://www.\xe7ukurova.com'), ('http://www.xn--ukurova-txa.com', None))
+        self.assertEquals(self.x(u'http://nixier\xf6hre.nixieclock-tube.com'), ('http://xn--nixierhre-57a.nixieclock-tube.com', None))
+        self.assertEquals(self.x(u'google.ca.'), ('http://google.ca.', None))
+        
+        self.assertEquals(self.y(u'https://google.ca'), ('https://google.ca', None))
+        self.assertEquals(self.y(u'https://\u4e2d\u4fd4.com'), ('https://xn--fiq13b.com', None))
+        
+        self.assertEquals(self.z(u'google.ca'), ('google.ca', None))
+        
+        
+    def testInvalidUrls(self):
+        self.assertEquals(self.x(u'://ABC.com'), (u'://ABC.com', 'invalid url!'))
+        self.assertEquals(self.x(u'http://\u4e2d\u4fd4.dne'), (u'http://\u4e2d\u4fd4.dne', 'invalid url!'))
+        self.assertEquals(self.x(u'https://google.dne'), (u'https://google.dne', 'invalid url!'))
+        self.assertEquals(self.x(u'https://google..ca'), (u'https://google..ca', 'invalid url!'))
+        self.assertEquals(self.x(u'google..ca'), (u'google..ca', 'invalid url!'))
+        self.assertEquals(self.x(u'http://' + u'\u4e2d'*1000 + u'.com'), (u'http://' + u'\u4e2d'*1000 + u'.com', 'invalid url!'))
+
+        self.assertEquals(self.x(u'http://google.com#fragment_\u4e86'), (u'http://google.com#fragment_\u4e86', 'invalid url!'))
+        self.assertEquals(self.x(u'http\u4e86://google.com'), (u'http\u4e86://google.com', 'invalid url!'))        
+        self.assertEquals(self.x(u'http\u4e86://google.com#fragment_\u4e86'), (u'http\u4e86://google.com#fragment_\u4e86', 'invalid url!'))
+        
+        self.assertEquals(self.y(u'http://\u4e2d\u4fd4.com/\u4e86'), (u'http://\u4e2d\u4fd4.com/\u4e86', 'invalid url!'))
+        self.assertEquals(self.y(u'google.ca'), (u'google.ca', 'invalid url!'))
+        
+        self.assertEquals(self.z(u'invalid.domain..com'), (u'invalid.domain..com', 'invalid url!'))
+        self.assertEquals(self.z(u'invalid.\u4e2d\u4fd4.blargg'), (u'invalid.\u4e2d\u4fd4.blargg', 'invalid url!'))
 
 # ##############################################################################
 
 if __name__ == '__main__':
     unittest.main()
-
