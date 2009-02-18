@@ -293,7 +293,8 @@ class Session(Storage):
     def secure(self):
         self._secure = True
 
-    def forget(self):
+    def forget(self, response=None):
+        self._unlock(response)
         self._forget = True
 
     def _try_store_in_db(self, request, response):
@@ -327,7 +328,7 @@ class Session(Storage):
         self._unlock(response)
 
     def _unlock(self, response):
-        if response.session_file:
+        if response and response.session_file:
             portalocker.unlock(response.session_file)
             del response.session_file
 

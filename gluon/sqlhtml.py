@@ -395,20 +395,19 @@ class SQLFORM(FORM):
             self.custom.dspval[fieldname]=dspval or nbsp
             self.custom.inpval[fieldname]=inpval or ''
         if record and linkto:
-            if linkto:
-                for (rtable, rfield) in table._referenced_by:
-                    query = urllib.quote(str(table._db[rtable][rfield]
-                             == record.id))
-                    lname = olname = '%s.%s' % (rtable, rfield)
-                    if fields and not olname in fields:
-                        continue
-                    if labels and labels.has_key(lname):
-                        lname = labels[lname]
-                    xfields.append(TR('', A(lname, _class='reference',
-                                   _href='%s/%s?query=%s' % (linkto,
-                                   rtable, query)), col3.get(olname, ''
-                                   ), _id='%s__row' % olname.replace('.'
-                                   , '__')))
+            for (rtable, rfield) in table._referenced_by:
+                query = urllib.quote(str(table._db[rtable][rfield]
+                         == record.id))
+                lname = olname = '%s.%s' % (rtable, rfield)
+                # if fields and not olname in fields:
+                #     continue
+                if labels and labels.has_key(lname):
+                    lname = labels[lname]
+                xfields.append(TR('', A(lname, _class='reference',
+                                  _href='%s/%s?query=%s' % (linkto,
+                                  rtable, query)), col3.get(olname, ''
+                                  ), _id='%s__row' % olname.replace('.'
+                                  , '__')))
         if record and deletable:
             xfields.append(TR(LABEL(delete_label, _for='delete_record',
                            _id='delete_record__label'),
