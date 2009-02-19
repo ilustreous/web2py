@@ -1869,7 +1869,7 @@ class SQLSet(object):
             key = self._db._uri + '/' + query
             r = cache_model(key, lambda : response(query), time_expire)
         if self._db._dbname == 'mssql' or self._db._dbname == 'mssql2':
-            r = r[attributes.get('limitby', (0, ))[0]:]
+            r = r[(attributes.get('limitby',None) or (0,))[0]:]
         return SQLRows(self._db, r, *self.colnames)
 
     def _count(self):

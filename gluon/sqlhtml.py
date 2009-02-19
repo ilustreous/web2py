@@ -286,6 +286,7 @@ class SQLFORM(FORM):
 
         nbsp=XML('&nbsp;') # Firefox2 does not display fields with blanks
         FORM.__init__(self, *[], **attributes)
+        ofields=fields
         if fields == None:
             if readonly:
                 fields = [f for f in table.fields if table[f].readable]
@@ -399,8 +400,8 @@ class SQLFORM(FORM):
                 query = urllib.quote(str(table._db[rtable][rfield]
                          == record.id))
                 lname = olname = '%s.%s' % (rtable, rfield)
-                # if fields and not olname in fields:
-                #     continue
+                if ofields and not olname in ofields:
+                     continue
                 if labels and labels.has_key(lname):
                     lname = labels[lname]
                 xfields.append(TR('', A(lname, _class='reference',
